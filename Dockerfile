@@ -71,7 +71,7 @@ EXPOSE 80 8000 8001
 # Variable used to choose if we are to use server, script or jupyter on execution
 # Default script
 # "script" | "server" | "jupyter"
-ENV MODE="script" 
+ENV MODE="server" 
 
 RUN dos2unix ${PROGRAM_PATH}/Docker/docker-entrypoint.sh 
 RUN chmod +x ${PROGRAM_PATH}/Docker/docker-entrypoint.sh 
