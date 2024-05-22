@@ -89,7 +89,8 @@ class OpenApiBrowser(object):
             print("replacing start URL in {} ".format(index_path))
         html = open(index_path).read()
         default_url = "http://petstore.swagger.io/v2/swagger.json"
-        new_url = "http://0.0.0.0:" + str(self.PORT) + "/" + basename(self.json_path)
+        # new_url = "http://0.0.0.0:" + str(self.PORT) + "/" + basename(self.json_path)
+        new_url = f"http://{self.HOST}:{self.PORT}/{basename(self.json_path)}"
         html1 = re.sub(default_url, new_url, html)
         print(len(html1))
 
