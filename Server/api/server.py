@@ -182,64 +182,7 @@ class S(BaseHTTPRequestHandler):
         else:
             message = f"RECEIVED PUT REQUEST WITH BAD CTYPE: {str(ctype)}"
 
-        self._set_response()
-        self.wfile.write(bytes(message, encoding="utf-8"))
-        parsed_path = urlparse(self.path)
-        parsed_data = self.transform_dict(parse_qs(parsed_path.query))
-        kwargs = None
-        ctype = self.headers.get("Content-Type")
-        message = "Unknown error"
-
-        logging.debug(f"Received PUT request with Content-Type: {ctype}")
-
-        if ctype == "multipart/form-data":
-            content_length = int(self.headers["Content-Length"])
-            file = self.rfile.read(content_length)
-            if file:
-                try:
-                    rmi, kwargs = self.query_parser(parsed_data, Put)
-                    if kwargs is None or rmi is None:
-                        message = "Function unavailable!"
-                    else:
-                        kwargs["file"] = file
-                        (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
-                except ValueError as e:
-                    message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
-                except KeyError as e:
-                    message = f"KeyError: {str(e)}"
-                except Exception as e:
-                    message = f"Unknown error: {str(e)}"
-            else:
-                message = "NO FILE PROVIDED!"
-        elif ctype in ["html/text", "json/application", "application/json", None]:
-            try:
-                content_length = int(self.headers["Content-Length"])
-                if content_length > 0:
-                    post_data = self.rfile.read(content_length)
-                    data = json.loads(post_data)
-                    logging.debug(f"POST data: {data}")
-
-                    file = data.get("file")
-                    if file:
-                        rmi, kwargs = self.query_parser(parsed_data, Put)
-                        if kwargs is None or rmi is None:
-                            message = "Function unavailable!"
-                        else:
-                            kwargs["file"] = file
-                            (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
-                    else:
-                        message = "NO FILE PROVIDED IN JSON!"
-                else:
-                    message = "EMPTY PAYLOAD!"
-            except json.JSONDecodeError as e:
-                message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
-            except KeyError as e:
-                message = f"KeyError: {str(e)}"
-            except Exception as e:
-                message = f"Unknown error: {str(e)}"
-        else:
-            message = f"RECEIVED PUT REQUEST WITH BAD CTYPE: {str(ctype)}"
-
+        logging.debug(f"Sending response: {message}")
         self._set_response()
         self.wfile.write(bytes(message, encoding="utf-8"))
 
