@@ -45,6 +45,8 @@ class S(BaseHTTPRequestHandler):
             logging.error("No function specified in parameters.")
             return None, None
         
+        # Extract only the function name without query parameters
+        function = function.split('?')[0]
         logging.debug(f"Function requested: {function}")
         
         out_rmi = rmi(client=self.make_client(), shared_variables=self.shared)
