@@ -1,8 +1,7 @@
-import base64
-import logging
 from typing import Tuple
 from api.api import Api
 from api.post import Post  # needed to call transform function
+
 """
 FloorplanToBlender3d
 Copyright (C) 2021 Daniel Westberg
@@ -11,27 +10,8 @@ Copyright (C) 2021 Daniel Westberg
 
 def create_file(ref, id, iformat, file):
     """Write incoming data to file"""
-    # file_path = ref.shared.parentPath + "/" + ref.shared.imagesPath + "/" + id + iformat
-    file_path = f"{ref.shared.parentPath}/{ref.shared.imagesPath}/{id}.{iformat}"
-    # open(file_path, "wb").write(file)
-    try:
-        # Decode the base64 string
-        if file.startswith("data:image/png;base64,"):
-            file = file.replace("data:image/png;base64,", "")
-        elif file.startswith("data:image/jpeg;base64,"):
-            file = file.replace("data:image/jpeg;base64,", "")
-
-        file_bytes = base64.b64decode(file)
-
-        with open(file_path, "wb") as f:
-            f.write(file_bytes)
-        logging.info(f"File successfully written to {file_path}")
-        return True, f"File successfully written to {file_path}"
-    except Exception as e:
-        logging.error(f"Failed to write file: {str(e)}")
-        return False, f"Failed to write file: {str(e)}"
-
-
+    file_path = ref.shared.parentPath + "/" + ref.shared.imagesPath + "/" + id + iformat
+    open(file_path, "wb").write(file)
 
 
 class Put(Api):
@@ -59,27 +39,24 @@ class Put(Api):
                 or iformat in self.shared.supported_stacking_formats
             ):
 
-                success, file_message = create_file(self, id, iformat, file)
-                if success:
-                    # Update saved file status
-                    index = self.shared.all_ids.index((id, hash, False))
-                    self.shared.all_ids[index] = (id, hash, True)
-                    message = "File uploaded!"
-                    # Trigger index update for GUI
-                    self.shared.reindex_files()
-                else:
-                    message = file_message
-                    status = False
+                create_file(self, id, iformat, file)
+
+                # update saved file status
+                index = self.shared.all_ids.index((id, hash, False))
+                self.shared.all_ids[index] = (id, hash, True)
+                message = "File uploaded!"
+
+                # trigger index update for gui!
+                self.shared.reindex_files()
             else:
                 message = "Image format not supported!"
                 status = False
         elif (id, hash, True) in self.shared.all_ids:
-            message = "File with the same name already exists!"
+            message = "File with same name already exist!"
             status = False
         else:
             message = "Wrong ID or HASH!"
             status = False
-        
         return message, status
 
     def createandtransform(
