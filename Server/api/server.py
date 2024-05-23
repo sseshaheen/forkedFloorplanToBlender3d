@@ -5,16 +5,10 @@ from urllib.parse import parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
-import logging
-import base64
-
 
 from api.post import Post
 from api.put import Put
 from api.get import Get
-
-logging.basicConfig(level=logging.DEBUG)
-
 
 """
 FloorplanToBlender3d
@@ -42,52 +36,36 @@ class S(BaseHTTPRequestHandler):
 
     def query_parser(self, params, rmi):
         """Takes query dict, creates kwargs for methods"""
-        function = params.get("func")
-        if not function:
-            logging.error("No function specified in parameters.")
-            return None, None
-        
-        # Extract only the function name without query parameters
-        function = function.split('?')[0]
-        logging.debug(f"Function requested: {function}")
-        
+        function = params["func"]
         out_rmi = rmi(client=self.make_client(), shared_variables=self.shared)
         try:
-            func_obj = getattr(out_rmi, function)
-            argc = func_obj.__code__.co_argcount
-            args = func_obj.__code__.co_varnames[:argc]
-        except AttributeError:
-            logging.error(f"Function {function} not found in {rmi.__name__}")
+            argc = getattr(out_rmi, function).__code__.co_argcount
+            args = getattr(out_rmi, function).__code__.co_varnames[:argc]
+        except Exception:  # Happens if we try to access bad functions!
             return None, None
 
         # Secure bad requests!
         if "__" in function or (argc == 0 and len(args) == 0):
-            logging.error(f"Function {function} is invalid.")
             return None, None
-        # # Generate set of correct variables!
-        # kwargs = dict()
-
-        # # If we want to use api_reference variables, these are ignored by swagger
-        # if "_api_ref" in args:
-        #     kwargs["_api_ref"] = self
-
-        # if "_data" in args:
-        #     kwargs["_data"] = params
-
-        # if "func" in params:
-        #     kwargs["func"] = params["func"]
-
-        # # Add relevant data!
-        # for parameter in params:
-        #     if parameter in args:
-        #         kwargs[parameter] = params[parameter]
 
         # Generate set of correct variables!
-        # Generate set of correct variables!
-        kwargs = {key: value for key, value in params.items() if key in args}
-        logging.debug(f"Function {function} will be called with arguments: {kwargs}")
-        return out_rmi, kwargs, function
+        kwargs = dict()
 
+        # If we want to use api_reference variables, these are ignored by swagger
+        if "_api_ref" in args:
+            kwargs["_api_ref"] = self
+
+        if "_data" in args:
+            kwargs["_data"] = params
+
+        if "func" in params:
+            kwargs["func"] = params["func"]
+
+        # Add relevant data!
+        for parameter in params:
+            if parameter in args:
+                kwargs[parameter] = params[parameter]
+        return out_rmi, kwargs
 
     def _set_response(self):
         self.send_response(200, "OK")
@@ -130,80 +108,62 @@ class S(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
         kwargs = None
-        ctype = self.headers.get("Content-Type")
-        message = "Unknown error"
-
-        logging.debug(f"Received PUT request with Content-Type: {ctype}")
-
+        ctype = self.headers["Content-Type"]
         if ctype == "multipart/form-data":
             content_length = int(self.headers["Content-Length"])
             file = self.rfile.read(content_length)
-            if file:
+            if file != None:
                 try:
-                    rmi, kwargs, function = self.query_parser(parsed_data, Put)
+                    rmi, kwargs = self.query_parser(parsed_data, Put)
                     if kwargs is None or rmi is None:
                         message = "Function unavailable!"
                     else:
                         kwargs["file"] = file
-                        del kwargs["func"]  # Remove 'func' from kwargs before calling the method
-                        (message, _) = getattr(rmi, function)(**kwargs)
+                        (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
                 except ValueError as e:
-                    message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
+                    message = "RECIEVED Put REQUEST WITH BAD DATA: " + str(e)
                 except KeyError as e:
-                    message = f"KeyError: {str(e)}"
+                    message = "KeyError : " + str(e)
                 except Exception as e:
-                    message = f"Unknown error: {str(e)}"
+                    message = "Unknown error : " + str(e)
             else:
                 message = "NO FILE PROVIDED!"
-        elif ctype in ["html/text", "json/application", "application/json", None]:
-            try:
-                content_length = int(self.headers["Content-Length"])
-                if content_length > 0:
-                    post_data = self.rfile.read(content_length)
-                    logging.debug(f"Raw POST data: {post_data}")
-
-                    data = json.loads(post_data)
-                    logging.debug(f"Decoded JSON data: {data}")
-
-                    file = data.get("file")
-                    if file:
-                        rmi, kwargs, function = self.query_parser(parsed_data, Put)
-                        if kwargs is None or rmi is None:
-                            message = "Function unavailable!"
-                        else:
-                            # Ensure file is a string before processing
-                            if isinstance(file, bytes):
-                                file = file.decode('utf-8')
-
-                            # Decode base64 string if it contains the header
-                            if file.startswith("data:image/png;base64,"):
-                                file = file.replace("data:image/png;base64,", "")
-                            elif file.startswith("data:image/jpeg;base64,"):
-                                file = file.replace("data:image/jpeg;base64,", "")
-
-                            file_bytes = base64.b64decode(file)
-                            kwargs["file"] = file_bytes
-                            del kwargs["func"]  # Remove 'func' from kwargs before calling the method
-                            message, _ = getattr(rmi, function)(**kwargs)
-                    else:
-                        message = "NO FILE PROVIDED IN JSON!"
-                else:
-                    message = "EMPTY PAYLOAD!"
-            except json.JSONDecodeError as e:
-                logging.error(f"JSONDecodeError: {e}")
-                message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
-            except KeyError as e:
-                logging.error(f"KeyError: {e}")
-                message = f"KeyError: {str(e)}"
-            except Exception as e:
-                logging.error(f"Unknown error: {e}")
-                message = f"Unknown error: {str(e)}"
+        elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
+            rmi, kwargs = self.query_parser(parsed_data, Put)
+            if kwargs is None or rmi is None:
+                message = "Function unavailable!"
+            else:
+                message = getattr(rmi, kwargs["func"])(**kwargs)
         else:
-            message = f"RECEIVED PUT REQUEST WITH BAD CTYPE: {str(ctype)}"
-
-        logging.debug(f"Sending response: {message}")
+            message = "RECIEVED PUT REQUEST WITH BAD CTYPE: " + str(ctype)
         self._set_response()
         self.wfile.write(bytes(message, encoding="utf-8"))
+
+    def do_POST(self):
+
+        if self.headers["Content-Length"]:
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+
+            kwargs = None
+            try:
+                if post_data == bytearray():
+                    parsed_data = urlparse(self.path)
+                    data = self.transform_dict(parse_qs(parsed_data.query))
+                else:
+                    data = json.loads(post_data.decode("utf-8"))
+
+                rmi, kwargs = self.query_parser(data, Post)
+                if kwargs is None or rmi is None:
+                    response = "Function unavailable!"
+                else:
+                    response = getattr(rmi, kwargs["func"])(**kwargs)
+            except ValueError as e:
+                response = "RECIEVED POST REQUEST WITH BAD JSON: " + str(e)
+                print(response)
+
+        self._set_response()
+        self.wfile.write(bytes(response, encoding="utf-8"))
 
 
 class Server(Thread):
