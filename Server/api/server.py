@@ -40,16 +40,24 @@ class S(BaseHTTPRequestHandler):
 
     def query_parser(self, params, rmi):
         """Takes query dict, creates kwargs for methods"""
-        function = params["func"]
+        function = params.get("func")
+        if not function:
+            logging.error("No function specified in parameters.")
+            return None, None
+        
+        logging.debug(f"Function requested: {function}")
+        
         out_rmi = rmi(client=self.make_client(), shared_variables=self.shared)
         try:
             argc = getattr(out_rmi, function).__code__.co_argcount
             args = getattr(out_rmi, function).__code__.co_varnames[:argc]
-        except Exception:  # Happens if we try to access bad functions!
+        except AttributeError:
+            logging.error(f"Function {function} not found in {rmi.__name__}")
             return None, None
 
         # Secure bad requests!
         if "__" in function or (argc == 0 and len(args) == 0):
+            logging.error(f"Function {function} is invalid.")
             return None, None
 
         # Generate set of correct variables!
