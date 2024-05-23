@@ -6,6 +6,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
 import logging
+import base64
+
 
 from api.post import Post
 from api.put import Put
