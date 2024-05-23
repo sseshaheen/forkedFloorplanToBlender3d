@@ -128,7 +128,7 @@ class S(BaseHTTPRequestHandler):
                     message = "Unknown error : " + str(e)
             else:
                 message = "NO FILE PROVIDED!"
-        elif ctype == "html/text" or ctype == "json/application" or ctype is None:
+        elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
             rmi, kwargs = self.query_parser(parsed_data, Put)
             if kwargs is None or rmi is None:
                 message = "Function unavailable!"
