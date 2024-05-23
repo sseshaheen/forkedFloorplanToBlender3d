@@ -53,8 +53,9 @@ class S(BaseHTTPRequestHandler):
         
         out_rmi = rmi(client=self.make_client(), shared_variables=self.shared)
         try:
-            argc = getattr(out_rmi, function).__code__.co_argcount
-            args = getattr(out_rmi, function).__code__.co_varnames[:argc]
+            func_obj = getattr(out_rmi, function)
+            argc = func_obj.__code__.co_argcount
+            args = func_obj.__code__.co_varnames[:argc]
         except AttributeError:
             logging.error(f"Function {function} not found in {rmi.__name__}")
             return None, None
@@ -63,25 +64,30 @@ class S(BaseHTTPRequestHandler):
         if "__" in function or (argc == 0 and len(args) == 0):
             logging.error(f"Function {function} is invalid.")
             return None, None
+        # # Generate set of correct variables!
+        # kwargs = dict()
+
+        # # If we want to use api_reference variables, these are ignored by swagger
+        # if "_api_ref" in args:
+        #     kwargs["_api_ref"] = self
+
+        # if "_data" in args:
+        #     kwargs["_data"] = params
+
+        # if "func" in params:
+        #     kwargs["func"] = params["func"]
+
+        # # Add relevant data!
+        # for parameter in params:
+        #     if parameter in args:
+        #         kwargs[parameter] = params[parameter]
 
         # Generate set of correct variables!
-        kwargs = dict()
+        kwargs = {key: value for key, value in params.items() if key in args}
 
-        # If we want to use api_reference variables, these are ignored by swagger
-        if "_api_ref" in args:
-            kwargs["_api_ref"] = self
-
-        if "_data" in args:
-            kwargs["_data"] = params
-
-        if "func" in params:
-            kwargs["func"] = params["func"]
-
-        # Add relevant data!
-        for parameter in params:
-            if parameter in args:
-                kwargs[parameter] = params[parameter]
+        logging.debug(f"Function {function} will be called with arguments: {kwargs}")
         return out_rmi, kwargs
+
 
     def _set_response(self):
         self.send_response(200, "OK")
