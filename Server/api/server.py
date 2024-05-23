@@ -139,21 +139,24 @@ class S(BaseHTTPRequestHandler):
         elif ctype in ["html/text", "json/application", "application/json", None]:
             try:
                 content_length = int(self.headers["Content-Length"])
-                post_data = self.rfile.read(content_length)
-                data = json.loads(post_data)
-                logging.debug(f"POST data: {data}")
+                if content_length > 0:
+                    post_data = self.rfile.read(content_length)
+                    data = json.loads(post_data)
+                    logging.debug(f"POST data: {data}")
 
-                file = data.get("file")
-                if file:
-                    rmi, kwargs = self.query_parser(parsed_data, Put)
-                    if kwargs is None or rmi is None:
-                        message = "Function unavailable!"
+                    file = data.get("file")
+                    if file:
+                        rmi, kwargs = self.query_parser(parsed_data, Put)
+                        if kwargs is None or rmi is None:
+                            message = "Function unavailable!"
+                        else:
+                            kwargs["file"] = file
+                            (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
                     else:
-                        kwargs["file"] = file
-                        (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
+                        message = "NO FILE PROVIDED IN JSON!"
                 else:
-                    message = "NO FILE PROVIDED IN JSON!"
-            except ValueError as e:
+                    message = "EMPTY PAYLOAD!"
+            except json.JSONDecodeError as e:
                 message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
             except KeyError as e:
                 message = f"KeyError: {str(e)}"
@@ -164,7 +167,6 @@ class S(BaseHTTPRequestHandler):
 
         self._set_response()
         self.wfile.write(bytes(message, encoding="utf-8"))
-
 
 
 class Server(Thread):
