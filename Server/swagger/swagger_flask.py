@@ -40,6 +40,7 @@ class Swagger:
 class CORSRequestHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
+        # self.send_header("Access-Control-Allow-*", "*")
         SimpleHTTPRequestHandler.end_headers(self)
 
 
@@ -140,9 +141,10 @@ class OpenApiBrowser(object):
 
         # set-up two processes to run in parallel, one for running a webserver,
         # the other for opening a webbrowser showing what the first is serving
-        address = (
-            "http://" + self.HOST + ":" + str(self.PORT)
-        )  # might not want to do this in docker!
+        # address = (
+        #     "http://" + self.HOST + ":" + str(self.PORT)
+        # )  # might not want to do this in docker!
+        address = f"http://{self.HOST}:{self.PORT}"
         p1 = self.run_webui_process(address, "./swagger/swagger-ui")
         time.sleep(0.5)
         p2 = self.open_webui(address)
