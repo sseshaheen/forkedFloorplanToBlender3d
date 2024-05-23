@@ -83,10 +83,10 @@ class S(BaseHTTPRequestHandler):
         #         kwargs[parameter] = params[parameter]
 
         # Generate set of correct variables!
+        # Generate set of correct variables!
         kwargs = {key: value for key, value in params.items() if key in args}
-
         logging.debug(f"Function {function} will be called with arguments: {kwargs}")
-        return out_rmi, kwargs
+        return out_rmi, kwargs, function
 
 
     def _set_response(self):
@@ -140,12 +140,13 @@ class S(BaseHTTPRequestHandler):
             file = self.rfile.read(content_length)
             if file:
                 try:
-                    rmi, kwargs = self.query_parser(parsed_data, Put)
+                    rmi, kwargs, function = self.query_parser(parsed_data, Put)
                     if kwargs is None or rmi is None:
                         message = "Function unavailable!"
                     else:
                         kwargs["file"] = file
-                        (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
+                        del kwargs["func"]  # Remove 'func' from kwargs before calling the method
+                        (message, _) = getattr(rmi, function)(**kwargs)
                 except ValueError as e:
                     message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
                 except KeyError as e:
@@ -166,7 +167,7 @@ class S(BaseHTTPRequestHandler):
 
                     file = data.get("file")
                     if file:
-                        rmi, kwargs = self.query_parser(parsed_data, Put)
+                        rmi, kwargs, function = self.query_parser(parsed_data, Put)
                         if kwargs is None or rmi is None:
                             message = "Function unavailable!"
                         else:
@@ -182,8 +183,8 @@ class S(BaseHTTPRequestHandler):
 
                             file_bytes = base64.b64decode(file)
                             kwargs["file"] = file_bytes
-
-                            message, _ = getattr(rmi, kwargs["func"])(**kwargs)
+                            del kwargs["func"]  # Remove 'func' from kwargs before calling the method
+                            message, _ = getattr(rmi, function)(**kwargs)
                     else:
                         message = "NO FILE PROVIDED IN JSON!"
                 else:
