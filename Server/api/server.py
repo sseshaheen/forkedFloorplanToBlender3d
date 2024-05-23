@@ -5,10 +5,14 @@ from urllib.parse import parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
+import logging
 
 from api.post import Post
 from api.put import Put
 from api.get import Get
+
+logging.basicConfig(level=logging.DEBUG)
+
 
 """
 FloorplanToBlender3d
@@ -108,11 +112,15 @@ class S(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
         kwargs = None
-        ctype = self.headers["Content-Type"]
+        ctype = self.headers.get("Content-Type")
+        message = "Unknown error"
+
+        logging.debug(f"Received PUT request with Content-Type: {ctype}")
+
         if ctype == "multipart/form-data":
             content_length = int(self.headers["Content-Length"])
             file = self.rfile.read(content_length)
-            if file != None:
+            if file:
                 try:
                     rmi, kwargs = self.query_parser(parsed_data, Put)
                     if kwargs is None or rmi is None:
@@ -121,49 +129,42 @@ class S(BaseHTTPRequestHandler):
                         kwargs["file"] = file
                         (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
                 except ValueError as e:
-                    message = "RECIEVED Put REQUEST WITH BAD DATA: " + str(e)
+                    message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
                 except KeyError as e:
-                    message = "KeyError : " + str(e)
+                    message = f"KeyError: {str(e)}"
                 except Exception as e:
-                    message = "Unknown error : " + str(e)
+                    message = f"Unknown error: {str(e)}"
             else:
                 message = "NO FILE PROVIDED!"
-        elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
-            rmi, kwargs = self.query_parser(parsed_data, Put)
-            if kwargs is None or rmi is None:
-                message = "Function unavailable!"
-            else:
-                message = getattr(rmi, kwargs["func"])(**kwargs)
+        elif ctype in ["html/text", "json/application", "application/json", None]:
+            try:
+                content_length = int(self.headers["Content-Length"])
+                post_data = self.rfile.read(content_length)
+                data = json.loads(post_data)
+                logging.debug(f"POST data: {data}")
+
+                file = data.get("file")
+                if file:
+                    rmi, kwargs = self.query_parser(parsed_data, Put)
+                    if kwargs is None or rmi is None:
+                        message = "Function unavailable!"
+                    else:
+                        kwargs["file"] = file
+                        (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
+                else:
+                    message = "NO FILE PROVIDED IN JSON!"
+            except ValueError as e:
+                message = f"RECEIVED PUT REQUEST WITH BAD DATA: {str(e)}"
+            except KeyError as e:
+                message = f"KeyError: {str(e)}"
+            except Exception as e:
+                message = f"Unknown error: {str(e)}"
         else:
-            message = "RECIEVED PUT REQUEST WITH BAD CTYPE: " + str(ctype)
+            message = f"RECEIVED PUT REQUEST WITH BAD CTYPE: {str(ctype)}"
+
         self._set_response()
         self.wfile.write(bytes(message, encoding="utf-8"))
 
-    def do_POST(self):
-
-        if self.headers["Content-Length"]:
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-
-            kwargs = None
-            try:
-                if post_data == bytearray():
-                    parsed_data = urlparse(self.path)
-                    data = self.transform_dict(parse_qs(parsed_data.query))
-                else:
-                    data = json.loads(post_data.decode("utf-8"))
-
-                rmi, kwargs = self.query_parser(data, Post)
-                if kwargs is None or rmi is None:
-                    response = "Function unavailable!"
-                else:
-                    response = getattr(rmi, kwargs["func"])(**kwargs)
-            except ValueError as e:
-                response = "RECIEVED POST REQUEST WITH BAD JSON: " + str(e)
-                print(response)
-
-        self._set_response()
-        self.wfile.write(bytes(response, encoding="utf-8"))
 
 
 class Server(Thread):
