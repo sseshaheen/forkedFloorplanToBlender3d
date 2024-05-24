@@ -19,6 +19,8 @@ firebase_admin.initialize_app(cred, {
     'storageBucket': 'dreamnestvr.appspot.com'
 })
 
+# Initialize Firestore
+db = firestore.client()
 
 """
 FloorplanToBlender3d
