@@ -107,8 +107,8 @@ class Put(Api):
             response["message"] += f" {transform_message}"
 
             # Define file paths
-            image_local_path = f"/home/apps/forkerFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
-            obj_local_path = f"/home/apps/forkerFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
+            image_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
+            obj_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             unique_id = str(uuid.uuid4())
 
