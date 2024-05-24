@@ -2,6 +2,7 @@ from shared_variables import shared_variables
 from api.api import Api
 from process.create import Create
 from file.file_handler import FileHandler
+import logging
 
 """
 FloorplanToBlender3d
@@ -33,15 +34,21 @@ class Post(Api):
 
     def remove(self, id: str, *args, **kwargs) -> str:
         """Remove all files linked to specified id."""
-        fs = FileHandler()
-        # This will remove all files related to id
-        for file in self.shared.all_files:
-            if id in file:
-                for f in self.shared.get_id_files(id):
-                    fs.remove(f)
-
-        self.shared.reindex_files()
-        return "Removed id!"
+        logging.info(f"Received remove request for id: {id}")
+        try:
+            fs = FileHandler()
+            # This will remove all files related to id
+            for file in self.shared.all_files:
+                if id in file:
+                    for f in self.shared.get_id_files(id):
+                        logging.info(f"Removing file: {f}")
+                        fs.remove(f)
+            self.shared.reindex_files()
+            logging.info(f"Successfully removed files for id: {id}")
+            return "Removed id!"
+        except Exception as e:
+            logging.error(f"Error removing files for id {id}: {e}")
+            return f"Error removing files for id {id}: {e}"
 
     def transform(self, func: str, id: str, oformat: str, *args, **kwargs) -> str:
         """Transform Image to 3dObject."""
