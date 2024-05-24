@@ -92,93 +92,52 @@ class Put(Api):
         userId: str,
         *args,
         **kwargs
-    # ) -> Dict[str, any]:
     ) -> Tuple[str, bool]:
         """
         Send image to server and start transform process
-        @Return a dictionary with response details
+        @Return List[ response, status]
         """
-        try:
-            print(f"Starting createandtransform with id: {id}, hash: {hash}, iformat: {iformat}, oformat: {oformat}, userId: {userId}")
+        (message, status) = self.create(id=id, hash=hash, iformat=iformat, file=file)
+        message += " "
+        if status:
+            message += Post(client=self.client, shared_variables=self.shared).transform(
+                func="transform", id=id, oformat=oformat
+            )
+            # The message so far is:
+            # "File uploaded! TransformProcess started! Query Process Status for more Information.""
+            # Define file paths
+            image_local_path = f"/home/apps/forkerFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
+            obj_local_path = f"/home/apps/forkerFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            unique_id = str(uuid.uuid4())
 
-            # Log the file size for troubleshooting
-            print(f"File size: {len(file)} bytes")
+            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}.{iformat}"
+            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.{iformat}.obj"
 
-            (message, status) = self.create(id=id, hash=hash, iformat=iformat, file=file)
-            print(f"Create function returned message: {message}, status: {status}")
+            # Upload files to Firebase
+            image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
+            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
-            response = {"message": message, "status": status, "success": status}
-        
-            if status:
-                transform_message = Post(client=self.client, shared_variables=self.shared).transform(
-                    func="transform", id=id, oformat=oformat
-                )
-                print(f"Transform function returned message: {transform_message}")
+            # Update message with the URLs
+            message += f"\nImage uploaded to: {image_url}"
+            message += f"\nOBJ uploaded to: {obj_url}"
 
-                response["message"] += f" {transform_message}"
 
-                # Define file paths
-                image_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
-                obj_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
-                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-                unique_id = str(uuid.uuid4())
+            # Add records to Firestore
+            dateTimeUploaded = datetime.now().isoformat()
 
-                image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
-                obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}{oformat}"
+            # Define the new records
+            image_record = {
+                "dateTimeUploaded": dateTimeUploaded,
+                "path": image_firebase_path,
+                "successConversionTo3d": True,
+                "url": image_url
+            }
+            obj_record = {
+                "dateTimeUploaded": dateTimeUploaded,
+                "path": obj_firebase_path,
+                "type": "obj",
+                "url": obj_url
+            }
 
-                print(f"Generated file paths: image_firebase_path={image_firebase_path}, obj_firebase_path={obj_firebase_path}")
-
-                try:
-                    # Upload files to Firebase
-                    image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
-                    obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
-
-                    print(f"Uploaded files to Firebase: image_url={image_url}, obj_url={obj_url}")
-
-                    # Add URLs to the response
-                    response["image_url"] = image_url
-                    response["obj_url"] = obj_url
-
-                    # Add records to Firestore
-                    dateTimeUploaded = datetime.now().isoformat()
-
-                    # Define the new records
-                    image_record = {
-                        "dateTimeUploaded": dateTimeUploaded,
-                        "path": image_firebase_path,
-                        "successConversionTo3d": True,
-                        "url": image_url
-                    }
-                    obj_record = {
-                        "dateTimeUploaded": dateTimeUploaded,
-                        "path": obj_firebase_path,
-                        "type": "obj",
-                        "url": obj_url
-                    }
-
-                    print(f"Image record: {image_record}")
-                    print(f"Object record: {obj_record}")
-
-                    # Reference to the user document
-                    user_ref = db.collection("user_floorplans").document(userId)
-
-                    # Update the user document
-                    user_ref.update({
-                        "images": firestore.ArrayUnion([image_record]),
-                        "objects": firestore.ArrayUnion([obj_record])
-                    })
-
-                    print("Firestore records updated successfully")
-
-                except Exception as e:
-                    error_message = f"Error uploading files: {str(e)}"
-                    print(error_message)
-                    response["message"] += f" {error_message}"
-                    response["status"] = False
-                    response["success"] = False
-
-            print(f"Final response: {response}")
-            return response, True
-        
-        except Exception as e:
-            return f"Error processing file: {str(e)}", False
+        return message, status
