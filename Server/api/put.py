@@ -134,43 +134,43 @@ class Put(Api):
             message += f"\nImage uploaded to: {image_url}"
 
             # Polling for the .obj file readiness
-            max_retries = 30  # Maximum number of retries
+            max_retries = 10  # Maximum number of retries
             retry_delay = 1  # Delay between retries in seconds
 
-            for _ in range(max_retries):
-                if self.check_process_status(id, oformat):
-                    obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
-                    message += f"\nOBJ uploaded to: {obj_url}"
+            # for _ in range(max_retries):
+            #     if self.check_process_status(id, oformat):
+            #         obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+            #         message += f"\nOBJ uploaded to: {obj_url}"
 
-                    # Add records to Firestore
-                    dateTimeUploaded = datetime.now().isoformat()
+            #         # Add records to Firestore
+            #         dateTimeUploaded = datetime.now().isoformat()
 
-                    # Define the new records
-                    image_record = {
-                        "dateTimeUploaded": dateTimeUploaded,
-                        "path": image_firebase_path,
-                        "successConversionTo3d": True,
-                        "url": image_url
-                    }
-                    obj_record = {
-                        "dateTimeUploaded": dateTimeUploaded,
-                        "path": obj_firebase_path,
-                        "type": "obj",
-                        "url": obj_url
-                    }
+            #         # Define the new records
+            #         image_record = {
+            #             "dateTimeUploaded": dateTimeUploaded,
+            #             "path": image_firebase_path,
+            #             "successConversionTo3d": True,
+            #             "url": image_url
+            #         }
+            #         obj_record = {
+            #             "dateTimeUploaded": dateTimeUploaded,
+            #             "path": obj_firebase_path,
+            #             "type": "obj",
+            #             "url": obj_url
+            #         }
 
-                    # Reference to the user document
-                    user_ref = db.collection("user_floorplans").document(userId)
+            #         # Reference to the user document
+            #         user_ref = db.collection("user_floorplans").document(userId)
 
-                    # Update the user document
-                    user_ref.update({
-                        "images": firestore.ArrayUnion([image_record]),
-                        "objects": firestore.ArrayUnion([obj_record])
-                    })
+            #         # Update the user document
+            #         user_ref.update({
+            #             "images": firestore.ArrayUnion([image_record]),
+            #             "objects": firestore.ArrayUnion([obj_record])
+            #         })
 
-                    return message, True
+            #         return message, True
 
-                time.sleep(retry_delay)
+            #     time.sleep(retry_delay)
 
             message += " OBJ file was not ready in time."
             return message, False
