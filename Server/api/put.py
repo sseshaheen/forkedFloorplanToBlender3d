@@ -6,6 +6,9 @@ from firebase_admin import credentials, storage, firestore
 import os
 import uuid
 from datetime import datetime
+import time
+import requests
+
 
 # Path to the downloaded service account key
 # TODO: verify incoming userId through appropriate authentcation received from the mobile app
@@ -81,6 +84,17 @@ class Put(Api):
         blob.make_public()  # Make the file public
         return blob.public_url
 
+    def check_process_status(self, id: str, oformat: str) -> bool:
+        baseUrl = "http://34.27.43.15:8000"
+        response = requests.get(f'{baseUrl}/?func=processes')
+        if response.status_code == 200:
+            processes = response.json()
+            for process in processes:
+                if process['out'] == f"{id}{oformat}" and process['state'] in [3, 4]:
+                    return True
+        return False
+
+
 
     def createandtransform(
         self,
@@ -95,6 +109,7 @@ class Put(Api):
     ) -> Tuple[str, bool]:
         """
         Send image to server and start transform process
+        @Return a tuple with a message and status
         @Return List[ response, status]
         """
         (message, status) = self.create(id=id, hash=hash, iformat=iformat, file=file)
@@ -104,40 +119,60 @@ class Put(Api):
                 func="transform", id=id, oformat=oformat
             )
             # The message so far is:
-            # "File uploaded! TransformProcess started! Query Process Status for more Information.""
+            # "File uploaded! TransformProcess started! Query Process Status for more Information."
             # Define file paths
             image_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
             obj_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             unique_id = str(uuid.uuid4())
 
-            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}.{iformat}"
-            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.{iformat}.obj"
+            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
+            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}{oformat}"
 
-            # Upload files to Firebase
+            # Upload image file to Firebase
             image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
-            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
-
-            # Update message with the URLs
             message += f"\nImage uploaded to: {image_url}"
-            message += f"\nOBJ uploaded to: {obj_url}"
 
+            # Polling for the .obj file readiness
+            max_retries = 30  # Maximum number of retries
+            retry_delay = 5  # Delay between retries in seconds
 
-            # Add records to Firestore
-            dateTimeUploaded = datetime.now().isoformat()
+            for _ in range(max_retries):
+                if self.check_process_status(id, oformat):
+                    obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+                    message += f"\nOBJ uploaded to: {obj_url}"
 
-            # Define the new records
-            image_record = {
-                "dateTimeUploaded": dateTimeUploaded,
-                "path": image_firebase_path,
-                "successConversionTo3d": True,
-                "url": image_url
-            }
-            obj_record = {
-                "dateTimeUploaded": dateTimeUploaded,
-                "path": obj_firebase_path,
-                "type": "obj",
-                "url": obj_url
-            }
+                    # Add records to Firestore
+                    dateTimeUploaded = datetime.now().isoformat()
+
+                    # Define the new records
+                    image_record = {
+                        "dateTimeUploaded": dateTimeUploaded,
+                        "path": image_firebase_path,
+                        "successConversionTo3d": True,
+                        "url": image_url
+                    }
+                    obj_record = {
+                        "dateTimeUploaded": dateTimeUploaded,
+                        "path": obj_firebase_path,
+                        "type": "obj",
+                        "url": obj_url
+                    }
+
+                    # Reference to the user document
+                    user_ref = db.collection("user_floorplans").document(userId)
+
+                    # Update the user document
+                    user_ref.update({
+                        "images": firestore.ArrayUnion([image_record]),
+                        "objects": firestore.ArrayUnion([obj_record])
+                    })
+
+                    return message, True
+
+                time.sleep(retry_delay)
+
+            message += " OBJ file was not ready in time."
+            return message, False
 
         return message, status
