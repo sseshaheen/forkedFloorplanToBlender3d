@@ -135,7 +135,7 @@ class Put(Api):
 
             # Polling for the .obj file readiness
             max_retries = 30  # Maximum number of retries
-            retry_delay = 5  # Delay between retries in seconds
+            retry_delay = 1  # Delay between retries in seconds
 
             for _ in range(max_retries):
                 if self.check_process_status(id, oformat):
