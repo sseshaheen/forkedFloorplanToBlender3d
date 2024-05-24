@@ -129,7 +129,7 @@ class S(BaseHTTPRequestHandler):
                         kwargs["file"] = file_content
                         (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
                 except Exception as e:
-                    message = f"Error processing file: {str(e)}"
+                    message = f"Error processing file {file_field.filename}: {str(e)}"
             else:
                 message = "NO FILE PROVIDED!"
         elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
