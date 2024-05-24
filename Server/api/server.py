@@ -1,3 +1,4 @@
+from cgi import FieldStorage
 from threading import Thread
 from functools import partial
 from urllib.parse import urlparse
@@ -108,24 +109,26 @@ class S(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
         kwargs = None
-        ctype = self.headers["Content-Type"]
-        if ctype == "multipart/form-data":
-            content_length = int(self.headers["Content-Length"])
-            file = self.rfile.read(content_length)
-            if file != None:
+        ctype, pdict = cgi.parse_header(self.headers['content-type'])
+
+        if ctype == 'multipart/form-data':
+            form = FieldStorage(
+                fp=self.rfile, 
+                headers=self.headers,
+                environ={'REQUEST_METHOD': 'PUT', 'CONTENT_TYPE': self.headers['Content-Type']}
+            )
+            file_field = form['file']
+            if file_field.filename:
+                file_content = file_field.file.read()
                 try:
                     rmi, kwargs = self.query_parser(parsed_data, Put)
                     if kwargs is None or rmi is None:
                         message = "Function unavailable!"
                     else:
-                        kwargs["file"] = file
+                        kwargs["file"] = file_content
                         (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
-                except ValueError as e:
-                    message = "RECIEVED Put REQUEST WITH BAD DATA: " + str(e)
-                except KeyError as e:
-                    message = "KeyError : " + str(e)
                 except Exception as e:
-                    message = "Unknown error : " + str(e)
+                    message = f"Error processing file: {str(e)}"
             else:
                 message = "NO FILE PROVIDED!"
         elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
@@ -135,9 +138,10 @@ class S(BaseHTTPRequestHandler):
             else:
                 message = getattr(rmi, kwargs["func"])(**kwargs)
         else:
-            message = "RECIEVED PUT REQUEST WITH BAD CTYPE: " + str(ctype)
+            message = f"Unsupported content type: {ctype}"
+
         self._set_response()
-        self.wfile.write(bytes(message, encoding="utf-8"))
+        self.wfile.write(bytes(message, encoding='utf-8'))
 
     def do_POST(self):
 
