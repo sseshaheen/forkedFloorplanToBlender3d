@@ -109,7 +109,6 @@ class Put(Api):
     ) -> Tuple[str, bool]:
         """
         Send image to server and start transform process
-        @Return a tuple with a message and status
         @Return List[ response, status]
         """
         (message, status) = self.create(id=id, hash=hash, iformat=iformat, file=file)
@@ -119,25 +118,30 @@ class Put(Api):
                 func="transform", id=id, oformat=oformat
             )
             # The message so far is:
-            # "File uploaded! TransformProcess started! Query Process Status for more Information."
+            # "File uploaded! TransformProcess started! Query Process Status for more Information.""
             # Define file paths
             image_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
+
             obj_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             unique_id = str(uuid.uuid4())
 
-            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
-            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}{oformat}"
+            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}.{iformat}"
+            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.{iformat}.obj"
 
-            # Upload image file to Firebase
+            # Upload files to Firebase
             image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
+            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+
+            # Update message with the URLs
             message += f"\nImage uploaded to: {image_url}"
 
-            # Polling for the .obj file readiness
-            max_retries = 30  # Maximum number of retries
-            base_delay = 2  # Base delay in seconds
 
-            for _ in range(max_retries):
+            
+            # Polling for the .obj file readiness with a fixed schedule
+            retries = [(3, "first"), (10, "second")]
+            for delay, check_time in retries:
+                time.sleep(delay)
                 if self.check_process_status(id, oformat):
                     obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
                     message += f"\nOBJ uploaded to: {obj_url}"
@@ -169,11 +173,11 @@ class Put(Api):
                     })
 
                     return message, True
-                # Exponential backoff delay
-                delay = base_delay * (2 ** attempt)
-                time.sleep(delay)
+                else:
+                    message += f"\n{check_time.capitalize()} check after {delay} seconds: OBJ file is still processing."
 
             message += " OBJ file was not ready in time."
             return message, False
 
         return message, status
+
