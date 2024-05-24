@@ -136,7 +136,7 @@ class Put(Api):
             # obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
             # Update message with the URLs
-            message += f"\nImage uploaded to: {image_url}"
+            # message += f"\nImage uploaded to: {image_url}"
 
 
             
