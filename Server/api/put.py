@@ -1,14 +1,16 @@
-from typing import Tuple
+from typing import Tuple, Dict
 from api.api import Api
 from api.post import Post  # needed to call transform function
 import firebase_admin
-from firebase_admin import credentials, storage
+from firebase_admin import credentials, storage, firestore
 import os
 import uuid
 from datetime import datetime
 
 # Path to the downloaded service account key
 # TODO: verify incoming userId through appropriate authentcation received from the mobile app
+# change the file from public to private in "upload_file_to_firebase"
+# TODO: delete old files after certain interval so as not to fill up the server disk
 cred = credentials.Certificate("/home/apps/credentials/dreamnestvr-firebase-adminsdk-j4uqg-f108fd7a39.json")
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'dreamnestvr.appspot.com'
@@ -121,10 +123,36 @@ class Put(Api):
                 # Add URLs to the response
                 response["image_url"] = image_url
                 response["obj_url"] = obj_url
+
+                # Add records to Firestore
+                dateTimeUploaded = datetime.now().isoformat()
+
+                # Define the new records
+                image_record = {
+                    "dateTimeUploaded": dateTimeUploaded,
+                    "path": image_firebase_path,
+                    "successConversionTo3d": True,
+                    "url": image_url
+                }
+                obj_record = {
+                    "dateTimeUploaded": dateTimeUploaded,
+                    "path": obj_firebase_path,
+                    "type": "obj",
+                    "url": obj_url
+                }
+
+                # Reference to the user document
+                user_ref = db.collection("user_floorplans").document(userId)
+
+                # Update the user document
+                user_ref.update({
+                    "images": firestore.ArrayUnion([image_record]),
+                    "objects": firestore.ArrayUnion([obj_record])
+                })
+
             except Exception as e:
                 response["message"] += f" Error uploading files: {str(e)}"
                 response["status"] = False
                 response["success"] = False
 
         return response
-
