@@ -97,13 +97,22 @@ class Put(Api):
         Send image to server and start transform process
         @Return a dictionary with response details
         """
+        print(f"Starting createandtransform with id: {id}, hash: {hash}, iformat: {iformat}, oformat: {oformat}, userId: {userId}")
+
+        # Log the file size for troubleshooting
+        print(f"File size: {len(file)} bytes")
+
         (message, status) = self.create(id=id, hash=hash, iformat=iformat, file=file)
+        print(f"Create function returned message: {message}, status: {status}")
+
         response = {"message": message, "status": status, "success": status}
-        
+
         if status:
             transform_message = Post(client=self.client, shared_variables=self.shared).transform(
                 func="transform", id=id, oformat=oformat
             )
+            print(f"Transform function returned message: {transform_message}")
+
             response["message"] += f" {transform_message}"
 
             # Define file paths
@@ -113,12 +122,16 @@ class Put(Api):
             unique_id = str(uuid.uuid4())
 
             image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
-            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.obj"
+            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}{oformat}"
+
+            print(f"Generated file paths: image_firebase_path={image_firebase_path}, obj_firebase_path={obj_firebase_path}")
 
             try:
                 # Upload files to Firebase
                 image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
                 obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+
+                print(f"Uploaded files to Firebase: image_url={image_url}, obj_url={obj_url}")
 
                 # Add URLs to the response
                 response["image_url"] = image_url
@@ -141,6 +154,9 @@ class Put(Api):
                     "url": obj_url
                 }
 
+                print(f"Image record: {image_record}")
+                print(f"Object record: {obj_record}")
+
                 # Reference to the user document
                 user_ref = db.collection("user_floorplans").document(userId)
 
@@ -150,9 +166,14 @@ class Put(Api):
                     "objects": firestore.ArrayUnion([obj_record])
                 })
 
+                print("Firestore records updated successfully")
+
             except Exception as e:
-                response["message"] += f" Error uploading files: {str(e)}"
+                error_message = f"Error uploading files: {str(e)}"
+                print(error_message)
+                response["message"] += f" {error_message}"
                 response["status"] = False
                 response["success"] = False
 
+        print(f"Final response: {response}")
         return response
