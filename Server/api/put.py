@@ -138,7 +138,7 @@ class Put(Api):
 
 
             
-            message += f"\nOBJ uploaded to: {obj_url}"
+            # message += f"\nOBJ uploaded to: {obj_url}"
 
 
             # Add records to Firestore
