@@ -1,3 +1,4 @@
+import cgi
 from cgi import FieldStorage
 from threading import Thread
 from functools import partial
@@ -109,7 +110,7 @@ class S(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
         kwargs = None
-        ctype, pdict = cgi.parse_header(self.headers['content-type'])
+        ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
 
         if ctype == 'multipart/form-data':
             form = FieldStorage(
