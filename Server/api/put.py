@@ -128,8 +128,8 @@ class Put(Api):
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             unique_id = str(uuid.uuid4())
 
-            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}.{iformat}"
-            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.{iformat}.obj"
+            image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
+            obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.{iformat}{oformat}"
 
             # Upload files to Firebase
             image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
