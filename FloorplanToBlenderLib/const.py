@@ -157,7 +157,8 @@ FEATURES = "FEATURES"
 # CONFIG values
 # These values will be set in config file if config.ini is removed!
 DEFAULT_CALIBRATION_IMAGE_PATH = "Images/Calibrations/wallcalibration.png"
-DEFAULT_IMAGE_PATH = "Images/Examples/example.png"
+# DEFAULT_IMAGE_PATH = "Images/Examples/example.png"
+DEFAULT_IMAGE_PATH = "Images/Examples/compressed-uploadedFloorplans_Oq37pxGdFPYnvWbOL94ttbIFqD23_e6dea60b-30b8-4627-8aeb-c5e690b1999c-20240524-163742"
 DEFAULT_OUT_FORMAT = ".blend"
 DEFAULT_OVERWRITE_DATA = "False"
 MAC_DEFAULT_BLENDER_INSTALL_PATH = "/Applications/Blender.app/Contents/MacOS/Blender"
