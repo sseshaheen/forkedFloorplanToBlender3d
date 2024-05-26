@@ -138,7 +138,7 @@ class Put(Api):
 
             message += f"\nimage id::{id}::"
             message += f"\nOBJ filename::{id}{oformat}::"
-            message += f"\nOBJ uploaded to: {obj_url}"
+
 
             # Add records to Firestore
             dateTimeUploaded = datetime.now().isoformat()
@@ -159,6 +159,7 @@ class Put(Api):
             time.sleep(wait_interval)
             obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
+            message += f"\nOBJ uploaded to: {obj_url}"
             obj_record = {
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": obj_firebase_path,
