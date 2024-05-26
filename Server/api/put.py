@@ -132,7 +132,6 @@ class Put(Api):
 
             # Upload files to Firebase
             image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
-            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
             # Update message with the URLs
             message += f"\nImage uploaded to: {image_url}"
@@ -151,6 +150,15 @@ class Put(Api):
                 "successConversionTo3d": True,
                 "url": image_url
             }
+
+            # Wait for the OBJ file to be created
+            # TODO: implement proper polling or retries, maybe using a separate endpoint or cron
+            # max_wait_time = 300  # maximum wait time in seconds
+            wait_interval = 10  # wait interval in seconds
+            # waited_time = 0
+            time.sleep(wait_interval)
+            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+
             obj_record = {
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": obj_firebase_path,
