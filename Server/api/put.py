@@ -120,24 +120,10 @@ class Put(Api):
                 func="transform", id=id, oformat=oformat
             )
             # The message so far is:
-            # "File uploaded! TransformProcess started! Query Process Status for more Information."
+            # "File uploaded! TransformProcess started! Query Process Status for more Information.""
             # Define file paths
             image_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/images/{id}{iformat}"
             obj_local_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/objects/{id}{oformat}"
-
-            # Wait for the OBJ file to be created
-            max_wait_time = 300  # maximum wait time in seconds
-            wait_interval = 5  # wait interval in seconds
-            waited_time = 0
-
-            while not self.check_process_status(id, oformat):
-                if waited_time >= max_wait_time:
-                    message += " OBJ file creation timed out."
-                    return message, False
-                time.sleep(wait_interval)
-                waited_time += wait_interval
-
-            # Generate unique paths for Firebase
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             unique_id = str(uuid.uuid4())
 
@@ -150,6 +136,9 @@ class Put(Api):
 
             # Update message with the URLs
             message += f"\nImage uploaded to: {image_url}"
+
+            message += f"\nimage id::{id}::"
+            message += f"\nOBJ filename::{id}{oformat}::"
             message += f"\nOBJ uploaded to: {obj_url}"
 
             # Add records to Firestore
