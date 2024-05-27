@@ -27,7 +27,7 @@ def save_debug_image(filename, img):
     Save an image to the debug directory if DEBUG_MODE is enabled.
     """
     if DEBUG_MODE:
-        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        filepath = (DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
             logger.debug(f'Saved debug image: {filepath}')
