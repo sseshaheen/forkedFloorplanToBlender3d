@@ -15,10 +15,10 @@ def generate_random_string(length=6):
     return ''.join(random.choices(string.ascii_letters, k=length))
 
 # Set debug mode (True for debug mode, False for normal mode)
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 # Set logging verbosity (True for detailed logging, False for concise logging)
-LOGGING_VERBOSE = False
+LOGGING_VERBOSE = True
 
 # Generate a unique identifier for the debug session
 DEBUG_SESSION_ID = generate_random_string()
