@@ -1,3 +1,4 @@
+from datetime import datetime 
 """
 FloorplanToBlender3d
 Copyright (C) 2021 Daniel Westberg
@@ -31,6 +32,8 @@ class Process(threading.Thread):
         self.process["comments"] = []
         self.process["state"] = 0
         self.process["cstate"] = 0
+        self.process["initiation_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.process["create_time"] = "--"
         self.shared.all_processes.append(self.process)
 
     def update(self, field, value):

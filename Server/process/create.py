@@ -1,3 +1,4 @@
+from datetime import datetime 
 """
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
@@ -37,6 +38,10 @@ class Create(Process):
         # we will overwrite old objects!
         self.update("out", id + oformat)
 
+        # self.process["initiation_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.process["create_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
     def run(self):
         # This is where the new thread will start
         image_path = self.shared.get_file_path(
@@ -53,7 +58,7 @@ class Create(Process):
         # TODO resize if wanted
 
         # hax fix for now
-        const.BASE_PATH = "./storage/data/" + self.process["in"] + "/"
+        const.BASE_PATH = f"./storage/data/{self.process['in']}/"
         const.DOOR_MODEL = "../Images/Models/Doors/door.png"
         const.DEFAULT_CALIBRATION_IMAGE_PATH = (
             "../Images/Calibrations/wallcalibration.png"
@@ -68,12 +73,12 @@ class Create(Process):
 
         # print(program_path, blender_script_path)
 
-        IO.clean_data_folder("./storage/data/" + self.process["in"])
+        IO.clean_data_folder(f"./storage/data/{self.process['in']}")
 
         # Remove target file if it already exists!
         # Else we will get a bad rename!
         fh = FileHandler()
-        tmp = "./storage/objects/" + self.process["in"] + ".blend"
+        tmp = f"./storage/objects/{self.process['in']}.blend"
         if os.path.isfile(tmp):
             fh.remove(tmp)
 
@@ -82,9 +87,9 @@ class Create(Process):
 
         # Generate data files
         # TODO: fix this to work for several instances at once!
-        generate.base_path = "./storage/data/" + self.process["in"]
-        generate.path = "./storage/data/" + self.process["in"]
-        target_path = "./storage/objects/" + self.process["in"] + ".blend"
+        generate.base_path = f"./storage/data/{self.process['in']}"
+        generate.path = f"./storage/data/{self.process['in']}"
+        target_path = f"./storage/objects/{self.process['in']}.blend"
         config_path = None
         f = floorplan.new_floorplan(config_path)
         f.image_path = image_path
@@ -129,19 +134,28 @@ class Create(Process):
                 "--background",
                 "--python",
                 "../Blender/blender_export_any.py",
-                "./storage/objects/" + self.process["in"] + ".blend",
+                f"./storage/objects/{self.process['in']}.blend",
                 self.process["format"],
-                "./storage/objects/" + self.process["out"],
+                f"./storage/objects/{self.process['out']}",
             ]
         )
 
         self.process["state"] = self.process["state"] + 1
         self.update("status", "Cleanup")
 
-        # Don't remove target!
-        # Remove data
-        # TODO: handle multiple floorplan removeal
-        fh.remove("./storage/data/" + self.process["in"] + "0/")
+        # Ensure the correct directory is targeted for removal
+        work_dir = f"./storage/data/{self.process['in']}/0/"
+        if os.path.isdir(work_dir):
+            fh.remove(work_dir)
+        else:
+            # Handle the case where files might be misnamed
+            files = [f for f in os.listdir(f"./storage/data/{self.process['in']}") if f.startswith("0")]
+            for f in files:
+                file_path = f"./storage/data/{self.process['in']}/{f}"
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                elif os.path.isdir(file_path):
+                    fh.remove(file_path)
 
         self.process["state"] = self.process["state"] + 1
         self.update("status", "Done")
