@@ -50,8 +50,7 @@ def update_config(debug_mode, logging_verbose, session_id):
     global DEBUG_MODE, LOGGING_VERBOSE, DEBUG_SESSION_ID, DEBUG_STORAGE_PATH
     DEBUG_MODE = debug_mode
     LOGGING_VERBOSE = logging_verbose
-    # DEBUG_SESSION_ID = session_id or generate_random_string()
-    DEBUG_SESSION_ID = session_id
+    DEBUG_SESSION_ID = session_id or generate_random_string()
     if DEBUG_MODE:
         DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
     
