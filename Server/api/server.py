@@ -34,7 +34,10 @@ class S(BaseHTTPRequestHandler):
         """Solve issue with all items are lists from query parser!"""
         res = dict()
         for key, item in d.items():
-            res[key] = item[0]
+            if isinstance(item, list) and len(item) == 1:
+                res[key] = item[0]
+            else:
+                res[key] = item
         return res
 
     def query_parser(self, params, rmi):

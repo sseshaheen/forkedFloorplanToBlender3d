@@ -11,6 +11,7 @@ from process.process import Process
 from subprocess import check_output
 import os
 import sys
+import logging
 
 sys.path.insert(0, "..")
 from FloorplanToBlenderLib import (
@@ -20,6 +21,7 @@ from FloorplanToBlenderLib import (
     execution,
     IO,
     const,
+    globalConf,
 )  # floorplan to blender lib
 
 """This process should create a 3d object file using the FTBLibrary"""

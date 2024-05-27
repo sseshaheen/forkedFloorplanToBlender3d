@@ -27,7 +27,7 @@ def save_image(title, img):
     @param img: Image to be saved.
     """
     if DEBUG_MODE:
-        filepath = (DEBUG_STORAGE_PATH, f"{title}.png")
+        filepath  = os.path.join(DEBUG_STORAGE_PATH, f"{title}.png")
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
             logging.debug(f'Saved image: {filepath}')
