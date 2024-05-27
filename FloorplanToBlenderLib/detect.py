@@ -27,7 +27,12 @@ def save_debug_image(filename, img):
     Save an image to the debug directory if DEBUG_MODE is enabled.
     """
     if DEBUG_MODE:
-        filepath  = os.path.join(DEBUG_STORAGE_PATH, filename)
+        if img is None or img.size == 0:
+            if LOGGING_VERBOSE:
+                logger.debug(f'Cannot save debug image {filename}: image is empty or None')
+            return
+        
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
             logger.debug(f'Saved debug image: {filepath}')
@@ -74,7 +79,6 @@ def wall_filter(gray):
 
     return unknown
 
-
 def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
     """
     Detect corners with boxes in image with high precision.
@@ -99,7 +103,6 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
     save_debug_image('precise_boxes.png', output_img)
 
     return res, output_img
-
 
 def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     """
@@ -145,7 +148,6 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     save_debug_image('corners_and_lines.png', img)
 
     return img
-
 
 def find_rooms(
     img,
@@ -226,7 +228,6 @@ def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255])
 
     return res, output_img
 
-
 def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
     """
     Get the outer side of floorplan, used to get ground.
@@ -262,7 +263,6 @@ def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
 
     return approx, output_img
 
-
 def doors(image_path, scale_factor):
     """
     Detect doors in the image.
@@ -283,7 +283,6 @@ def doors(image_path, scale_factor):
 
     return doors
 
-
 def windows(image_path, scale_factor):
     """
     Detect windows in the image.
@@ -302,7 +301,6 @@ def windows(image_path, scale_factor):
     save_debug_image('windows_detected.png', img)
 
     return windows
-
 
 def feature_match(img1, img2):
     """
@@ -526,7 +524,6 @@ def feature_match(img1, img2):
 
     return transform.rescale_rect(windows, const.WINDOWS_RESCALE_TO_FIT), doors
 
-
 def find_details(
     img,
     noise_removal_threshold=const.DETAILS_NOISE_REMOVAL_THRESHOLD,
@@ -535,7 +532,6 @@ def find_details(
     gap_in_wall_max_threshold=const.DETAILS_GAP_IN_WALL_THRESHOLD[1],
     gap_in_wall_min_threshold=const.DETAILS_GAP_IN_WALL_THRESHOLD[0],
 ):
-
     """
     Detect details in the image.
     I have copied and changed this function some...
