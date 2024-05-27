@@ -4,7 +4,7 @@ import numpy as np
 import logging
 from . import detect
 from . import const
-from .config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .globalConfig import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
 import os
 
 """

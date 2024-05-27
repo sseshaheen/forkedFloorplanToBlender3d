@@ -18,7 +18,7 @@ execution...
 """
 import logging
 import config
-from config import LOGGING_VERBOSE, DEBUG_MODE
+from globalConfig import LOGGING_VERBOSE
 
 # Configure logging
 if LOGGING_VERBOSE:
