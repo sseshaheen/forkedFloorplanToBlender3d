@@ -14,6 +14,17 @@ def generate_random_string(length=6):
     """
     return ''.join(random.choices(string.ascii_letters, k=length))
 
+def generate_random_number(length=12):
+    """
+    Generate a random number of specified length.
+    @Param length: Length of the random number.
+    @Return: Random number.
+    """
+    if length < 1:
+        raise ValueError("Length must be at least 1")
+    return int(''.join(random.choices('0123456789', k=length)))
+
+
 # Set debug mode (True for debug mode, False for normal mode)
 DEBUG_MODE = True
 
@@ -21,7 +32,7 @@ DEBUG_MODE = True
 LOGGING_VERBOSE = True
 
 # Generate a unique identifier for the debug session
-DEBUG_SESSION_ID = generate_random_string()
+DEBUG_SESSION_ID = generate_random_number()
 
 # Define the storage path for debug images
 # DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
