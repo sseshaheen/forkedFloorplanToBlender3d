@@ -110,7 +110,7 @@ class S(BaseHTTPRequestHandler):
         self._set_response()
 
     def do_GET(self):
-        self.parse_debug_query_params()
+        # self.parse_debug_query_params()
         parsed_path = urlparse(self.path)
         kwargs = None
         try:
