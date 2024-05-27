@@ -25,27 +25,14 @@ def generate_random_number(length=12):
     return str(int(''.join(random.choices('7893456012', k=length))))
 
 
-# Set debug mode (True for debug mode, False for normal mode)
-DEBUG_MODE = True
-
-# Set logging verbosity (True for detailed logging, False for concise logging)
-LOGGING_VERBOSE = True
-
-# Generate a unique identifier for the debug session
-DEBUG_SESSION_ID = generate_random_number()
-
-# Define the storage path for debug images
-# DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
-# DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
-# DEBUG_STORAGE_PATH = "./storage/data/debug/123456789"
-DEBUG_STORAGE_PATH = debug_path = os.path.join('./storage/debug/', DEBUG_SESSION_ID)
-
 def initialize_debug_directory(session_id):
     """
     Initialize the debug directory for storing debug files.
     @Param session_id: Unique identifier for the debug session.
     @Return: Path to the debug directory.
     """
+    if not session_id:
+        session_id = generate_random_number()
     debug_path = os.path.join('./storage/debug', session_id)
     logging.debug(f"Initializing debug directory at: {debug_path}")
     if not os.path.exists(debug_path):
@@ -69,6 +56,21 @@ def update_config(debug_mode, logging_verbose, session_id):
     
     if LOGGING_VERBOSE:
         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
+
+# Set debug mode (True for debug mode, False for normal mode)
+DEBUG_MODE = True
+
+# Set logging verbosity (True for detailed logging, False for concise logging)
+LOGGING_VERBOSE = True
+
+# Generate a unique identifier for the debug session
+DEBUG_SESSION_ID = initialize_debug_directory()
+
+# Define the storage path for debug images
+# DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
+# DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
+# DEBUG_STORAGE_PATH = "./storage/data/debug/123456789"
+DEBUG_STORAGE_PATH = debug_path = os.path.join('./storage/debug/', DEBUG_SESSION_ID)
 
 # Initialize the debug directory upon module import if debug mode is enabled
 # if DEBUG_MODE:
