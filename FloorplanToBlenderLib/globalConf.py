@@ -31,6 +31,7 @@ def initialize_debug_directory(session_id=None):
     @Param session_id: Unique identifier for the debug session.
     @Return: Path to the debug directory.
     """
+    logging.debug(f"Current session_id for debug directory: {session_id}")
     if not session_id:
         session_id = generate_random_number()
     debug_path = os.path.join('./storage/debug', session_id)
