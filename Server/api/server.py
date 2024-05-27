@@ -95,7 +95,7 @@ class S(BaseHTTPRequestHandler):
         globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
 
-        logging.info(f"Updated globalConf: DEBUG_MODE={globalConf.DEBUG_MODE}, LOGGING_VERBOSE={globalConf.LOGGING_VERBOSE}, DEBUG_SESSION_ID={globalConf.DEBUG_SESSION_ID}")
+        logging.info(f"Updated globalConf: DEBUG_MODE={globalConf.DEBUG_MODE}, LOGGING_VERBOSE={globalConf.LOGGING_VERBOSE}")
 
     def configure_logging(self):
         if globalConf.LOGGING_VERBOSE:
