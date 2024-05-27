@@ -22,7 +22,7 @@ def generate_random_number(length=12):
     """
     if length < 1:
         raise ValueError("Length must be at least 1")
-    return int(''.join(random.choices('0123456789', k=length)))
+    return str(int(''.join(random.choices('0123456789', k=length))))
 
 
 # Set debug mode (True for debug mode, False for normal mode)
