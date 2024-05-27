@@ -81,14 +81,11 @@ class S(BaseHTTPRequestHandler):
     def parse_debug_query_params(self):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
-        debug_mode = parsed_data.get('debug', ['false'])[0].lower() == 'true'
-        logging_verbose = parsed_data.get('verbose', ['false'])[0].lower() == 'true'
-        session_id = parsed_data.get('session_id', [None])[0]
+        debug_mode = parsed_data.get('debug', ['false']).lower() == 'true'
+        logging_verbose = parsed_data.get('verbose', ['false']).lower() == 'true'
+        session_id = parsed_data.get('session_id', [None])
 
         logging.info(f"Debug mode: {debug_mode}, Logging verbose: {logging_verbose}, Session ID: {session_id}")
-        logging.info(f"value1: {parsed_data.get('debug', ['false'])[0].lower()}")
-        logging.info(f"value2: {parsed_data.get('debug', ['false']).lower()}")
-        logging.info(f"value3: {parsed_data.get('debug').lower()}")
 
         globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
