@@ -132,6 +132,18 @@ class OpenApiBrowser(object):
             print("terminating webserver")
             print("(Swagger-UI should still work, but not reloading the page!)")
 
+    def wait_until_interrupted_without_browser(self, p1):
+        """
+        Wait until next KeyboardInterrupt, then exit the completed processes.
+        """
+        try:
+            p1.join()
+        except KeyboardInterrupt:
+            pass
+        if self.verbose:
+            print()
+            print("terminating webserver")
+
     def start(self):
         """
         Do all the necessary work.
@@ -149,4 +161,4 @@ class OpenApiBrowser(object):
         time.sleep(0.5)
         # p2 = self.open_webui(address)
         # self.wait_until_interrupted(p1, p2)
-        self.wait_until_interrupted(p1)
+        self.wait_until_interrupted_without_browser(p1)
