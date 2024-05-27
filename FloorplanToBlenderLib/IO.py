@@ -10,6 +10,7 @@ import logging
 from . import const
 from . import image
 from . import config
+from .globalConfig import LOGGING_VERBOSE, DEBUG_MODE, DEBUG_STORAGE_PATH
 
 """
 IO
@@ -26,11 +27,11 @@ def save_debug_info(filename, data):
     """
     Save debug information to a file if DEBUG_MODE is enabled.
     """
-    if config.DEBUG_MODE:
-        filepath = os.path.join(config.DEBUG_STORAGE_PATH, filename)
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'w') as file:
             file.write(str(data))
-        if config.LOGGING_VERBOSE:
+        if LOGGING_VERBOSE:
             logger.debug(f'Saved debug info: {filepath}')
 
 
@@ -48,12 +49,12 @@ def find_reuseable_data(image_path, path):
                     data = f.read()
                 js = json.loads(data)
                 if image_path == js[const.STR_IMAGE_PATH]:
-                    if config.LOGGING_VERBOSE:
+                    if LOGGING_VERBOSE:
                         logger.debug(f'Reusable data found for image: {image_path}')
                     return js[const.STR_ORIGIN_PATH], js[const.STR_SHAPE]
             except IOError:
                 continue
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'No reusable data found for image: {image_path}')
     return None, None
 
@@ -67,10 +68,10 @@ def find_files(filename, search_path):
     """
     for root, _, files in os.walk(search_path):
         if filename in files:
-            if config.LOGGING_VERBOSE:
+            if LOGGING_VERBOSE:
                 logger.debug(f'File found: {filename} at {root}')
             return os.path.join(root, filename)
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'File not found: {filename}')
     return None
 
@@ -137,7 +138,7 @@ def read_image(path, floorplan=None):
                 img = image.cv2_rescale_image(img, scale_factor)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Read and processed image: {path}')
     save_debug_info('read_image.txt', {'path': path, 'scale_factor': scale_factor})
 
@@ -152,7 +153,7 @@ def readlines_file(path):
     """
     with open(path, "r") as f:
         res = f.readlines()
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Read lines from file: {path}')
     save_debug_info('readlines_file.txt', {'path': path, 'lines': res})
     return res
@@ -188,7 +189,7 @@ def save_to_file(file_path, data, show=True):
             raise
     if show:
         logger.info(f'Created file: {full_path}')
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Saved data to file: {full_path}')
     save_debug_info('save_to_file.txt', {'file_path': full_path, 'data': data})
 
@@ -201,7 +202,7 @@ def read_from_file(file_path):
     full_path = file_path + const.SAVE_DATA_FORMAT
     with open(full_path, "r") as f:
         data = json.loads(f.read())
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Read data from file: {full_path}')
     save_debug_info('read_from_file.txt', {'file_path': full_path, 'data': data})
     return data
@@ -218,7 +219,7 @@ def clean_data_folder(folder):
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
 
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Cleaned data folder: {folder}')
     save_debug_info('clean_data_folder.txt', {'folder': folder})
 
@@ -243,7 +244,7 @@ def create_new_floorplan_path(path):
     res_path = os.path.join(path, str(res))
     if not os.path.exists(res_path):
         os.makedirs(res_path)
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Created new floorplan path: {res_path}')
     save_debug_info('create_new_floorplan_path.txt', {'path': res_path})
     return res_path
@@ -255,7 +256,7 @@ def get_current_path():
     @Return: Path to the working directory.
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Current path: {dir_path}')
     save_debug_info('get_current_path.txt', {'path': dir_path})
     return dir_path
@@ -268,7 +269,7 @@ def find_program_path(name):
     @Return: Path to the program if found, else None.
     """
     program_path = which(name)
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Program path for {name}: {program_path}')
     save_debug_info('find_program_path.txt', {'name': name, 'path': program_path})
     return program_path
@@ -289,7 +290,7 @@ def get_next_target_base_name(target_base, target_path):
                 fid += 1
         target_base += str(fid)
 
-    if config.LOGGING_VERBOSE:
+    if LOGGING_VERBOSE:
         logger.debug(f'Next target base name: {target_base}')
     save_debug_info('get_next_target_base_name.txt', {'target_base': target_base, 'target_path': target_path, 'fid': fid})
     return target_base
