@@ -30,6 +30,7 @@ def save_debug_image(filename, img):
         if img is None or img.size == 0:
             if LOGGING_VERBOSE:
                 logger.debug(f'Cannot save debug image {filename}: image is empty or None')
+                print(f'Cannot save debug image {filename}: image is empty or None')
             return
         
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
@@ -124,7 +125,7 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     )
     dst = cv2.erode(dst, kernel, iterations=const.PRECISE_ERODE_ITERATIONS)
     corners = dst > corners_threshold * dst.max()
-    
+
     # Create a copy of the image for debugging purposes
     debug_img = img.copy()
 
