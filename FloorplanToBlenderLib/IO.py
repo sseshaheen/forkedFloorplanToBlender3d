@@ -10,7 +10,7 @@ import logging
 from . import const
 from . import image
 from . import config
-from .globalConfig import LOGGING_VERBOSE, DEBUG_MODE, DEBUG_STORAGE_PATH
+from .globalConf import LOGGING_VERBOSE, DEBUG_MODE, DEBUG_STORAGE_PATH
 
 """
 IO

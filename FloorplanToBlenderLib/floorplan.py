@@ -2,7 +2,7 @@ import json
 import logging
 from . import const
 from . import config
-from .globalConfig import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .globalConf import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
 import os
 """
 Floorplan

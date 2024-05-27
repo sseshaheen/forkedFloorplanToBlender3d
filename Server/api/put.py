@@ -159,7 +159,7 @@ class Put(Api):
             # waited_time = 0
 
 
-            time.sleep(wait_interval)
+            # time.sleep(wait_interval)
             obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
             message += f"\nOBJ uploaded to: {obj_url}"

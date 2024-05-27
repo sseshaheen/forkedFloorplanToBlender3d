@@ -12,8 +12,7 @@ import logging
 from api.post import Post
 from api.put import Put
 from api.get import Get
-from FloorplanToBlenderLib import config
-from FloorplanToBlenderLib import globalConfig
+from FloorplanToBlenderLib import globalConf
 
 """
 FloorplanToBlender3d
@@ -89,11 +88,11 @@ class S(BaseHTTPRequestHandler):
         debug_mode = parsed_data.get('debug', 'false').lower() == 'true'
         logging_verbose = parsed_data.get('verbose', 'false').lower() == 'true'
         session_id = parsed_data.get('session_id', None)
-        globalConfig.update_config(debug_mode, logging_verbose, session_id)
+        globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
 
     def configure_logging(self):
-        if globalConfig.LOGGING_VERBOSE:
+        if globalConf.LOGGING_VERBOSE:
             logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
