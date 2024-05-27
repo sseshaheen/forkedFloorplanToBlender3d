@@ -147,5 +147,5 @@ class OpenApiBrowser(object):
         address = f"http://{self.HOST}:{self.PORT}"
         p1 = self.run_webui_process(address, "./swagger/swagger-ui")
         time.sleep(0.5)
-        p2 = self.open_webui(address)
+        # p2 = self.open_webui(address)
         self.wait_until_interrupted(p1, p2)
