@@ -24,7 +24,7 @@ LOGGING_VERBOSE = False
 DEBUG_SESSION_ID = generate_random_string()
 
 # Define the storage path for debug images
-DEBUG_STORAGE_PATH = os.path.join('./storage/debug', DEBUG_SESSION_ID)
+DEBUG_STORAGE_PATH = './storage/debug'  # Base path for debug storage
 
 def initialize_debug_directory(session_id):
     """
@@ -32,12 +32,14 @@ def initialize_debug_directory(session_id):
     @Param session_id: Unique identifier for the debug session.
     @Return: Path to the debug directory.
     """
-    debug_path = os.path.join('./storage/debug', session_id)
-    if not os.path.exists(debug_path):
-        os.makedirs(debug_path)
-    return debug_path
+    if DEBUG_MODE:  # Only create directory if DEBUG_MODE is True
+        debug_path = os.path.join(DEBUG_STORAGE_PATH, session_id)
+        if not os.path.exists(debug_path):
+            os.makedirs(debug_path)
+        return debug_path
+    return None
 
-def update_config(debug_mode, logging_verbose, session_id):
+def update_config(debug_mode, logging_verbose, session_id=None):
     """
     Update configuration settings for debug mode and logging verbosity.
     @Param debug_mode: Boolean to set debug mode.
@@ -48,10 +50,14 @@ def update_config(debug_mode, logging_verbose, session_id):
     DEBUG_MODE = debug_mode
     LOGGING_VERBOSE = logging_verbose
     DEBUG_SESSION_ID = session_id or generate_random_string()
-    DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+    if DEBUG_MODE:
+        DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+    else:
+        DEBUG_STORAGE_PATH = './storage/debug'
     
     if LOGGING_VERBOSE:
         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
 
-# Initialize the debug directory upon module import
-DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+# Initialize the debug directory upon module import if DEBUG_MODE is True
+if DEBUG_MODE:
+    initialize_debug_directory(DEBUG_SESSION_ID)
