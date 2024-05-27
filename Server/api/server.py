@@ -88,8 +88,14 @@ class S(BaseHTTPRequestHandler):
         debug_mode = parsed_data.get('debug', ['false'])[0].lower() == 'true'
         logging_verbose = parsed_data.get('verbose', ['false'])[0].lower() == 'true'
         session_id = parsed_data.get('session_id', [None])[0]
+
+        logging.info(f"Debug mode: {debug_mode}, Logging verbose: {logging_verbose}, Session ID: {session_id}")
+
         globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
+
+        logging.info(f"Updated globalConf: DEBUG_MODE={globalConf.DEBUG_MODE}, LOGGING_VERBOSE={globalConf.LOGGING_VERBOSE}, DEBUG_SESSION_ID={globalConf.DEBUG_SESSION_ID}")
+
 
     def configure_logging(self):
         logging.basicConfig(
