@@ -2,9 +2,6 @@ import configparser
 import os
 import cv2
 import json
-import random
-import string
-import logging
 
 from . import IO
 from . import const
@@ -17,9 +14,6 @@ This file contains functions for handling config files.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 # TODO: settings for coloring all objects
 # TODO: add config security check, before start up!
