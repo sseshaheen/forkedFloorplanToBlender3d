@@ -5,6 +5,7 @@ import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def generate_random_string(length=6):
     """
@@ -56,7 +57,11 @@ def update_config(debug_mode, logging_verbose, session_id=None):
         DEBUG_STORAGE_PATH = './storage/debug'
     
     if LOGGING_VERBOSE:
-        logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    
+    logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
 
 # Initialize the debug directory upon module import if DEBUG_MODE is True
 if DEBUG_MODE:

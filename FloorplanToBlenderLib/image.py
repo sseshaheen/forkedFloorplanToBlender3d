@@ -154,7 +154,7 @@ def detect_wall_rescale(reference_size, image):
     """
     image_wall_size = calculate.wall_width_average(image)
     if image_wall_size is None:
-        logging.warning('No walls detected in image')
+        logging.warning('Calculation of average wall width (used for checking if rescaling is needed) gave None')
         return None
     scale_factor = calculate_scale_factor(float(reference_size), image_wall_size)
     if LOGGING_VERBOSE:

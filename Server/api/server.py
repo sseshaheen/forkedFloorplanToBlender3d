@@ -85,17 +85,17 @@ class S(BaseHTTPRequestHandler):
     def parse_debug_query_params(self):
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
-        debug_mode = parsed_data.get('debug', 'false').lower() == 'true'
-        logging_verbose = parsed_data.get('verbose', 'false').lower() == 'true'
-        session_id = parsed_data.get('session_id', None)
+        debug_mode = parsed_data.get('debug', ['false'])[0].lower() == 'true'
+        logging_verbose = parsed_data.get('verbose', ['false'])[0].lower() == 'true'
+        session_id = parsed_data.get('session_id', [None])[0]
         globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
 
     def configure_logging(self):
-        if globalConf.LOGGING_VERBOSE:
-            logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-        else:
-            logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            level=logging.DEBUG if globalConf.LOGGING_VERBOSE else logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
 
     def do_HEAD(self):
         self._set_response()
@@ -112,7 +112,7 @@ class S(BaseHTTPRequestHandler):
             rmi, kwargs = self.query_parser(parsed_data, Get)
         except Exception as e:
             message = "RECIEVED GET REQUEST WITH BAD QUERY: " + str(e)
-            print(message)
+            logging.error(message)
         finally:
             if kwargs is None or rmi is None:
                 message = "Function unavailable!"
@@ -122,6 +122,7 @@ class S(BaseHTTPRequestHandler):
             self._set_response()
             self.wfile.write(bytes(message, encoding="utf-8"))
         except ConnectionAbortedError as e:
+            logging.warning("Connection aborted: %s", e)
             return  # This occurs when server is sending file and client isn't waiting for extra message.
 
     def do_PUT(self):
@@ -149,16 +150,23 @@ class S(BaseHTTPRequestHandler):
                         (message, _) = getattr(rmi, kwargs["func"])(**kwargs)
                 except Exception as e:
                     message = f"Error processing file {file_field.filename}: {str(e)}"
+                    logging.error(message)
             else:
                 message = "NO FILE PROVIDED!"
-        elif ctype == "html/text" or ctype == "json/application" or ctype == "application/json" or ctype is None:
-            rmi, kwargs = self.query_parser(parsed_data, Put)
-            if kwargs is None or rmi is None:
-                message = "Function unavailable!"
-            else:
-                message = getattr(rmi, kwargs["func"])(**kwargs)
+                logging.error(message)
+        elif ctype in ["html/text", "json/application", "application/json", None]:
+            try:
+                rmi, kwargs = self.query_parser(parsed_data, Put)
+                if kwargs is None or rmi is None:
+                    message = "Function unavailable!"
+                else:
+                    message = getattr(rmi, kwargs["func"])(**kwargs)
+            except Exception as e:
+                message = f"Error processing PUT request: {str(e)}"
+                logging.error(message)
         else:
             message = f"Unsupported content type: {ctype}"
+            logging.error(message)
 
         self._set_response()
         self.wfile.write(bytes(message, encoding='utf-8'))
@@ -184,7 +192,7 @@ class S(BaseHTTPRequestHandler):
                     response = getattr(rmi, kwargs["func"])(**kwargs)
             except ValueError as e:
                 response = "RECIEVED POST REQUEST WITH BAD JSON: " + str(e)
-                print(response)
+                logging.error(response)
 
         self._set_response()
         self.wfile.write(bytes(response, encoding="utf-8"))
@@ -199,8 +207,8 @@ class Server(Thread):
         server_address = (self.shared.restapiHost, int(self.shared.restapiPort))
         httpd = HTTPServer(server_address, partial(S, self.shared))
         try:
-            print(
-                "REST API SERVER up and serving at ",
+            logging.info(
+                "REST API SERVER up and serving at %s:%s",
                 self.shared.restapiHost,
                 self.shared.restapiPort,
             )
