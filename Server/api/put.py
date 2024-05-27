@@ -80,11 +80,12 @@ class Put(Api):
         return message, status
 
     def upload_file_to_firebase(self, local_path: str, firebase_path: str) -> str:
-        bucket = storage.bucket()
-        blob = bucket.blob(firebase_path)
-        blob.upload_from_filename(local_path)
-        blob.make_public()  # Make the file public
-        return blob.public_url
+        # bucket = storage.bucket()
+        # blob = bucket.blob(firebase_path)
+        # blob.upload_from_filename(local_path)
+        # blob.make_public()  # Make the file public
+        # return blob.public_url
+        return 'placeholder url for id.obj'
 
     def check_process_status(self, id: str, oformat: str) -> bool:
         baseUrl = "http://localhost:8000"
@@ -156,6 +157,8 @@ class Put(Api):
             # max_wait_time = 300  # maximum wait time in seconds
             wait_interval = 10  # wait interval in seconds
             # waited_time = 0
+
+
             time.sleep(wait_interval)
             obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
