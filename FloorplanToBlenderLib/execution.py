@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from math import atan2, degrees
 import logging
-from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
 import os
 
 """

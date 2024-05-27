@@ -5,7 +5,7 @@ from PIL import Image
 from . import calculate
 from . import const
 import matplotlib.pyplot as plt
-from config import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
+from .config import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

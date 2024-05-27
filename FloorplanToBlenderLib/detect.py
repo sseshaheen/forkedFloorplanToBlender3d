@@ -6,7 +6,7 @@ from . import const
 from . import calculate
 from . import transform
 import math
-from config import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
+from .config import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
 import os
 
 # Calculate (actual) size of apartment

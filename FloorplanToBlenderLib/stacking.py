@@ -5,7 +5,7 @@ from . import execution
 from . import const
 from . import floorplan
 from . import transform
-from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
 import os
 
 # Configure logging
