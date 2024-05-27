@@ -22,7 +22,7 @@ def generate_random_number(length=12):
     """
     if length < 1:
         raise ValueError("Length must be at least 1")
-    return str(int(''.join(random.choices('0123456789', k=length))))
+    return str(int(''.join(random.choices('7893456012', k=length))))
 
 
 # Set debug mode (True for debug mode, False for normal mode)
@@ -37,7 +37,7 @@ DEBUG_SESSION_ID = generate_random_number()
 # Define the storage path for debug images
 # DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
 # DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
-DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/12345"
+DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/123456789"
 
 def initialize_debug_directory(session_id):
     """
@@ -70,5 +70,5 @@ def update_config(debug_mode, logging_verbose, session_id):
         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
 
 # Initialize the debug directory upon module import if debug mode is enabled
-if DEBUG_MODE:
-    DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+# if DEBUG_MODE:
+    # DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
