@@ -71,7 +71,8 @@ DEBUG_SESSION_ID = initialize_debug_directory()
 # DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
 # DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
 # DEBUG_STORAGE_PATH = "./storage/data/debug/123456789"
-DEBUG_STORAGE_PATH = debug_path = os.path.join('./storage/debug/', DEBUG_SESSION_ID)
+DEBUG_STORAGE_PATH = os.path.join('./storage/debug/', DEBUG_SESSION_ID)
+logging.debug(f"Current DEBUG_STORAGE_PATH for debug directory: {DEBUG_STORAGE_PATH}")
 
 # Initialize the debug directory upon module import if debug mode is enabled
 # if DEBUG_MODE:
