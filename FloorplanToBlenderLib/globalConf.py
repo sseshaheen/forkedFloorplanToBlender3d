@@ -2,7 +2,7 @@ import os
 import random
 import string
 import logging
-
+from FloorplanToBlenderLib import const
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ LOGGING_VERBOSE = False
 DEBUG_SESSION_ID = generate_random_string()
 
 # Define the storage path for debug images
-DEBUG_STORAGE_PATH = os.path.join('./storage/debug', DEBUG_SESSION_ID)
+DEBUG_STORAGE_PATH = const.BASE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
 
 def initialize_debug_directory(session_id):
     """
