@@ -25,7 +25,7 @@ def generate_random_number(length=12):
     return str(int(''.join(random.choices('7893456012', k=length))))
 
 
-def initialize_debug_directory(session_id):
+def initialize_debug_directory(session_id=None):
     """
     Initialize the debug directory for storing debug files.
     @Param session_id: Unique identifier for the debug session.
