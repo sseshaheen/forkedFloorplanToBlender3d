@@ -124,6 +124,9 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     )
     dst = cv2.erode(dst, kernel, iterations=const.PRECISE_ERODE_ITERATIONS)
     corners = dst > corners_threshold * dst.max()
+    
+    # Create a copy of the image for debugging purposes
+    debug_img = img.copy()
 
     # Draw lines to close the rooms off by adding a line between corners on the same x or y coordinate
     # This gets some false positives.
@@ -131,10 +134,12 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     for y, row in enumerate(corners):
         x_same_y = np.argwhere(row)
         for x1, x2 in zip(x_same_y[:-1], x_same_y[1:]):
-
             if x2[0] - x1[0] < room_closing_max_length:
                 color = 0
                 cv2.line(img, (x1[0], y), (x2[0], y), color, 1)
+                # Draw in red on the debug image
+                debug_color = (0, 0, 255)  # Red color in BGR format
+                cv2.line(debug_img, (x1[0], y), (x2[0], y), debug_color, 1)
 
     for x, col in enumerate(corners.T):
         y_same_x = np.argwhere(col)
@@ -142,12 +147,16 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
             if y2[0] - y1[0] < room_closing_max_length:
                 color = 0
                 cv2.line(img, (x, y1[0]), (x, y2[0]), color, 1)
+                # Draw in red on the debug image
+                debug_color = (0, 0, 255)  # Red color in BGR format
+                cv2.line(debug_img, (x, y1[0]), (x, y2[0]), debug_color, 1)
 
     if LOGGING_VERBOSE:
         logger.debug('Detected corners and drew lines in the image')
-    save_debug_image('corners_and_lines.png', img)
+    save_debug_image('corners_and_lines.png', debug_img)  # Save the debug image with red lines
 
-    return img
+    return img  # Return the original image
+
 
 def find_rooms(
     img,
