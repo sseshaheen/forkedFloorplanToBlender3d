@@ -17,6 +17,7 @@ execution...
 
 """
 import logging
+import config
 from config import LOGGING_VERBOSE, DEBUG_MODE
 
 # Configure logging
