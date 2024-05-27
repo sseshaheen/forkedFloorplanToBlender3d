@@ -2,8 +2,7 @@ import cgi
 from cgi import FieldStorage
 from threading import Thread
 from functools import partial
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
+from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
@@ -74,11 +73,8 @@ class S(BaseHTTPRequestHandler):
     def _set_response(self):
         self.send_response(200, "OK")
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header(
-            "Access-Control-Allow-Methods", "POST, PUT, OPTIONS, HEAD, GET"
-        )
-        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, HEAD, GET")
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type")
         self.send_header("Content-type", "application/json")
         self.end_headers()
 
@@ -96,12 +92,11 @@ class S(BaseHTTPRequestHandler):
 
         logging.info(f"Updated globalConf: DEBUG_MODE={globalConf.DEBUG_MODE}, LOGGING_VERBOSE={globalConf.LOGGING_VERBOSE}, DEBUG_SESSION_ID={globalConf.DEBUG_SESSION_ID}")
 
-
     def configure_logging(self):
-        logging.basicConfig(
-            level=logging.DEBUG if globalConf.LOGGING_VERBOSE else logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
+        if globalConf.LOGGING_VERBOSE:
+            logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        else:
+            logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     def do_HEAD(self):
         self._set_response()
