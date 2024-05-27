@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
+import logging
 from . import image
 from . import const
-from . import image
 from . import calculate
 from . import transform
 import math
+from config import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
+import os
 
 # Calculate (actual) size of apartment
 
@@ -17,13 +19,25 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_image(filename, img):
+    """
+    Save an image to the debug directory if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        cv2.imwrite(filepath, img)
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug image: {filepath}')
 
 def wall_filter(gray):
     """
     Filter walls
-    Filter out walls from a grayscale image
-    @Param image
-    @Return image of walls
+    Filter out walls from a grayscale image.
+    @Param gray: Grayscale image.
+    @Return: Image of walls.
     """
     _, thresh = cv2.threshold(
         gray,
@@ -32,7 +46,7 @@ def wall_filter(gray):
         cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
     )
 
-    # noise removal
+    # Noise removal
     kernel = np.ones(const.WALL_FILTER_KERNEL_SIZE, np.uint8)
     opening = cv2.morphologyEx(
         thresh,
@@ -41,13 +55,9 @@ def wall_filter(gray):
         iterations=const.WALL_FILTER_MORPHOLOGY_ITERATIONS,
     )
 
-    sure_bg = cv2.dilate(
-        opening, kernel, iterations=const.WALL_FILTER_DILATE_ITERATIONS
-    )
+    sure_bg = cv2.dilate(opening, kernel, iterations=const.WALL_FILTER_DILATE_ITERATIONS)
 
-    dist_transform = cv2.distanceTransform(
-        opening, cv2.DIST_L2, const.WALL_FILTER_DISTANCE
-    )
+    dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, const.WALL_FILTER_DISTANCE)
     ret, sure_fg = cv2.threshold(
         const.WALL_FILTER_DISTANCE_THRESHOLD[0] * dist_transform,
         const.WALL_FILTER_DISTANCE_THRESHOLD[1] * dist_transform.max(),
@@ -58,23 +68,24 @@ def wall_filter(gray):
     sure_fg = np.uint8(sure_fg)
     unknown = cv2.subtract(sure_bg, sure_fg)
 
+    if LOGGING_VERBOSE:
+        logger.debug('Filtered walls from the image')
+    save_debug_image('wall_filter.png', unknown)
+
     return unknown
 
 
 def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
     """
-    Detect corners with boxes in image with high precision
-    @Param detect_img image to detect from @mandatory
-    @Param output_img image for output
-    @Param color to set on output
-    @Return corners(list of boxes), output image
-    @source https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
+    Detect corners with boxes in image with high precision.
+    @Param detect_img: Image to detect from @mandatory
+    @Param output_img: Image for output (optional).
+    @Param color: Color to set on output.
+    @Return: corners (list of boxes), output image.
+    @Source: https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
     """
     res = []
-
-    contours, _ = cv2.findContours(
-        detect_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, _ = cv2.findContours(detect_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
         epsilon = const.PRECISE_BOXES_ACCURACY * cv2.arcLength(cnt, True)
@@ -83,17 +94,21 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
             output_img = cv2.drawContours(output_img, [approx], 0, color)
         res.append(approx)
 
+    if LOGGING_VERBOSE:
+        logger.debug('Detected precise boxes in the image')
+    save_debug_image('precise_boxes.png', output_img)
+
     return res, output_img
 
 
 def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
     """
-    Finds corners and draw lines from them
-    Help function for finding room
-    @Param image input image
-    @Param corners_threshold threshold for corner distance
-    @Param room_closing_max_length threshold for room max size
-    @Return output image
+    Finds corners and draw lines from them.
+    Help function for finding rooms.
+    @Param img: Input image.
+    @Param corners_threshold: Threshold for corner distance.
+    @Param room_closing_max_length: Threshold for room max size.
+    @Return: Output image.
     """
     # Detect corners (you can play with the parameters here)
     kernel = np.ones(const.PRECISE_HARRIS_KERNEL_SIZE, np.uint8)
@@ -124,6 +139,11 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
             if y2[0] - y1[0] < room_closing_max_length:
                 color = 0
                 cv2.line(img, (x, y1[0]), (x, y2[0]), color, 1)
+
+    if LOGGING_VERBOSE:
+        logger.debug('Detected corners and drew lines in the image')
+    save_debug_image('corners_and_lines.png', img)
+
     return img
 
 
@@ -135,14 +155,15 @@ def find_rooms(
     gap_in_wall_min_threshold=const.FIND_ROOMS_GAP_IN_WALL_MIN_THRESHOLD,
 ):
     """
+    Detect rooms in the image.
     src: https://stackoverflow.com/questions/54274610/crop-each-of-them-using-opencv-python
 
-    @param img: grey scale image of rooms, already eroded and doors removed etc.
+    @param img: Grey scale image of rooms, already eroded and doors removed etc.
     @param noise_removal_threshold: Minimal area of blobs to be kept.
     @param corners_threshold: Threshold to allow corners. Higher removes more of the house.
     @param room_closing_max_length: Maximum line length to add to close off open doors.
-    @param gap_in_wall_threshold: Minimum number of pixels to identify component as room instead of hole in the wall.
-    @return: rooms: list of numpy arrays containing boolean masks for each detected room
+    @param gap_in_wall_min_threshold: Minimum number of pixels to identify component as room instead of hole in the wall.
+    @return: rooms: List of numpy arrays containing boolean masks for each detected room.
              colored_house: A colored version of the input image, where each room has a random color.
     """
     assert 0 <= corners_threshold <= 1
@@ -171,23 +192,25 @@ def find_rooms(
             rooms.append(component)
             color = np.random.randint(0, 255, size=3)
         img[component] = color
-    return rooms, img
 
+    if LOGGING_VERBOSE:
+        logger.debug('Detected rooms in the image')
+    save_debug_image('rooms_detected.png', img)
+
+    return rooms, img
 
 def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255]):
     """
     Currently not used in the main implementation
-    Remove contours of detected walls from image
-    @Param detect_img image to detect from @mandatory
-    @Param output_img image for output
-    @Param color to set on output
-    @Return list of boxes, actual image
-    @source https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
+    Remove contours of detected walls from image.
+    @Param detect_img: Image to detect from @mandatory
+    @Param output_img: Image for output (optional).
+    @Param color: Color to set on output.
+    @Return: List of boxes, actual image.
+    @Source: https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
     """
     res = []
-    contours, hierarchy = cv2.findContours(
-        detect_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, hierarchy = cv2.findContours(detect_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
 
@@ -197,17 +220,21 @@ def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255])
             output_img = cv2.drawContours(output_img, [approx], -1, color, -1)
         res.append(approx)
 
+    if LOGGING_VERBOSE:
+        logger.debug('Removed precise boxes from the image')
+    save_debug_image('precise_boxes_removed.png', output_img)
+
     return res, output_img
 
 
 def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
     """
-    Get the outer side of floorplan, used to get ground
-    @Param detect_img image to detect from @mandatory
-    @Param output_img image for output
-    @Param color to set on output
-    @Return approx, box
-    @Source https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
+    Get the outer side of floorplan, used to get ground.
+    @Param detect_img: Image to detect from  @mandatory
+    @Param output_img: Image for output (optional).
+    @Param color: Color to set on output.
+    @Return: Approx, box.
+    @Source: https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
     """
     ret, thresh = cv2.threshold(
         detect_img,
@@ -216,9 +243,7 @@ def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
         cv2.THRESH_BINARY_INV,
     )
 
-    contours, hierarchy = cv2.findContours(
-        thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     largest_contour_area = 0
     for cnt in contours:
@@ -230,28 +255,52 @@ def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
     approx = cv2.approxPolyDP(largest_contour, epsilon, True)
     if output_img is not None:
         output_img = cv2.drawContours(output_img, [approx], 0, color)
+
+    if LOGGING_VERBOSE:
+        logger.debug('Detected outer contours of the floorplan')
+    save_debug_image('outer_contours.png', output_img)
+
     return approx, output_img
 
 
 def doors(image_path, scale_factor):
+    """
+    Detect doors in the image.
+    @Param image_path: Path to the image.
+    @Param scale_factor: Scale factor to resize the image.
+    @Return: Detected doors.
+    """
     model = cv2.imread(const.DOOR_MODEL, 0)
-    img = cv2.imread(
-        image_path, 0
-    )  # TODO: it is not very effective to read image again here!
+    img = cv2.imread(image_path, 0)  # Read the image again.
+    # TODO: it is not very effective to read image again here!
 
     img = image.cv2_rescale_image(img, scale_factor)
     _, doors = feature_match(img, model)
+
+    if LOGGING_VERBOSE:
+        logger.debug('Detected doors in the image')
+    save_debug_image('doors_detected.png', img)
+
     return doors
 
 
 def windows(image_path, scale_factor):
+    """
+    Detect windows in the image.
+    @Param image_path: Path to the image.
+    @Param scale_factor: Scale factor to resize the image.
+    @Return: Detected windows.
+    """
     model = cv2.imread(const.DOOR_MODEL, 0)
-    img = cv2.imread(
-        image_path, 0
-    )  # TODO: it is not very effective to read image again here!
-
+    img = cv2.imread(image_path, 0)  # Read the image again.
+    # TODO: it is not very effective to read image again here!
     img = image.cv2_rescale_image(img, scale_factor)
     windows, _ = feature_match(img, model)
+
+    if LOGGING_VERBOSE:
+        logger.debug('Detected windows in the image')
+    save_debug_image('windows_detected.png', img)
+
     return windows
 
 
@@ -259,15 +308,16 @@ def feature_match(img1, img2):
     """
     Feature match models to floorplans in order to distinguish doors from windows.
     Also calculate where doors should exist.
-    Compares result with detailed boxes and filter depending on colored pixels to deviate windows, doors and unknowns.
+    Compares result with detailed boxes and filter depending on colored pixels to deviate windows, doors, and unknowns.
+    @Param img1: The first image (floorplan).
+    @Param img2: The second image (model).
+    @Return: Matches between the two images.
     """
     cap = img1
     model = img2
     # ORB keypoint detector
-    orb = cv2.ORB_create(
-        nfeatures=const.WINDOWS_AND_DOORS_FEATURE_N, scoreType=cv2.ORB_FAST_SCORE
-    )
-    # create brute force  matcher object
+    orb = cv2.ORB_create(nfeatures=const.WINDOWS_AND_DOORS_FEATURE_N, scoreType=cv2.ORB_FAST_SCORE)
+    # Create brute force matcher object
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     # Compute model keypoints and its descriptors
     kp_model, des_model = orb.detectAndCompute(model, None)
@@ -278,8 +328,7 @@ def feature_match(img1, img2):
     # Sort them in the order of their distance
     matches = sorted(matches, key=lambda x: x.distance)
 
-    # --- calculate bounds ---
-
+    # Calculate bounds
     # these are important for group matching!
     min_x = math.inf
     min_y = math.inf
@@ -329,34 +378,26 @@ def feature_match(img1, img2):
         found = False
 
         for existing_match in list_grouped_matches:
-            if (
-                abs(existing_match[0][1][0] - x2) < w
-                and abs(existing_match[0][1][1] - y2) < h
-            ):
+            if abs(existing_match[0][1][0] - x2) < w and abs(existing_match[0][1][1] - y2) < h:
                 # add to group
                 list_grouped_matches[i].append(((int(x1), int(y1)), (int(x2), int(y2))))
                 found = True
                 break
-            # increment
             i += 1
 
         if not found:
-            tmp = list()
+            tmp = []
             tmp.append(((int(x1), int(y1)), (int(x2), int(y2))))
-            list_grouped_matches.append(list(list(list(tmp))))
+            list_grouped_matches.append(tmp)
 
     # Remove groups with only singles because we cant calculate rotation then!
-    list_grouped_matches_filtered = []
-    for match_group in list_grouped_matches:
-        if len(match_group) >= const.WINDOWS_AND_DOORS_MAX_CORNERS:
-            list_grouped_matches_filtered.append(match_group)
-
+    list_grouped_matches_filtered = [group for group in list_grouped_matches if len(group) >= const.WINDOWS_AND_DOORS_MAX_CORNERS]
     # find corners of door in model image
     corners = cv2.goodFeaturesToTrack(
         model,
         const.WINDOWS_AND_DOORS_FEATURE_TRACK_MAX_CORNERS,
         const.WINDOWS_AND_DOORS_FEATURE_TRACK_QUALITY,
-        const.WINDOWS_AND_DOORS_FEATURE_TRACK_MIN_DIST,
+        const.WINDOWS_AND_DOORS_FEATURE_TRACK_MIN_DIST
     )
     corners = np.int0(corners)
 
@@ -365,24 +406,10 @@ def feature_match(img1, img2):
     upper_right = corners[0][0]
     down = corners[2][0]
 
-    max_x = 0
-    max_y = 0
-    min_x = math.inf
-    min_y = math.inf
-
-    for cr in corners:
-        x1 = cr[0][0]
-        y1 = cr[0][1]
-
-        if x1 < min_x:
-            min_x = x1
-        if x1 > max_x:
-            max_x = x1
-
-        if y1 < min_y:
-            min_y = y1
-        if y1 > max_y:
-            max_y = y1
+    max_x = max([cr[0][0] for cr in corners])
+    max_y = max([cr[0][1] for cr in corners])
+    min_x = min([cr[0][0] for cr in corners])
+    min_y = min([cr[0][1] for cr in corners])
 
     origin = (int((max_x + min_x) / 2), int((min_y + max_y) / 2))
 
@@ -407,18 +434,10 @@ def feature_match(img1, img2):
         ang = math.degrees(calculate.angle_between_vectors_2d(pt1, pt2))
 
         # rotate door
-        new_upper_left = transform.rotate_round_origin_vector_2d(
-            origin, upper_left, math.radians(ang)
-        )
-        new_upper_right = transform.rotate_round_origin_vector_2d(
-            origin, upper_right, math.radians(ang)
-        )
-        new_down = transform.rotate_round_origin_vector_2d(
-            origin, down, math.radians(ang)
-        )
-        new_pos1_model = transform.rotate_round_origin_vector_2d(
-            origin, pos1_model, math.radians(ang)
-        )
+        new_upper_left = transform.rotate_round_origin_vector_2d(origin, upper_left, math.radians(ang))
+        new_upper_right = transform.rotate_round_origin_vector_2d(origin, upper_right, math.radians(ang))
+        new_down = transform.rotate_round_origin_vector_2d(origin, down, math.radians(ang))
+        new_pos1_model = transform.rotate_round_origin_vector_2d(origin, pos1_model, math.radians(ang))
 
         # calculate scale, and rescale model
         """
@@ -447,31 +466,16 @@ def feature_match(img1, img2):
         scaled_down = new_down
         scaled_pos1_model = new_pos1_model
 
-        offset = (
-            scaled_pos1_model[0] - pos1_model[0],
-            scaled_pos1_model[1] - pos1_model[1],
-        )
-
+        offset = (scaled_pos1_model[0] - pos1_model[0], scaled_pos1_model[1] - pos1_model[1])
         # calculate dist!
         move_dist = (pos1_cap[0] - pos1_model[0], pos1_cap[1] - pos1_model[1])
 
         # draw corners!
-        moved_new_upper_left = (
-            int(scaled_upper_left[0] + move_dist[0] - offset[0]),
-            int(scaled_upper_left[1] + move_dist[1] - offset[1]),
-        )
-        moved_new_upper_right = (
-            int(scaled_upper_right[0] + move_dist[0] - offset[0]),
-            int(scaled_upper_right[1] + move_dist[1] - offset[1]),
-        )
-        moved_new_down = (
-            int(scaled_down[0] + move_dist[0] - offset[0]),
-            int(scaled_down[1] + move_dist[1] - offset[1]),
-        )
+        moved_new_upper_left = (int(scaled_upper_left[0] + move_dist[0] - offset[0]), int(scaled_upper_left[1] + move_dist[1] - offset[1]))
+        moved_new_upper_right = (int(scaled_upper_right[0] + move_dist[0] - offset[0]), int(scaled_upper_right[1] + move_dist[1] - offset[1]))
+        moved_new_down = (int(scaled_down[0] + move_dist[0] - offset[0]), int(scaled_down[1] + move_dist[1] - offset[1]))
 
-        list_of_proper_transformed_doors.append(
-            [moved_new_upper_left, moved_new_upper_right, moved_new_down]
-        )
+        list_of_proper_transformed_doors.append([moved_new_upper_left, moved_new_upper_right, moved_new_down])
 
     gray = wall_filter(img1)
     gray = ~gray  # TODO: is it necessary to convert to grayscale again?
@@ -492,10 +496,8 @@ def feature_match(img1, img2):
         is_door = False
         _door = []
         for door in list_of_proper_transformed_doors:
-
-            if calculate.points_are_inside_or_close_to_box(
-                door, box
-            ):  # TODO: match door with only one box, the closest one!
+            if calculate.points_are_inside_or_close_to_box(door, box):
+            # TODO: match door with only one box, the closest one!
                 is_door = True
                 _door = door
                 break
@@ -506,7 +508,7 @@ def feature_match(img1, img2):
 
         # is window?
         x, y, w, h = cv2.boundingRect(box)
-        cropped = img1[y : y + h, x : x + w]
+        cropped = img1[y: y + h, x: x + w]
         # bandpassfilter
         total = np.sum(cropped)
         colored = np.sum(cropped > 0)
@@ -517,6 +519,10 @@ def feature_match(img1, img2):
 
         if low < amount_of_colored < high:
             windows.append(box)
+
+    if LOGGING_VERBOSE:
+        logger.debug('Feature matched the models to the floorplan')
+    save_debug_image('feature_matched.png', img1)
 
     return transform.rescale_rect(windows, const.WINDOWS_RESCALE_TO_FIT), doors
 
@@ -531,16 +537,17 @@ def find_details(
 ):
 
     """
+    Detect details in the image.
     I have copied and changed this function some...
     origin from
     https://stackoverflow.com/questions/54274610/crop-each-of-them-using-opencv-python
-    @Param img: grey scale image of rooms, already eroded and doors removed etc.
+    @Param img: Grey scale image of rooms, already eroded and doors removed etc.
     @Param noise_removal_threshold: Minimal area of blobs to be kept.
     @Param corners_threshold: Threshold to allow corners. Higher removes more of the house.
     @Param room_closing_max_length: Maximum line length to add to close off open doors.
     @Param gap_in_wall_threshold: Minimum number of pixels to identify component as room instead of hole in the wall.
-    @Return: rooms: list of numpy arrays containing boolean masks for each detected room
-             colored_house: A colored version of the input image, where each room has a random color.
+    @Return: details: List of numpy arrays containing boolean masks for each detected detail.
+             colored_house: A colored version of the input image, where each detail has a random color.
     """
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
@@ -570,5 +577,9 @@ def find_details(
             color = np.random.randint(0, 255, size=3)
 
         img[component] = color
+
+    if LOGGING_VERBOSE:
+        logger.debug('Detected details in the image')
+    save_debug_image('details_detected.png', img)
 
     return details, img

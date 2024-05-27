@@ -2,8 +2,24 @@ from . import IO
 from . import const
 from . import transform
 import numpy as np
-
+import logging
 from FloorplanToBlenderLib.generator import Door, Floor, Room, Wall, Window
+from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+import os
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
 
 """
 Generate
@@ -25,12 +41,13 @@ def generate_all_files(
 ):
     """
     Generate all data files
-    @Param image path
-    @Param dir build in negative or positive direction
-    @Param info, boolean if should be printed
-    @Param position, vector of float
-    @Param rotation, vector of float
-    @Return path to generated file, shape
+    @Param floorplan: The floorplan object containing details for generating files.
+    @Param info: Boolean indicating if information should be printed.
+    @Param world_direction: Direction for building (default is None, set to 1).
+    @Param world_scale: Scale vector for the world.
+    @Param world_position: Position vector  of float
+    @Param world_rotation: Rotation vector  of float
+    @Return: Path to the generated file, shape of the generated object.
     """
     if world_direction is None:
         world_direction = 1
@@ -42,15 +59,13 @@ def generate_all_files(
     ]
 
     if info:
-        print(
+        logger.info(
             " ----- Generate ",
             floorplan.image_path,
             " at pos ",
-            transform.list_to_nparray(floorplan.position)
-            + transform.list_to_nparray(world_position),
+            transform.list_to_nparray(floorplan.position) + transform.list_to_nparray(world_position),
             " rot ",
-            transform.list_to_nparray(floorplan.rotation)
-            + transform.list_to_nparray(world_rotation),
+            transform.list_to_nparray(floorplan.rotation) + transform.list_to_nparray(world_rotation),
             " scale ",
             scale,
             " -----",
@@ -113,20 +128,29 @@ def generate_all_files(
     if shape is None:
         shape = [0, 0, 0]
 
+    if LOGGING_VERBOSE:
+        logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
+    save_debug_info('generate_all_files.txt', {'path': path, 'shape': shape})
+
     return path, shape
 
 
 def validate_shape(old_shape, new_shape):
     """
-    Validate shape, use this to calculate a objects total shape
-    @Param old_shape
-    @Param new_shape
-    @Return total shape
+    Validate shape, use this to calculate an object's total shape.
+    @Param old_shape: The old shape of the object.
+    @Param new_shape: The new shape of the object.
+    @Return: Total shape combining old and new shapes.
     """
     shape = [0, 0, 0]
     shape[0] = max(old_shape[0], new_shape[0])
     shape[1] = max(old_shape[1], new_shape[1])
     shape[2] = max(old_shape[2], new_shape[2])
+
+    if LOGGING_VERBOSE:
+        logger.debug(f'Validated shape: old_shape={old_shape}, new_shape={new_shape}, combined_shape={shape}')
+    save_debug_info('validate_shape.txt', {'old_shape': old_shape, 'new_shape': new_shape, 'combined_shape': shape})
+
     return shape
 
 
@@ -144,16 +168,22 @@ def generate_transform_file(
     origin_path,
 ):
     """
-    Generate transform of file
-    A transform contains information about an objects position, rotation.
-    @Param img_path
-    @Param info, boolean if should be printed
-    @Param position, position vector
-    @Param rotation, rotation vector
-    @Param shape
-    @Return transform
+    Generate transform file.
+    A transform contains information about an object's position, rotation.
+    @Param img_path: Path to the image.
+    @Param path: Path to save the transform file.
+    @Param info: Boolean indicating if information should be printed.
+    @Param position: Position vector.
+    @Param world_position: World position vector.
+    @Param rotation: Rotation vector.
+    @Param world_rotation: World rotation vector.
+    @Param scale: Scale vector.
+    @Param shape: Shape of the object.
+    @Param data_path: Path to the data.
+    @Param origin_path: Path to the origin data.
+    @Return: Transform dictionary.
     """
-    # create map
+    # Create transform map
     transform = {}
     if position is None:
         transform[const.STR_POSITION] = np.array([0, 0, 0])
@@ -182,5 +212,9 @@ def generate_transform_file(
     transform[const.STR_DATA_PATH] = data_path
 
     IO.save_to_file(path + "transform", transform, info)
+
+    if LOGGING_VERBOSE:
+        logger.debug(f'Generated transform file for image: {img_path}')
+    save_debug_info('generate_transform_file.txt', transform)
 
     return transform

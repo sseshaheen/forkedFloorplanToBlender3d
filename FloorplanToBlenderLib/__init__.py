@@ -16,6 +16,14 @@ dialog...
 execution...
 
 """
+import logging
+from config import LOGGING_VERBOSE, DEBUG_MODE
+
+# Configure logging
+if LOGGING_VERBOSE:
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+else:
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 __all__ = [
     "image",

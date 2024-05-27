@@ -7,10 +7,12 @@ from urllib.parse import parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
+import logging
 
 from api.post import Post
 from api.put import Put
 from api.get import Get
+from FloorplanToBlenderLib import config
 
 """
 FloorplanToBlender3d
@@ -80,6 +82,21 @@ class S(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/json")
         self.end_headers()
 
+    def parse_debug_query_params(self):
+        parsed_path = urlparse(self.path)
+        parsed_data = self.transform_dict(parse_qs(parsed_path.query))
+        debug_mode = parsed_data.get('debug', 'false').lower() == 'true'
+        logging_verbose = parsed_data.get('verbose', 'false').lower() == 'true'
+        session_id = parsed_data.get('session_id', None)
+        config.update_config(debug_mode, logging_verbose, session_id)
+        self.configure_logging()
+
+    def configure_logging(self):
+        if config.LOGGING_VERBOSE:
+            logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        else:
+            logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     def do_HEAD(self):
         self._set_response()
 
@@ -87,6 +104,7 @@ class S(BaseHTTPRequestHandler):
         self._set_response()
 
     def do_GET(self):
+        self.parse_debug_query_params()
         parsed_path = urlparse(self.path)
         kwargs = None
         try:
@@ -107,6 +125,7 @@ class S(BaseHTTPRequestHandler):
             return  # This occurs when server is sending file and client isn't waiting for extra message.
 
     def do_PUT(self):
+        self.parse_debug_query_params()
         parsed_path = urlparse(self.path)
         parsed_data = self.transform_dict(parse_qs(parsed_path.query))
         kwargs = None
@@ -145,7 +164,7 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(bytes(message, encoding='utf-8'))
 
     def do_POST(self):
-
+        self.parse_debug_query_params()
         if self.headers["Content-Length"]:
             content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length)

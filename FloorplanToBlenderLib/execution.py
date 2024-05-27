@@ -2,6 +2,9 @@ from . import generate
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from math import atan2, degrees
+import logging
+from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+import os
 
 """
 Execution
@@ -11,16 +14,42 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
+
+"""
+Execution
+This file contains some example usages and creations of multiple floorplans.
+
+FloorplanToBlender3d
+Copyright (C) 2022 Daniel Westberg
+"""
 
 def simple_single(floorplan, show=True):
     """
-    Generate one simple floorplan
-    @Param image_path path to image
-    @Return path to generated files
+    Generate one simple floorplan.
+    @Param floorplan: The floorplan object containing details for generating files.
+    @Param show: Boolean indicating if information should be printed.
+    @Return: Path to generated files.
     """
     filepath, _ = generate.generate_all_files(floorplan, show)
+    
+    if LOGGING_VERBOSE:
+        logger.debug(f'Generated simple single floorplan: {filepath}')
+    save_debug_info('simple_single.txt', {'floorplan': floorplan, 'filepath': filepath})
+    
     return filepath
-
 
 def multiple_axis(
     floorplans,
@@ -32,15 +61,17 @@ def multiple_axis(
     worldscale=np.array([1, 1, 1]),
 ):
     """
-    Generates several new apartments along axis "x","y","z"
-    @Param pos,rot,sca - offset, rotation and scaling
-    @Param dir - determines +/- direction along axis
-    @Param floorplans - list of path to images
-    @Param horizontal - if apartments should stack horizontal or vertical
-    @Return paths to image data
+    Generate several new apartments along axis "x","y","z".
+    @Param floorplans: List of floorplan objects.
+    @Param axis: Axis along which to place the floorplans ('x', 'y', 'z').
+    @Param dir: Direction along the axis (1 for positive, -1 for negative).
+    @Param margin: Margin to add between floorplans.
+    @Param worldpositionoffset: Position offset for the world.
+    @Param worldrotationoffset: Rotation offset for the world.
+    @Param worldscale: Scale for the world.
+    @Return: List of paths to generated data.
     """
-    # Generate data files
-    data_paths = list()
+    data_paths = []
     fshape = None
 
     if margin is None:
@@ -57,9 +88,7 @@ def multiple_axis(
                     True,
                     world_direction=dir,
                     world_scale=worldscale,
-                    world_position=np.array([0, fshape[1], 0])
-                    + worldpositionoffset
-                    + margin,
+                    world_position=np.array([0, fshape[1], 0]) + worldpositionoffset + margin,
                     world_rotation=worldrotationoffset,
                 )
             elif axis == "x":
@@ -67,9 +96,7 @@ def multiple_axis(
                     floorplan,
                     True,
                     world_scale=worldscale,
-                    world_position=np.array([fshape[0], 0, 0])
-                    + worldpositionoffset
-                    + margin,
+                    world_position=np.array([fshape[0], 0, 0]) + worldpositionoffset + margin,
                     world_rotation=worldrotationoffset,
                     world_direction=dir,
                 )
@@ -78,9 +105,7 @@ def multiple_axis(
                     floorplan,
                     True,
                     world_scale=worldscale,
-                    world_position=np.array([0, 0, fshape[2]])
-                    + worldpositionoffset
-                    + margin,
+                    world_position=np.array([0, 0, fshape[2]]) + worldpositionoffset + margin,
                     world_rotation=worldrotationoffset,
                     world_direction=dir,
                 )
@@ -96,21 +121,49 @@ def multiple_axis(
 
         # add path to send to blender
         data_paths.append(filepath)
+
+    if LOGGING_VERBOSE:
+        logger.debug(f'Generated multiple floorplans along axis {axis}: {data_paths}')
+    save_debug_info('multiple_axis.txt', {'floorplans': floorplans, 'axis': axis, 'dir': dir, 'margin': margin, 'worldpositionoffset': worldpositionoffset, 'worldrotationoffset': worldrotationoffset, 'worldscale': worldscale, 'data_paths': data_paths})
+
     return data_paths
 
 
 def rotate_around_axis(axis, vec, degrees):
+    """
+    Rotate a vector around an axis by a given number of degrees.
+    @Param axis: Axis around which to rotate.
+    @Param vec: Vector to rotate.
+    @Param degrees: Angle in degrees to rotate.
+    @Return: Rotated vector.
+    """
     rotation_radians = np.radians(degrees)
     rotation_vector = rotation_radians * axis
     rotation = R.from_rotvec(rotation_vector)
-    return rotation.apply(vec)
+    rotated_vec = rotation.apply(vec)
 
+    if LOGGING_VERBOSE:
+        logger.debug('Rotated vector around axis.')
+    save_debug_info('rotate_around_axis.txt', {'axis': axis, 'vec': vec, 'degrees': degrees, 'rotated_vec': rotated_vec})
+
+    return rotated_vec
 
 def AngleBtw2Points(pointA, pointB):
+    """
+    Calculate the angle between two points.
+    @Param pointA: First point.
+    @Param pointB: Second point.
+    @Return: Angle in degrees.
+    """
     changeInX = pointB[0] - pointA[0]
     changeInY = pointB[1] - pointA[1]
-    return degrees(atan2(changeInY, changeInX))
+    angle = degrees(atan2(changeInY, changeInX))
 
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated angle between two points.')
+    save_debug_info('AngleBtw2Points.txt', {'pointA': pointA, 'pointB': pointB, 'angle': angle})
+
+    return angle
 
 def multiple_cylinder(
     floorplans,
@@ -124,17 +177,20 @@ def multiple_cylinder(
     margin=np.array([0, 0, 0]),
 ):
     """
-    Generates several new apartments in a cylindric shape
-    It is a naive solutions but works for some floorplans
-    @Param pos,rot,sca - offset, rotation and scaling
-    @Param dir - determines +/- direction along y axis
-    @Param image_paths - list of path to images
-    @Param amount_per_level - how many apartments should be added to the circle
-    @Param radie - radie size
-    @Param degree - how many degree should the circle be, 0-360
-    @Return paths to image data
+    Generate several new apartments in a cylindrical shape.
+    It is a naive solution but works for some floorplans.
+    @Param floorplans: List of floorplan objects.
+    @Param amount_per_level: Number of apartments per level.
+    @Param radie: Radius of the cylinder.
+    @Param degree: Total degrees to cover around the cylinder.
+    @Param world_direction: Direction along the y-axis (default is None).
+    @Param world_position: Position offset for the world.
+    @Param world_rotation: Rotation vector for the world.
+    @Param world_scale: Scale for the world.
+    @Param margin: Margin to add between floorplans.
+    @Return: List of paths to generated data.
     """
-    data_paths = list()
+    data_paths = []
     curr_index = 0
     curr_level = 0
     degree_step = int(degree / amount_per_level)
@@ -167,10 +223,13 @@ def multiple_cylinder(
             world_rotation=curr_rot,
             world_scale=world_scale,
         )
-
         # add path to send to blender
         data_paths.append(filepath)
 
         curr_index += 1
+
+    if LOGGING_VERBOSE:
+        logger.debug('Generated multiple floorplans in cylindrical shape.')
+    save_debug_info('multiple_cylinder.txt', {'floorplans': floorplans, 'amount_per_level': amount_per_level, 'radie': radie, 'degree': degree, 'world_direction': world_direction, 'world_position': world_position, 'world_rotation': world_rotation, 'world_scale': world_scale, 'margin': margin, 'data_paths': data_paths})
 
     return data_paths

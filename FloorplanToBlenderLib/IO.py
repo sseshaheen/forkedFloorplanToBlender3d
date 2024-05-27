@@ -6,7 +6,7 @@ import cv2
 import platform
 from sys import platform as pf
 import numpy as np
-
+import logging
 from . import const
 from . import image
 from . import config
@@ -19,60 +19,85 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if config.DEBUG_MODE:
+        filepath = os.path.join(config.DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if config.LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
+
 
 def find_reuseable_data(image_path, path):
     """
-    Checks if floorplan data already exists and can be reused
-    Then return the path to data
-    @Param path, path to image
-    @Return path to image data, else return None
+    Checks if floorplan data already exists and can be reused.
+    @Param image_path: Path to the image.
+    @Param path: Path to search for reusable data.
+    @Return: Path to reusable image data, shape of the reusable data, else None.
     """
     for _, dirs, _ in os.walk(path):
         for dir in dirs:
             try:
-                with open(path + dir + const.TRANSFORM_PATH) as f:
+                with open(os.path.join(path, dir, const.TRANSFORM_PATH)) as f:
                     data = f.read()
                 js = json.loads(data)
                 if image_path == js[const.STR_IMAGE_PATH]:
+                    if config.LOGGING_VERBOSE:
+                        logger.debug(f'Reusable data found for image: {image_path}')
                     return js[const.STR_ORIGIN_PATH], js[const.STR_SHAPE]
             except IOError:
                 continue
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'No reusable data found for image: {image_path}')
     return None, None
 
 
 def find_files(filename, search_path):
     """
-    Find filename in root search path
+    Find filename in root search path.
+    @Param filename: Name of the file to search for.
+    @Param search_path: Root directory to start the search.
+    @Return: Full path to the found file, else None.
     """
     for root, _, files in os.walk(search_path):
         if filename in files:
+            if config.LOGGING_VERBOSE:
+                logger.debug(f'File found: {filename} at {root}')
             return os.path.join(root, filename)
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'File not found: {filename}')
     return None
 
 
 def blender_installed():
     """
-    Find path to blender installation
-    Might be error prune, tested on ubuntu and windows
+    Find path to blender installation.
+    Might be error prone, tested on Ubuntu and Windows.
+    @Return: Path to Blender executable if found, else None.
     """
     if pf == "linux" or pf == "linux2":
-        # linux
+        # Linux
         return find_files("blender", "/")
     elif pf == "darwin":
         # OS X
-        return find_files("blender", "/")  # TODO: this need to be tested!
+        return find_files("blender", "/")  # TODO: this needs to be tested!
     elif pf == "win32":
         # Windows
         return find_files("blender.exe", "C:\\")
 
-
 def get_blender_os_path():
+    """
+    Get the default installation path of Blender based on the operating system.
+    @Return: Default Blender installation path for the current OS.
+    """
     _platform = platform.system()
-    if (
-        _platform.lower() == "linux"
-        or _platform.lower() == "linux2"
-        or _platform.lower() == "ubuntu"
-    ):
+    if _platform.lower() in ["linux", "linux2", "ubuntu"]:
         return const.LINUX_DEFAULT_BLENDER_INSTALL_PATH
     elif _platform.lower() == "darwin":
         return const.MAC_DEFAULT_BLENDER_INSTALL_PATH
@@ -82,12 +107,15 @@ def get_blender_os_path():
 
 def read_image(path, floorplan=None):
     """
-    Read image, resize/rescale and return with grayscale
+    Read image, resize/rescale and return with grayscale.
+    @Param path: Path to the image file.
+    @Param floorplan: Floorplan object containing image processing parameters.
+    @Return: Original image, Grayscale image, Scale factor.
     """
     # Read floorplan image
     img = cv2.imread(path)
     if img is None:
-        print(f"ERROR: Image {path} could not be read by OpenCV library.")
+        logger.error(f"ERROR: Image {path} could not be read by OpenCV library.")
         raise IOError
 
     scale_factor = 1
@@ -100,25 +128,42 @@ def read_image(path, floorplan=None):
             floorplan.wall_size_calibration = calibrations  # Store for debug
             scale_factor = image.detect_wall_rescale(float(calibrations), img)
             if scale_factor is None:
-                print(
-                    "WARNING: Auto rescale failed due to non good walls found in image."
+                logger.warning(
+                    "WARNING: Auto rescale failed due to non-good walls found in image."
                     + "If rescale still is needed, please rescale manually."
                 )
                 scale_factor = 1
             else:
                 img = image.cv2_rescale_image(img, scale_factor)
 
-    return img, cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), scale_factor
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Read and processed image: {path}')
+    save_debug_info('read_image.txt', {'path': path, 'scale_factor': scale_factor})
 
+    return img, gray, scale_factor
 
 def readlines_file(path):
     res = []
+    """
+    Read all lines from a file.
+    @Param path: Path to the file.
+    @Return: List of lines read from the file.
+    """
     with open(path, "r") as f:
         res = f.readlines()
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Read lines from file: {path}')
+    save_debug_info('readlines_file.txt', {'path': path, 'lines': res})
     return res
 
 
 def ndarrayJsonDumps(obj):
+    """
+    Convert numpy array to JSON serializable format.
+    @Param obj: Numpy object to be converted.
+    @Return: List if the object is an ndarray, item if it is another numpy type.
+    """
     if type(obj).__module__ == np.__name__:
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -129,39 +174,43 @@ def ndarrayJsonDumps(obj):
 
 def save_to_file(file_path, data, show=True):
     """
-    Save to file
-    Saves our resulting array as json in file.
-    @Param file_path, path to outputfile
-    @Param data, data to write to file
+    Save data to a file in JSON format.
+    @Param file_path: Path to the output file.
+    @Param data: Data to write to the file.
+    @Param show: Boolean indicating if a success message should be printed.
     """
-    with open(file_path + const.SAVE_DATA_FORMAT, "w") as f:
+    full_path = file_path + const.SAVE_DATA_FORMAT
+    with open(full_path, "w") as f:
         try:
-            f.write(json.dumps(data))
-        except TypeError:
-            f.write(json.dumps(data, default=ndarrayJsonDumps))  # little haxy
-
+            f.write(json.dumps(data, default=ndarrayJsonDumps))
+        except TypeError as e:
+            logger.error(f'Error saving data to file: {e}')
+            raise
     if show:
-        print("Created file : " + file_path + const.SAVE_DATA_FORMAT)
-
+        logger.info(f'Created file: {full_path}')
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Saved data to file: {full_path}')
+    save_debug_info('save_to_file.txt', {'file_path': full_path, 'data': data})
 
 def read_from_file(file_path):
     """
-    Read from file
-    read verts data from file
-    @Param file_path, path to file
-    @Return data
+    Read data from a file in JSON format.
+    @Param file_path: Path to the file.
+    @Return: Data read from the file.
     """
-    # Now read the file back into a Python list object
-    with open(file_path + const.SAVE_DATA_FORMAT, "r") as f:
+    full_path = file_path + const.SAVE_DATA_FORMAT
+    with open(full_path, "r") as f:
         data = json.loads(f.read())
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Read data from file: {full_path}')
+    save_debug_info('read_from_file.txt', {'file_path': full_path, 'data': data})
     return data
 
 
 def clean_data_folder(folder):
     """
-    Remove old data files
-    Don't want to fill memory
-    @Param folder, path to data folder
+    Remove old data files to avoid filling memory.
+    @Param folder: Path to the data folder.
     """
     for root, dirs, files in os.walk(folder):
         for f in files:
@@ -169,12 +218,15 @@ def clean_data_folder(folder):
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
 
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Cleaned data folder: {folder}')
+    save_debug_info('clean_data_folder.txt', {'folder': folder})
 
 def create_new_floorplan_path(path):
     """
-    Creates next free name to floorplan data
-    @Param path, path to floorplan
-    @Return end path
+    Create the next free name for floorplan data.
+    @Param path: Path to the floorplan directory.
+    @Return: New path for the floorplan data.
     """
     res = 0
     for _, dirs, _ in os.walk(path):
@@ -182,39 +234,52 @@ def create_new_floorplan_path(path):
             try:
                 name_not_found = True
                 while name_not_found:
-                    if not os.path.exists(path + str(res) + "/"):
+                    if not os.path.exists(os.path.join(path, str(res))):
                         break
                     res += 1
             except Exception:
                 continue
 
-    res = path + str(res) + "/"
-    if not os.path.exists(res):
-        os.makedirs(res)
-    return res
+    res_path = os.path.join(path, str(res))
+    if not os.path.exists(res_path):
+        os.makedirs(res_path)
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Created new floorplan path: {res_path}')
+    save_debug_info('create_new_floorplan_path.txt', {'path': res_path})
+    return res_path
 
 
 def get_current_path():
     """
-    Get path to this programs path
-    @Return path to working directory
+    Get the current working directory path.
+    @Return: Path to the working directory.
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Current path: {dir_path}')
+    save_debug_info('get_current_path.txt', {'path': dir_path})
     return dir_path
 
 
 def find_program_path(name):
     """
-    Find program path
-    @Param name, name of program to find
+    Find the path of a program.
+    @Param name: Name of the program to find.
+    @Return: Path to the program if found, else None.
     """
-    return which(name)
-
+    program_path = which(name)
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Program path for {name}: {program_path}')
+    save_debug_info('find_program_path.txt', {'name': name, 'path': program_path})
+    return program_path
 
 def get_next_target_base_name(target_base, target_path):
     """
-    Generate appropriate next target name
-    If blender target file already exist, get next id
+    Generate the next appropriate target name.
+    If the Blender target file already exists, get the next ID.
+    @Param target_base: Base name for the target.
+    @Param target_path: Path to the target directory.
+    @Return: Next target base name.
     """
     fid = 0
     if os.path.isfile("." + target_path):
@@ -224,4 +289,7 @@ def get_next_target_base_name(target_base, target_path):
                 fid += 1
         target_base += str(fid)
 
+    if config.LOGGING_VERBOSE:
+        logger.debug(f'Next target base name: {target_base}')
+    save_debug_info('get_next_target_base_name.txt', {'target_base': target_base, 'target_path': target_path, 'fid': fid})
     return target_base

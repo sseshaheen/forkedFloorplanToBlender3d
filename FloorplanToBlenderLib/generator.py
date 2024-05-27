@@ -2,13 +2,15 @@ import abc
 import cv2
 import math
 import numpy as np
-
+import logging
 from . import detect
 from . import transform
 from . import IO
 from . import const
 from . import draw
 from . import calculate
+from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+import os
 
 """
 Generator
@@ -18,14 +20,29 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
+
+
 
 class Generator:
     __metaclass__ = abc.ABCMeta
-    # create verts (points 3d), points to use in mesh creations
+    # Create verts (points 3d), points to use in mesh creations
     verts = []
-    # create faces for each plane, describe order to create mesh points
+    # Create faces for each plane, describe order to create mesh points
     faces = []
-    # Height of waLL
+    # Height of wall
     height = const.WALL_HEIGHT
     # Scale pixel value to 3d pos
     pixelscale = const.PIXEL_TO_3D_SCALE
@@ -43,9 +60,8 @@ class Generator:
         """
         Get shape
         Rescale boxes to specified scale
-        @Param verts, input boxes
-        @Param scale to use
-        @Return rescaled boxes
+        @Param verts: Input boxes
+        @Return: Rescaled boxes
         """
         if len(verts) == 0:
             return [0, 0, 0]
@@ -68,11 +84,17 @@ class Generator:
             if pos[2] < low[2]:
                 low[2] = pos[2]
 
-        return [
+        rescaled_shape = [
             (high[0] - low[0]) * self.scale[0],
             (high[1] - low[1]) * self.scale[1],
-            (high[2] - low[2]) ** self.scale[2],
+            (high[2] - low[2]) * self.scale[2],
         ]
+
+        if LOGGING_VERBOSE:
+            logger.debug('Calculated shape of verts.')
+        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
+
+        return rescaled_shape
 
     @abc.abstractmethod
     def generate(self, gray, info=False):
@@ -85,9 +107,15 @@ class Floor(Generator):
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
-
-        # detect outer Contours (simple floor or roof solution)
+        """
+        Generate floor data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the floor.
+        """
+        # Detect outer contours (simple floor or roof solution)
         contour, _ = detect.outer_contours(gray)
+
         # Create verts
         self.verts = transform.scale_point_to_vector(
             boxes=contour,
@@ -96,14 +124,16 @@ class Floor(Generator):
             height=self.height,
         )
 
-        # create faces
+        # Create faces
         count = 0
         for _ in self.verts:
             self.faces.extend([(count)])
             count += 1
 
         if info:
-            print("Approximated apartment size : ", cv2.contourArea(contour))
+            print("Approximated apartment size: ", cv2.contourArea(contour))
+            if LOGGING_VERBOSE:
+                logger.debug(f'Approximated apartment size: {cv2.contourArea(contour)}')
 
         IO.save_to_file(self.path + const.FLOOR_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.FLOOR_FACES, self.faces, info)
@@ -116,18 +146,24 @@ class Wall(Generator):
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
-
-        # create wall image (filter out small objects from image)
+        """
+        Generate wall data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the walls.
+        """
+        # Create wall image (filter out small objects from image)
         wall_img = detect.wall_filter(gray)
 
-        # detect walls
+        # Detect walls
         boxes, _ = detect.precise_boxes(wall_img)
 
-        # detect contour
+        # Detect contour
         contour, _ = detect.outer_contours(gray)
 
-        # remove walls outside of contour
+        # Remove walls outside of contour
         boxes = calculate.remove_walls_not_in_contour(boxes, contour)
+
         # Convert boxes to verts and faces, vertically
         self.verts, self.faces, wall_amount = transform.create_nx4_verts_and_faces(
             boxes=boxes,
@@ -137,13 +173,15 @@ class Wall(Generator):
         )
 
         if info:
-            print("Walls created : ", wall_amount)
+            print("Walls created: ", wall_amount)
+            if LOGGING_VERBOSE:
+                logger.debug(f'Walls created: {wall_amount}')
 
-        # One solution to get data to blender is to write and read from file.
+        # Save data to file
         IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces, info)
 
-        # Same but horizontally
+        # Convert boxes to verts and faces, horizontally
         self.verts, self.faces, wall_amount = transform.create_4xn_verts_and_faces(
             boxes=boxes,
             height=self.height,
@@ -152,6 +190,12 @@ class Wall(Generator):
             ground=True,
         )
 
+        if info:
+            print("Walls created: ", wall_amount)
+            if LOGGING_VERBOSE:
+                logger.debug(f'Walls created horizontally: {wall_amount}')
+
+        # Save data to file
         # One solution to get data to blender is to write and read from file.
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
@@ -163,16 +207,22 @@ class Room(Generator):
     def __init__(self, gray, path, scale, info=False):
         self.height = (
             const.WALL_HEIGHT - const.ROOM_FLOOR_DISTANCE
-        )  # place room slightly above floor
+        )  # Place room slightly above floor
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
+        """
+        Generate room data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the rooms.
+        """
         gray = detect.wall_filter(gray)
         gray = ~gray
         rooms, colored_rooms = detect.find_rooms(gray.copy())
         gray_rooms = cv2.cvtColor(colored_rooms, cv2.COLOR_BGR2GRAY)
 
-        # get box positions for rooms
+        # Get box positions for rooms
         boxes, gray_rooms = detect.precise_boxes(gray_rooms, gray_rooms)
 
         self.verts, self.faces, counter = transform.create_4xn_verts_and_faces(
@@ -183,7 +233,9 @@ class Room(Generator):
         )
 
         if info:
-            print("Number of rooms detected : ", counter)
+            print("Number of rooms detected: ", counter)
+            if LOGGING_VERBOSE:
+                logger.debug(f'Number of rooms detected: {counter}')
 
         IO.save_to_file(self.path + const.ROOM_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.ROOM_FACES, self.faces, info)
@@ -199,7 +251,10 @@ class Door(Generator):
 
     def get_point_the_furthest_away(self, door_features, door_box):
         """
-        Calculate door point furthest away from doorway
+        Calculate door point furthest away from doorway.
+        @Param door_features: Features of the door.
+        @Param door_box: Box around the door.
+        @Return: Point furthest away from the doorway.
         """
         best_point = None
         dist = 0
@@ -213,11 +268,19 @@ class Door(Generator):
                 if dist < distance:
                     best_point = f
                     dist = distance
+
+        if LOGGING_VERBOSE:
+            logger.debug('Calculated point furthest away from doorway.')
+        save_debug_info('get_point_the_furthest_away.txt', {'door_features': door_features, 'door_box': door_box, 'best_point': best_point})
+
         return best_point
 
     def get_closest_box_point_to_door_point(self, wall_point, box):
         """
-        Calculate best point in box to anchor door
+        Calculate best point in box to anchor door.
+        @Param wall_point: Wall point to which the door is closest.
+        @Param box: Box around the door.
+        @Return: Best point in box to anchor the door.
         """
         best_point = None
         dist = math.inf
@@ -239,22 +302,33 @@ class Door(Generator):
                 if distance > dist:
                     best_point = fp
                     dist = distance
+
+        if LOGGING_VERBOSE:
+            logger.debug('Calculated closest box point to door point.')
+        save_debug_info('get_closest_box_point_to_door_point.txt', {'wall_point': wall_point, 'box': box, 'best_point': best_point})
+
         return (int(best_point[0]), int(best_point[1]))
 
     def generate(self, gray, info=False):
 
+        """
+        Generate door data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the doors.
+        """
         doors = detect.doors(self.image_path, self.scale_factor)
 
         door_contours = []
-        # get best door shapes!
+        # Get best door shapes!
         for door in doors:
             door_features = door[0]
             door_box = door[1]
 
-            # find door to space point
+            # Find door to space point
             space_point = self.get_point_the_furthest_away(door_features, door_box)
 
-            # find best box corner to use as attachment
+            # Find best box corner to use as attachment
             closest_box_point = self.get_closest_box_point_to_door_point(
                 space_point, door_box
             )
@@ -304,7 +378,9 @@ class Door(Generator):
         )
 
         if info:
-            print("Doors created : ", int(door_amount / 4))
+            print("Doors created: ", int(door_amount / 4))
+            if LOGGING_VERBOSE:
+                logger.debug(f'Doors created: {int(door_amount / 4)}')
 
         IO.save_to_file(self.path + "door_vertical_verts", self.verts, info)
         IO.save_to_file(self.path + "door_vertical_faces", self.faces, info)
@@ -336,6 +412,12 @@ class Window(Generator):
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
+        """
+        Generate window data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the windows.
+        """
         windows = detect.windows(self.image_path, self.scale_factor)
 
         # Create verts for window, vertical
@@ -345,14 +427,14 @@ class Window(Generator):
             scale=self.scale,
             pixelscale=self.pixelscale,
             ground=0,
-        )  # create low piece
+        )  # Create low piece
         v2, self.faces, window_amount2 = transform.create_nx4_verts_and_faces(
             boxes=windows,
             height=self.height,
             scale=self.scale,
             pixelscale=self.pixelscale,
             ground=const.WINDOW_MIN_MAX_GAP[1],
-        )  # create higher piece
+        )  # Create higher piece
 
         self.verts = v
         self.verts.extend(v2)
@@ -360,12 +442,14 @@ class Window(Generator):
         window_amount = len(v) / parts_per_window
 
         if info:
-            print("Windows created : ", int(window_amount))
+            print("Windows created: ", int(window_amount))
+            if LOGGING_VERBOSE:
+                logger.debug(f'Windows created: {int(window_amount)}')
 
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)
 
-        # horizontal
+        # Create verts for window, horizontal
 
         v, f, _ = transform.create_4xn_verts_and_faces(
             boxes=windows,

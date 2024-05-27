@@ -1,10 +1,26 @@
+import logging
+import numpy as np
 from . import IO
 from . import execution
 from . import const
 from . import floorplan
 from . import transform
+from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+import os
 
-import numpy as np
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
 
 """
 Stacking
@@ -14,24 +30,27 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
-
 def parse_stacking_file(path):
     """
-    Parse strictly formated stacking files.
+    Parse strictly formatted stacking files.
     These are used to more easily place many floorplans in one scene.
+    @Param path: Path to the stacking file.
+    @Return: List of worlds containing floorplans.
     """
     array_of_commands = IO.readlines_file(path)
 
     world = []
     worlds = []
 
-    print("Building stack from file " + path)
+    logger.info(f'Building stack from file {path}')
+    if LOGGING_VERBOSE:
+        logger.debug(f'Reading stacking file from: {path}')
 
     for index, line in enumerate(array_of_commands):
         args = line.split(" ")
         command = args[0]
 
-        if command[0] in ["#", "\n", "", " "]:  # ignore commented lines
+        if command[0] in ["#", "\n", "", " "]:  # Ignore commented lines
             continue
 
         try:
@@ -54,7 +73,7 @@ def parse_stacking_file(path):
             else:
                 argstring += arg + ","
 
-        print(">Line", index, "Command:", command + "(" + argstring + ")")
+        logger.info(f'>Line {index} Command: {command}({argstring})')
 
         if command == "SEPARATE":
             worlds.append(world)
@@ -65,18 +84,35 @@ def parse_stacking_file(path):
             world.extend(eval(command + "(" + argstring + ")"))
 
     worlds.extend(world)
+    
+    if LOGGING_VERBOSE:
+        logger.debug(f'Parsed stacking file: {path}')
+    save_debug_info('parse_stacking_file.txt', {'path': path, 'worlds': worlds})
+
     return worlds
 
 
 def CLEAR():
+    """
+    Clear the data folder.
+    """
     IO.clean_data_folder(const.BASE_PATH)
-
+    logger.info('Cleared data folder.')
+    if LOGGING_VERBOSE:
+        logger.debug(f'Cleared data folder at path: {const.BASE_PATH}')
 
 def SEPARATE():
+    """
+    Separate the world.
+    """
     pass
 
-
 def FILE(stacking_file_path):
+    """
+    Parse a stacking file.
+    @Param stacking_file_path: Path to the stacking file.
+    @Return: Parsed worlds.
+    """
     return parse_stacking_file(stacking_file_path)
 
 
@@ -94,7 +130,19 @@ def ADD(
     degree=None,
 ):
     """
-    Add floorplan to configuration
+    Add floorplan to configuration.
+    @Param config: Configuration file path.
+    @Param image_path: Path to the image.
+    @Param amount: Number of floorplans to add.
+    @Param mode: Mode for stacking (x, y, z, cylinder).
+    @Param margin: Margin for stacking.
+    @Param worldpositionoffset: World position offset.
+    @Param worldrotationoffset: World rotation offset.
+    @Param worldscale: World scale.
+    @Param amount_per_level: Amount per level for cylinder mode.
+    @Param radie: Radius for cylinder mode.
+    @Param degree: Degree for cylinder mode.
+    @Return: Paths to image data.
     """
     conf = config
     if config is None:
@@ -107,7 +155,7 @@ def ADD(
     for _ in range(amount):
         floorplans.append(floorplan.new_floorplan(conf))
 
-    if image_path is not None:  # replace all image paths
+    if image_path is not None:  # Replace all image paths
         new_floorplans = []
         for f in floorplans:
             tmp_f = f
@@ -122,8 +170,11 @@ def ADD(
         dir = -1
         mode = mode[1]
 
+    if LOGGING_VERBOSE:
+        logger.debug(f'Adding floorplans with config: {conf}, image_path: {image_path}, amount: {amount}, mode: {mode}')
+
     if mode == "cylinder":
-        return execution.multiple_cylinder(
+        result = execution.multiple_cylinder(
             floorplans,
             amount_per_level,
             radie,
@@ -139,7 +190,7 @@ def ADD(
             margin=transform.list_to_nparray(margin, np.array([0, 0, 0])),
         )
     else:
-        return execution.multiple_axis(
+        result = execution.multiple_axis(
             floorplans,
             mode,
             dir,
@@ -148,3 +199,22 @@ def ADD(
             transform.list_to_nparray(worldrotationoffset, np.array([0, 0, 0])),
             transform.list_to_nparray(worldscale),
         )
+    
+    if LOGGING_VERBOSE:
+        logger.debug(f'Added floorplans result: {result}')
+    save_debug_info('ADD.txt', {
+        'config': conf,
+        'image_path': image_path,
+        'amount': amount,
+        'mode': mode,
+        'margin': margin.tolist(),
+        'worldpositionoffset': worldpositionoffset.tolist(),
+        'worldrotationoffset': worldrotationoffset.tolist(),
+        'worldscale': worldscale.tolist(),
+        'amount_per_level': amount_per_level,
+        'radie': radie,
+        'degree': degree,
+        'result': result,
+    })
+
+    return result

@@ -2,6 +2,9 @@ import configparser
 import os
 import cv2
 import json
+import random
+import string
+import logging
 
 from . import IO
 from . import const
@@ -14,15 +17,70 @@ This file contains functions for handling config files.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def generate_random_string(length=6):
+    """
+    Generate a random string of specified length.
+    @Param length: Length of the random string.
+    @Return: Random string.
+    """
+    return ''.join(random.choices(string.ascii_letters, k=length))
+
+# Set debug mode (True for debug mode, False for normal mode)
+DEBUG_MODE = False
+
+# Set logging verbosity (True for detailed logging, False for concise logging)
+LOGGING_VERBOSE = False
+
+# Generate a unique identifier for the debug session
+DEBUG_SESSION_ID = generate_random_string()
+
+# Define the storage path for debug images
+DEBUG_STORAGE_PATH = os.path.join('./storage/debug', DEBUG_SESSION_ID)
+
+def initialize_debug_directory(session_id):
+    """
+    Initialize the debug directory for storing debug files.
+    @Param session_id: Unique identifier for the debug session.
+    @Return: Path to the debug directory.
+    """
+    debug_path = os.path.join('./storage/debug', session_id)
+    if not os.path.exists(debug_path):
+        os.makedirs(debug_path)
+    return debug_path
+
+def update_config(debug_mode, logging_verbose, session_id):
+    """
+    Update configuration settings for debug mode and logging verbosity.
+    @Param debug_mode: Boolean to set debug mode.
+    @Param logging_verbose: Boolean to set logging verbosity.
+    @Param session_id: Unique identifier for the debug session.
+    """
+    global DEBUG_MODE, LOGGING_VERBOSE, DEBUG_SESSION_ID, DEBUG_STORAGE_PATH
+    DEBUG_MODE = debug_mode
+    LOGGING_VERBOSE = logging_verbose
+    DEBUG_SESSION_ID = session_id or generate_random_string()
+    DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+    
+    if LOGGING_VERBOSE:
+        logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
+
+# Initialize the debug directory upon module import
+initialize_debug_directory(DEBUG_SESSION_ID)
+
 # TODO: settings for coloring all objects
 # TODO: add config security check, before start up!
 # TODO: safe read, use this func instead of repeating code everywhere!
 # TODO: add blender path addition to system.ini
 
-
 def read_calibration(floorplan):
     """
-    Read all calibrations
+    Read all calibrations.
+    @Param floorplan: Floorplan object to read calibration for.
+    @Return: Wall size calibration value.
     """
     if floorplan.wall_size_calibration == 0:
         floorplan.wall_size_calibration = create_image_scale_calibration(floorplan)
@@ -31,18 +89,19 @@ def read_calibration(floorplan):
 
 def create_image_scale_calibration(floorplan, got_settings=False):
     """
-    Create and save image size calibrations
+    Create and save image size calibrations.
+    @Param floorplan: Floorplan object to create calibration for.
+    @Param got_settings: Boolean to indicate if settings were retrieved.
+    @Return: Wall width average.
     """
-
     calibration_img = cv2.imread(floorplan.calibration_image_path)
     return calculate.wall_width_average(calibration_img)
 
-
 def generate_file():
     """
-    Generate new config file, if no exist
+    Generate a new config file if it does not exist.
     """
-    # create System Settings
+    # Create system settings
     conf = configparser.ConfigParser()
     conf["SYSTEM"] = {
         const.STR_OVERWRITE_DATA: const.DEFAULT_OVERWRITE_DATA,  # TODO: implement!
@@ -54,7 +113,7 @@ def generate_file():
     with open(const.SYSTEM_CONFIG_FILE_NAME, "w") as configfile:
         conf.write(configfile)
 
-    # create Default floorplan Settings
+    # Create default floorplan settings
     conf = configparser.ConfigParser()
     conf["IMAGE"] = {
         const.STR_IMAGE_PATH: json.dumps(const.DEFAULT_IMAGE_PATH),
@@ -96,7 +155,8 @@ def generate_file():
 
 def show(conf):
     """
-    Visualize all config settings
+    Visualize all config settings.
+    @Param conf: Config object to visualize.
     """
     for key in conf:
         print(key, conf[key])
@@ -104,8 +164,10 @@ def show(conf):
 
 def update(path, key, config):
     """
-    Update a config category
-    With a config object
+    Update a config category with a config object.
+    @Param path: Path to the config file.
+    @Param key: Config category key.
+    @Param config: Config object to update.
     """
     conf = get_all(path)
     conf[key] = config
@@ -115,25 +177,27 @@ def update(path, key, config):
 
 def file_exist(name):
     """
-    Check if file exist
-    @Param name
-    @Return boolean
+    Check if a file exists.
+    @Param name: Name of the file.
+    @Return: Boolean indicating if the file exists.
     """
     return os.path.isfile(name)
 
 
 def get_all(path):
     """
-    Read and return values
-    @Return default values
+    Read and return all config values.
+    @Param path: Path to the config file.
+    @Return: Config object with all values.
     """
     return get(path)
 
 
 def get(config_path, *args):
     """
-    Read and return values
-    @Return default values
+    Read and return values from a config file.
+    @Param config_path: Path to the config file.
+    @Return: Config object with requested values.
     """
     conf = configparser.ConfigParser()
 
@@ -151,8 +215,16 @@ def get(config_path, *args):
 
 
 def get_default_image_path():
+    """
+    Get the default image path from the config file.
+    @Return: Default image path.
+    """
     return get(const.IMAGE_DEFAULT_CONFIG_FILE_NAME, "IMAGE", const.STR_IMAGE_PATH)
 
 
 def get_default_blender_installation_path():
+    """
+    Get the default Blender installation path from the config file.
+    @Return: Default Blender installation path.
+    """
     return get(const.SYSTEM_CONFIG_FILE_NAME, "SYSTEM", const.STR_BLENDER_INSTALL_PATH)

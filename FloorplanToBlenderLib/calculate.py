@@ -1,8 +1,11 @@
 import cv2
 import math
 import numpy as np
+import logging
 from . import detect
 from . import const
+from config import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+import os
 
 """
 Calculate
@@ -12,14 +15,41 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'w') as file:
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
+
 
 def average(lst):
-    return sum(lst) / len(lst)
-
+    """
+    Calculate the average of a list of numbers.
+    @Param lst: List of numbers.
+    @Return: Average of the numbers.
+    """
+    avg = sum(lst) / len(lst)
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated average of list.')
+    save_debug_info('average.txt', {'list': lst, 'average': avg})
+    
+    return avg
 
 def points_inside_contour(points, contour):
     """
-    Return false if all of the points are outside of the contour
+    Check if any points are inside a given contour.
+    @Param points: List of points.
+    @Param contour: Contour to check against.
+    @Return: True if any point is inside the contour, else False.
     """
     for x, y in points:
         if cv2.pointPolygonTest(contour, (x, y), False) == 1.0:
@@ -29,7 +59,10 @@ def points_inside_contour(points, contour):
 
 def remove_walls_not_in_contour(walls, contour):
     """
-    Returns a list of boxes where walls outside of contour is removed.
+    Remove walls that are not inside a given contour.
+    @Param walls: List of wall contours.
+    @Param contour: Contour to check against.
+    @Return: List of walls inside the contour.
     """
     res = []
     for wall in walls:
@@ -37,60 +70,62 @@ def remove_walls_not_in_contour(walls, contour):
             if points_inside_contour(point, contour):
                 res.append(wall)
                 break
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Removed walls not inside contour.')
+    save_debug_info('remove_walls_not_in_contour.txt', {'walls': walls, 'contour': contour, 'filtered_walls': res})
+    
     return res
 
 
 def wall_width_average(img):
     """
-    This function calculate an average of all walls in floorplan.
-    This is used to scale the size of the image for better accuracy.
-    Returns the average as float value. See CALIBRATION in config file.
+    Calculate the average width of walls in a floorplan image.
+    Used to scale the size of the image for better accuracy.
+    @Param img: Input floorplan image.
+    @Return: Average wall width as a float value.
     """
-    # grayscale image
+    # Grayscale image
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Resulting image
     height, width, channels = img.shape
-    blank_image = np.zeros(
-        (height, width, 3), np.uint8
-    )  # output image same size as original
+    blank_image = np.zeros((height, width, 3), np.uint8)  # Output image same size as original
 
-    # create wall image (filter out small objects from image)
+    # Create wall image (filter out small objects from image)
     wall_img = detect.wall_filter(gray)
-    """
-    Detect Wall
-    """
-    # detect walls
+    
+    # Detect walls
     boxes, img = detect.precise_boxes(wall_img, blank_image)
 
-    # filter out to only count walls
+    # Filter out to only count walls
     filtered_boxes = list()
     for box in boxes:
-        if len(box) == 4:  # got only 4 corners  # detect oblong
+        if len(box) == 4:  # Got only 4 corners, detect oblong
             x, y, w, h = cv2.boundingRect(box)
             # Calculate scale value
-            # 1. get shortest (width) side
-            if w > h:
-                shortest = h
-            else:
-                shortest = w
+            # 1. Get shortest (width) side
+            shortest = min(w, h)
             filtered_boxes.append(shortest)
-    # 2. calculate average
-
-    if (
-        len(filtered_boxes) == 0
-    ):  # if no good boxes could be found, we use default scale
+    # 2. Calculate average
+    if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
         return None
 
-    return average(filtered_boxes)
-
+    avg_wall_width = average(filtered_boxes)
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated average wall width.')
+    save_debug_info('wall_width_average.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
+    
+    return avg_wall_width
 
 def best_matches_with_modulus_angle(match_list):
     """
-    This function compare matching matches from orb feature matching,
-    by rotating in steps over 360 degrees in order to find the best fit for door rotation.
+    Compare matching matches from ORB feature matching,
+    by rotating in steps over 360 degrees to find the best fit for door rotation.
+    @Param match_list: List of matches from ORB feature matching.
+    @Return: Indices of the best matches.
     """
-    # calculate best matches by looking at the most significant feature distances
     index1 = 0
     index2 = 0
     best = math.inf
@@ -117,15 +152,18 @@ def best_matches_with_modulus_angle(match_list):
                 best = diff
                 index1 = i
                 index2 = j
-
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated best matches with modulus angle.')
+    save_debug_info('best_matches_with_modulus_angle.txt', {'match_list': match_list, 'index1': index1, 'index2': index2})
+    
     return index1, index2
-
-
 def points_are_inside_or_close_to_box(door, box):
     """
-    Calculate if a point is within vicinity of a box.
-    @parameter Door is a list of points
-    @parameter Box is a numpy box
+    Calculate if a point is within the vicinity of a box.
+    @Param door: List of points.
+    @Param box: Numpy array representing the box.
+    @Return: True if any point is inside or close to the box, else False.
     """
     for point in door:
         if rect_contains_or_almost_contains_point(point, box):
@@ -135,32 +173,37 @@ def points_are_inside_or_close_to_box(door, box):
 
 def angle_between_vectors_2d(vector1, vector2):
     """
-    Get angle between two 2d vectors
-    returns radians
+    Get angle between two 2D vectors.
+    @Param vector1: First vector.
+    @Param vector2: Second vector.
+    @Return: Angle in radians.
     """
     x1, y1 = vector1
     x2, y2 = vector2
     inner_product = x1 * x2 + y1 * y2
     len1 = math.hypot(x1, y1)
     len2 = math.hypot(x2, y2)
-    return math.acos(inner_product / (len1 * len2))
-
+    angle = math.acos(inner_product / (len1 * len2))
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated angle between vectors.')
+    save_debug_info('angle_between_vectors_2d.txt', {'vector1': vector1, 'vector2': vector2, 'angle': angle})
+    
+    return angle
 
 def rect_contains_or_almost_contains_point(pt, box):
     """
-    Calculate if a point is within vicinity of a box. Help function.
+    Calculate if a point is within the vicinity of a box.
+    @Param pt: Point to check.
+    @Param box: Box to check against.
+    @Return: True if the point is inside or almost inside the box, else False.
     """
-
     x, y, w, h = cv2.boundingRect(box)
     is_inside = x < pt[0] < x + w and y < pt[1] < y + h
 
     almost_inside = False
 
-    min_dist = 0
-    if w < h:
-        min_dist = w
-    else:
-        min_dist = h
+    min_dist = min(w, h)
 
     for point in box:
         dist = abs(point[0][0] - pt[0]) + abs(point[0][1] - pt[1])
@@ -168,36 +211,68 @@ def rect_contains_or_almost_contains_point(pt, box):
             almost_inside = True
             break
 
+    if LOGGING_VERBOSE:
+        logger.debug('Checked if point is inside or almost inside box.')
+    save_debug_info('rect_contains_or_almost_contains_point.txt', {'point': pt, 'box': box, 'is_inside': is_inside, 'almost_inside': almost_inside})
+    
     return is_inside or almost_inside
-
 
 def box_center(box):
     """
-    Get center position of box
+    Get center position of a box.
+    @Param box: Numpy array representing the box.
+    @Return: Center point of the box.
     """
     x, y, w, h = cv2.boundingRect(box)
-    return (x + w / 2, y + h / 2)
-
+    center = (x + w / 2, y + h / 2)
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated center of box.')
+    save_debug_info('box_center.txt', {'box': box, 'center': center})
+    
+    return center
 
 def euclidean_distance_2d(p1, p2):
     """
-    Calculate euclidean distance between two points
+    Calculate Euclidean distance between two points.
+    @Param p1: First point.
+    @Param p2: Second point.
+    @Return: Euclidean distance.
     """
-    return math.sqrt(abs(math.pow(p1[0] - p2[0], 2) - math.pow(p1[1] - p2[1], 2)))
-
+    distance = math.sqrt(abs(math.pow(p1[0] - p2[0], 2) - math.pow(p1[1] - p2[1], 2)))
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated Euclidean distance between points.')
+    save_debug_info('euclidean_distance_2d.txt', {'point1': p1, 'point2': p2, 'distance': distance})
+    
+    return distance
 
 def magnitude_2d(point):
     """
-    Calculate magnitude of two points
+    Calculate magnitude of a 2D vector.
+    @Param point: 2D vector.
+    @Return: Magnitude of the vector.
     """
-    return math.sqrt(point[0] * point[0] + point[1] * point[1])
-
+    magnitude = math.sqrt(point[0] * point[0] + point[1] * point[1])
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Calculated magnitude of vector.')
+    save_debug_info('magnitude_2d.txt', {'point': point, 'magnitude': magnitude})
+    
+    return magnitude
 
 def normalize_2d(normal):
     """
-    Calculate normalized point
+    Normalize a 2D vector.
+    @Param normal: 2D vector.
+    @Return: Normalized vector.
     """
     mag = magnitude_2d(normal)
     for i, val in enumerate(normal):
         normal[i] = val / mag
+    
+    if LOGGING_VERBOSE:
+        logger.debug('Normalized 2D vector.')
+    save_debug_info('normalize_2d.txt', {'vector': normal, 'magnitude': mag})
+    
     return normal
