@@ -17,7 +17,6 @@ execution...
 
 """
 import logging
-import config
 from .globalConf import LOGGING_VERBOSE
 
 # Configure logging
