@@ -37,7 +37,8 @@ DEBUG_SESSION_ID = generate_random_number()
 # Define the storage path for debug images
 # DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
 # DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
-DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/123456789"
+# DEBUG_STORAGE_PATH = "./storage/data/debug/123456789"
+DEBUG_STORAGE_PATH = debug_path = os.path.join('./storage/debug/', DEBUG_SESSION_ID)
 
 def initialize_debug_directory(session_id):
     """
