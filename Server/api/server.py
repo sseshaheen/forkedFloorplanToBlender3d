@@ -93,7 +93,7 @@ class S(BaseHTTPRequestHandler):
         self.configure_logging()
 
     def configure_logging(self):
-        if config.LOGGING_VERBOSE:
+        if globalConfig.LOGGING_VERBOSE:
             logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
         else:
             logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
