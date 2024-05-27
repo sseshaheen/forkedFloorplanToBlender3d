@@ -221,7 +221,7 @@ def clean_data_folder(folder):
 
     if LOGGING_VERBOSE:
         logger.debug(f'Cleaned data folder: {folder}')
-    save_debug_info('clean_data_folder.txt', {'folder': folder})
+    # save_debug_info('clean_data_folder.txt', {'folder': folder})
 
 def create_new_floorplan_path(path):
     """
@@ -246,7 +246,7 @@ def create_new_floorplan_path(path):
         os.makedirs(res_path)
     if LOGGING_VERBOSE:
         logger.debug(f'Created new floorplan path: {res_path}')
-    save_debug_info('create_new_floorplan_path.txt', {'path': res_path})
+    # save_debug_info('create_new_floorplan_path.txt', {'path': res_path})
     return res_path
 
 
