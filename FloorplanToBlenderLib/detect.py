@@ -165,7 +165,7 @@ def find_rooms(
     corners_threshold=const.FIND_ROOMS_CORNERS_THRESHOLD,
     room_closing_max_length=const.FIND_ROOMS_CLOSING_MAX_LENGTH,
     gap_in_wall_min_threshold=const.FIND_ROOMS_GAP_IN_WALL_MIN_THRESHOLD,
-    caller=None
+    caller=None,
 ):
     """
     Detect rooms in the image.
@@ -182,6 +182,7 @@ def find_rooms(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
+    logger.debug(f'find_rooms was called. Caller: {caller}')
     mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_rooms')
     img = ~mask
 
@@ -290,7 +291,7 @@ def doors(image_path, scale_factor):
 
     if LOGGING_VERBOSE:
         logger.debug('Detected doors in the image')
-    save_debug_image('doors_detected.png', img)
+    save_debug_image('detect-doors-doors_detected.png', img)
 
     return doors
 
@@ -309,7 +310,7 @@ def windows(image_path, scale_factor):
 
     if LOGGING_VERBOSE:
         logger.debug('Detected windows in the image')
-    save_debug_image('windows_detected.png', img)
+    save_debug_image('detect-windows-windows_detected.png', img)
 
     return windows
 
