@@ -110,7 +110,7 @@ def fast_feature_match(img1, img2):
         )
 
 
-def feature_match(img1, img2):
+def feature_match(img1, img2, caller=None):
     MIN_MATCHES = 20
     cap = img1
     model = img2
@@ -538,4 +538,4 @@ if __name__ == "__main__":
     # fast_feature_detect(img2)
     # fast_feature_detect(img1)
     # fast_feature_match(img1,img2)
-    feature_match(img1, img2)
+    feature_match(img1, img2, caller='feature_matching_door')

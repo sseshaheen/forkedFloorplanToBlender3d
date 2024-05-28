@@ -139,7 +139,7 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
                 color = 0
                 cv2.line(img, (x1[0], y), (x2[0], y), color, 1)
                 # Draw in red on the debug image
-                debug_color = (0, 0, 255)  # Red color in BGR format
+                debug_color = (0, 0, 155)  # Red color in BGR format
                 cv2.line(debug_img, (x1[0], y), (x2[0], y), debug_color, 1)
 
     for x, col in enumerate(corners.T):
@@ -149,7 +149,7 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
                 color = 0
                 cv2.line(img, (x, y1[0]), (x, y2[0]), color, 1)
                 # Draw in red on the debug image
-                debug_color = (0, 0, 255)  # Red color in BGR format
+                debug_color = (0, 0, 155)  # Red color in BGR format
                 cv2.line(debug_img, (x, y1[0]), (x, y2[0]), debug_color, 1)
 
     if LOGGING_VERBOSE:
@@ -286,7 +286,7 @@ def doors(image_path, scale_factor):
     # TODO: it is not very effective to read image again here!
 
     img = image.cv2_rescale_image(img, scale_factor)
-    _, doors = feature_match(img, model)
+    _, doors = feature_match(img, model, caller='detect-doors')
 
     if LOGGING_VERBOSE:
         logger.debug('Detected doors in the image')
@@ -305,7 +305,7 @@ def windows(image_path, scale_factor):
     img = cv2.imread(image_path, 0)  # Read the image again.
     # TODO: it is not very effective to read image again here!
     img = image.cv2_rescale_image(img, scale_factor)
-    windows, _ = feature_match(img, model)
+    windows, _ = feature_match(img, model, caller='detect-windows')
 
     if LOGGING_VERBOSE:
         logger.debug('Detected windows in the image')
@@ -313,7 +313,7 @@ def windows(image_path, scale_factor):
 
     return windows
 
-def feature_match(img1, img2):
+def feature_match(img1, img2, caller=None):
     """
     Feature match models to floorplans in order to distinguish doors from windows.
     Also calculate where doors should exist.
@@ -505,7 +505,7 @@ def feature_match(img1, img2):
         is_door = False
         _door = []
         for door in list_of_proper_transformed_doors:
-            if calculate.points_are_inside_or_close_to_box(door, box):
+            if calculate.points_are_inside_or_close_to_box(door, box, caller=caller):
             # TODO: match door with only one box, the closest one!
                 is_door = True
                 _door = door
@@ -531,7 +531,7 @@ def feature_match(img1, img2):
 
     if LOGGING_VERBOSE:
         logger.debug('Feature matched the models to the floorplan')
-    save_debug_image('feature_matched.png', img1)
+    save_debug_image(f'{caller}-feature_matched.png', img1)
 
     return transform.rescale_rect(windows, const.WINDOWS_RESCALE_TO_FIT), doors
 

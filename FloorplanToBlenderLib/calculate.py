@@ -158,7 +158,7 @@ def best_matches_with_modulus_angle(match_list):
     save_debug_info('best_matches_with_modulus_angle.txt', {'match_list': match_list, 'index1': index1, 'index2': index2})
     
     return index1, index2
-def points_are_inside_or_close_to_box(door, box):
+def points_are_inside_or_close_to_box(door, box, caller=None):
     """
     Calculate if a point is within the vicinity of a box.
     @Param door: List of points.
@@ -166,7 +166,7 @@ def points_are_inside_or_close_to_box(door, box):
     @Return: True if any point is inside or close to the box, else False.
     """
     for point in door:
-        if rect_contains_or_almost_contains_point(point, box):
+        if rect_contains_or_almost_contains_point(point, box, caller=caller):
             return True
     return False
 
