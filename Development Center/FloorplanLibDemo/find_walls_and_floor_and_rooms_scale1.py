@@ -85,6 +85,7 @@ def test(path):
         room_closing_max_length=130,
         gap_in_wall_max_threshold=5000,
         gap_in_wall_min_threshold=10,
+        caller='detect_details_in_find_walls_and_floor_and_rooms_scale1'
     )
     gray_details = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
     boxes, blank_image = detect.precise_boxes(

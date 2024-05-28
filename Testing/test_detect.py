@@ -40,5 +40,5 @@ def test_outer_contours():
 
 
 def test_find_details():
-    _ = detect.find_details(gray)
+    _ = detect.find_details(gray, caller='test_find_details')
     assert True

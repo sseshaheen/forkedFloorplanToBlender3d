@@ -25,7 +25,7 @@ def test_find_rooms_in_image():
 
     rooms, colored_rooms = detect.find_rooms(gray.copy(), caller='test_find_rooms_in_image')
 
-    doors, colored_doors = detect.find_details(gray.copy())
+    doors, colored_doors = detect.find_details(gray.copy(), caller='test_find_rooms_in_image')
 
     gray_rooms = cv2.cvtColor(colored_rooms, cv2.COLOR_BGR2GRAY)
 

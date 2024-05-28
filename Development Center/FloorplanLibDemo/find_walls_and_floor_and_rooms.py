@@ -70,7 +70,7 @@ def test(path):
     """
     Detect details
     """
-    doors, colored_doors = detect.find_details(gray.copy())
+    doors, colored_doors = detect.find_details(gray.copy(), caller='find_walls_and_floor_and_rooms_detect_details')
     gray_details = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
     boxes, blank_image = detect.precise_boxes(
         gray_details, blank_image, color=(0, 200, 100), caller='find_walls_and_floor_and_rooms_detect_details'
