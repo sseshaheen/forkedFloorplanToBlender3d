@@ -486,14 +486,14 @@ def feature_match(img1, img2, caller=None):
 
         list_of_proper_transformed_doors.append([moved_new_upper_left, moved_new_upper_right, moved_new_down])
 
-    gray = wall_filter(img1, caller='detect_feature_match')
+    gray = wall_filter(img1, caller=f'{caller}-feature_match')
     gray = ~gray  # TODO: is it necessary to convert to grayscale again?
-    rooms, colored_rooms = find_rooms(gray.copy(), caller='detect_feature_match')
-    doors, colored_doors = find_details(gray.copy(), caller='detect_feature_match')
+    rooms, colored_rooms = find_rooms(gray.copy(), caller=f'{caller}-feature_match')
+    doors, colored_doors = find_details(gray.copy(), caller=f'{caller}-feature_match')
     gray_rooms = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
 
     # get box positions for rooms
-    boxes, gray_rooms = precise_boxes(gray_rooms)
+    boxes, gray_rooms = precise_boxes(gray_rooms, caller=f'{caller}-feature_match')
 
     windows = []
     doors = []

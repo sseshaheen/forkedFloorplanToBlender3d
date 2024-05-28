@@ -191,7 +191,7 @@ def angle_between_vectors_2d(vector1, vector2):
     
     return angle
 
-def rect_contains_or_almost_contains_point(pt, box):
+def rect_contains_or_almost_contains_point(pt, box, caller=None):
     """
     Calculate if a point is within the vicinity of a box.
     @Param pt: Point to check.
@@ -213,7 +213,7 @@ def rect_contains_or_almost_contains_point(pt, box):
 
     if LOGGING_VERBOSE:
         logger.debug('Checked if point is inside or almost inside box.')
-    save_debug_info('rect_contains_or_almost_contains_point.txt', {'point': pt, 'box': box, 'is_inside': is_inside, 'almost_inside': almost_inside})
+    save_debug_info(f'{caller}-rect_contains_or_almost_contains_point.txt', {'point': pt, 'box': box, 'is_inside': is_inside, 'almost_inside': almost_inside})
     
     return is_inside or almost_inside
 

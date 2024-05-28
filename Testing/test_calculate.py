@@ -20,7 +20,7 @@ def test_average():
 def test_points_inside_or_close_to_box():
     doors = [(200, 20), (20, 200)]
     box = np.array([[[1, 1]], [[200, 300]], [[50, 400]], [[100, 10]]], dtype=np.int32)
-    assert calculate.points_are_inside_or_close_to_box(doors, box)
+    assert calculate.points_are_inside_or_close_to_box(doors, box,)
 
 
 def test_angle_between_vectors_2d():
