@@ -23,7 +23,7 @@ def save_debug_info(filename, data):
     """
     if DEBUG_MODE:
         filepath  = os.path.join(DEBUG_STORAGE_PATH, filename)
-        with open(filepath, 'w') as file:
+        with open(filepath, 'a') as file:
             file.write(str(data))
         if LOGGING_VERBOSE:
             logger.debug(f'Saved debug info: {filepath}')
