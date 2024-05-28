@@ -4,6 +4,7 @@ import string
 import logging
 from FloorplanToBlenderLib import const
 # Configure logging
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def generate_random_string(length=6):
@@ -54,26 +55,16 @@ def update_config(debug_mode, logging_verbose, session_id):
     DEBUG_SESSION_ID = session_id or '12345'
     if DEBUG_MODE:
         DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+    else:
+        DEBUG_STORAGE_PATH = None
     
     if LOGGING_VERBOSE:
         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
 
-# Set debug mode (True for debug mode, False for normal mode)
-DEBUG_MODE = True
+# Initialize configuration
 
-# Set logging verbosity (True for detailed logging, False for concise logging)
+DEBUG_MODE = True
 LOGGING_VERBOSE = True
 
-# Generate a unique identifier for the debug session
-DEBUG_SESSION_ID = initialize_debug_directory()
-
-# Define the storage path for debug images
-# DEBUG_STORAGE_PATH = f"./storage/data/debug/{DEBUG_SESSION_ID}"
-# DEBUG_STORAGE_PATH = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/debug/{DEBUG_SESSION_ID}"
-# DEBUG_STORAGE_PATH = "./storage/data/debug/123456789"
-DEBUG_STORAGE_PATH = os.path.join('.test//storage/debug/', DEBUG_SESSION_ID)
-logging.debug(f"Current DEBUG_STORAGE_PATH for debug directory: {DEBUG_STORAGE_PATH}")
-
-# Initialize the debug directory upon module import if debug mode is enabled
-# if DEBUG_MODE:
-    # DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+DEBUG_SESSION_ID = '987654321'
+DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID) if DEBUG_MODE else None
