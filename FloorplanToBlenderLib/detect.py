@@ -181,8 +181,7 @@ def find_rooms(
     """
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
-
-    logger.debug(f'find_rooms was called. Caller: {caller}')
+    
     mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_rooms')
     img = ~mask
 
