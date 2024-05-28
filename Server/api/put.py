@@ -160,22 +160,22 @@ class Put(Api):
 
 
             # time.sleep(wait_interval)
-            obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
+            # obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
-            message += f"\nOBJ uploaded to: {obj_url}"
-            obj_record = {
-                "dateTimeUploaded": dateTimeUploaded,
-                "path": obj_firebase_path,
-                "type": "obj",
-                "url": obj_url
-            }
+            # message += f"\nOBJ uploaded to: {obj_url}"
+            # obj_record = {
+            #     "dateTimeUploaded": dateTimeUploaded,
+            #     "path": obj_firebase_path,
+            #     "type": "obj",
+            #     "url": obj_url
+            # }
 
             # Reference to the user document
-            user_ref = db.collection("user_floorplans").document(userId)
+            # user_ref = db.collection("user_floorplans").document(userId)
             # Update the user document
-            user_ref.update({
-                "images": firestore.ArrayUnion([image_record]),
-                "objects": firestore.ArrayUnion([obj_record])
-            })
+            # user_ref.update({
+            #     "images": firestore.ArrayUnion([image_record]),
+            #     "objects": firestore.ArrayUnion([obj_record])
+            # })
 
         return message, status
