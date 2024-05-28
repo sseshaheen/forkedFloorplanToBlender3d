@@ -42,19 +42,19 @@ def test(path):
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='detect_wall_in_find_walls_and_floor_and_rooms_scale1')
     wall_temp = wall_img
     """
     Detect Wall
     """
     # detect walls
-    boxes, img = detect.precise_boxes(wall_img, blank_image)
+    boxes, img = detect.precise_boxes(wall_img, blank_image, caller='detect_wall_in_find_walls_and_floor_and_rooms_scale1')
 
     """
     Detect Floor
     """
     # detect outer Contours (simple floor or roof solution)
-    contour, img = detect.outer_contours(gray, blank_image, color=(255, 0, 0))
+    contour, img = detect.outer_contours(gray, blank_image, color=(255, 0, 0), caller='detect_wall_in_find_walls_and_floor_and_rooms_scale1')
 
     # grayscale
     gray = ~wall_temp
@@ -68,10 +68,11 @@ def test(path):
         corners_threshold=0.01,
         room_closing_max_length=130,
         gap_in_wall_min_threshold=5000,
+        caller='detect_rooms_in_find_walls_and_floor_and_rooms_scale1'
     )
     gray_rooms = cv2.cvtColor(colored_rooms, cv2.COLOR_BGR2GRAY)
     boxes, blank_image = detect.precise_boxes(
-        gray_rooms, blank_image, color=(0, 100, 200)
+        gray_rooms, blank_image, color=(0, 100, 200), caller='detect_rooms_in_find_walls_and_floor_and_rooms_scale1'
     )
 
     """
@@ -87,7 +88,7 @@ def test(path):
     )
     gray_details = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
     boxes, blank_image = detect.precise_boxes(
-        gray_details, blank_image, color=(0, 200, 100)
+        gray_details, blank_image, color=(0, 200, 100), caller='detect_details_in_find_walls_and_floor_and_rooms_scale1'
     )
 
     cv2.imshow("detection", blank_image)

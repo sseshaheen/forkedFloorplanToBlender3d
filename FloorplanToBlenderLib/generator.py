@@ -114,7 +114,7 @@ class Floor(Generator):
         @Return: Shape of the floor.
         """
         # Detect outer contours (simple floor or roof solution)
-        contour, _ = detect.outer_contours(gray)
+        contour, _ = detect.outer_contours(gray, caller='generator_floor')
 
         # Create verts
         self.verts = transform.scale_point_to_vector(
@@ -153,13 +153,13 @@ class Wall(Generator):
         @Return: Shape of the walls.
         """
         # Create wall image (filter out small objects from image)
-        wall_img = detect.wall_filter(gray)
+        wall_img = detect.wall_filter(gray, caller='generator_wall')
 
         # Detect walls
-        boxes, _ = detect.precise_boxes(wall_img)
+        boxes, _ = detect.precise_boxes(wall_img, caller='generator_wall')
 
         # Detect contour
-        contour, _ = detect.outer_contours(gray)
+        contour, _ = detect.outer_contours(gray, caller='generator_wall')
 
         # Remove walls outside of contour
         boxes = calculate.remove_walls_not_in_contour(boxes, contour)
@@ -217,13 +217,13 @@ class Room(Generator):
         @Param info: Boolean indicating if information should be printed.
         @Return: Shape of the rooms.
         """
-        gray = detect.wall_filter(gray)
+        gray = detect.wall_filter(gray, caller='generator_room')
         gray = ~gray
-        rooms, colored_rooms = detect.find_rooms(gray.copy())
+        rooms, colored_rooms = detect.find_rooms(gray.copy(), caller='generator_room')
         gray_rooms = cv2.cvtColor(colored_rooms, cv2.COLOR_BGR2GRAY)
 
         # Get box positions for rooms
-        boxes, gray_rooms = detect.precise_boxes(gray_rooms, gray_rooms)
+        boxes, gray_rooms = detect.precise_boxes(gray_rooms, gray_rooms, caller='generator_room')
 
         self.verts, self.faces, counter = transform.create_4xn_verts_and_faces(
             boxes=boxes,

@@ -15,17 +15,17 @@ gray = np.ones((height, width), dtype=np.uint8)
 
 
 def test_wall_filter():
-    _ = detect.wall_filter(gray)
+    _ = detect.wall_filter(gray, caller='test_wall_filter')
     assert True
 
 
 def test_precise_boxes():
-    _ = detect.precise_boxes(gray)
+    _ = detect.precise_boxes(gray, caller='test_detect_test_precise_boxes')
     assert True
 
 
 def test_find_room():
-    _ = detect.find_rooms(gray)
+    _ = detect.find_rooms(gray, caller='test_find_room')
     assert True
 
 
@@ -35,7 +35,7 @@ def test_and_remove_precise_boxes():
 
 
 def test_outer_contours():
-    _ = detect.outer_contours(gray)
+    _ = detect.outer_contours(gray, caller='test_outer_contours')
     assert True
 
 

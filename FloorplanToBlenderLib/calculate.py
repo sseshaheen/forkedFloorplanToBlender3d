@@ -93,10 +93,10 @@ def wall_width_average(img):
     blank_image = np.zeros((height, width, 3), np.uint8)  # Output image same size as original
 
     # Create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='calculate_wall_width_average')
     
     # Detect walls
-    boxes, img = detect.precise_boxes(wall_img, blank_image)
+    boxes, img = detect.precise_boxes(wall_img, blank_image, caller='calculate_wall_width_average')
 
     # Filter out to only count walls
     filtered_boxes = list()

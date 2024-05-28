@@ -56,7 +56,7 @@ def calculate_wall_width_average(img):
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='detect_rescale_calculate_wall_width_average')
     wall_temp = wall_img
     """
     Detect Wall

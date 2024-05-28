@@ -29,13 +29,13 @@ def main():
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, called='walls_detect_wall')
     wall_temp = wall_img
     """
     Detect Wall
     """
     # detect walls
-    boxes, img = detect.precise_boxes(wall_img, blank_image)
+    boxes, img = detect.precise_boxes(wall_img, blank_image, caller='walls_detect_wall')
 
     cv2.imshow("origin", image)
     cv2.imshow("res", img)

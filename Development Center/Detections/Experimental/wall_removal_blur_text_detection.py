@@ -38,7 +38,7 @@ def test():
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='calculate_test')
 
     # detect walls
     #    boxes, img = detect.detectPreciseBoxes(wall_img)
@@ -188,7 +188,7 @@ img = cv2.imread(example_image_path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # create wall image (filter out small objects from image)
-wall_img = detect.wall_filter(gray)
+wall_img = detect.wall_filter(gray, caller='wall_removal_blur_text_detection')
 
 # detect walls
 #    boxes, img = detect.detectPreciseBoxes(wall_img)

@@ -122,7 +122,7 @@ def read_image(path, floorplan=None):
     scale_factor = 1
     if floorplan is not None:
         if floorplan.remove_noise:
-            img = image.denoising(img)
+            img = image.denoising(img, caller='read_image')
         if floorplan.rescale_image:
 
             calibrations = config.read_calibration(floorplan)
@@ -191,7 +191,7 @@ def save_to_file(file_path, data, show=True):
         logger.info(f'Created file: {full_path}')
     if LOGGING_VERBOSE:
         logger.debug(f'Saved data to file: {full_path}')
-    save_debug_info('save_to_file.txt', {'file_path': full_path, 'data': data})
+    save_debug_info(f'save_to_file-{os.path.basename(file_path)}.txt', {'file_path': full_path, 'data': data})
 
 def read_from_file(file_path):
     """

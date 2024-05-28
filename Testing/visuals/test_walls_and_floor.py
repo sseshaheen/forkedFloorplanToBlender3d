@@ -26,13 +26,13 @@ def test_wall_and_floor():
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='test_wall_and_floor')
 
     # detect walls
-    _, img = detect.precise_boxes(wall_img)
+    _, img = detect.precise_boxes(wall_img, caller='test_wall_and_floor')
 
     # detect outer Contours (simple floor or roof solution)
-    _, img = detect.outer_contours(gray, blank_image)
+    _, img = detect.outer_contours(gray, blank_image, caller='test_wall_and_floor')
 
     cv2.imshow("detected circles", wall_img)
     cv2.imshow("detected circ2s", img)

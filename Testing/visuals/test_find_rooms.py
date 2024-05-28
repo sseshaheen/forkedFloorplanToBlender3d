@@ -19,18 +19,18 @@ def test_find_rooms_in_image():
     # grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    gray = detect.wall_filter(gray)
+    gray = detect.wall_filter(gray, caller='test_find_rooms_in_image')
 
     gray = ~gray
 
-    rooms, colored_rooms = detect.find_rooms(gray.copy())
+    rooms, colored_rooms = detect.find_rooms(gray.copy(), caller='test_find_rooms_in_image')
 
     doors, colored_doors = detect.find_details(gray.copy())
 
     gray_rooms = cv2.cvtColor(colored_rooms, cv2.COLOR_BGR2GRAY)
 
     # get box positions for rooms
-    boxes, gray_rooms = detect.precise_boxes(gray_rooms, blank_image)
+    boxes, gray_rooms = detect.precise_boxes(gray_rooms, blank_image, caller='test_find_rooms_in_image')
 
     cv2.imshow("coloroed", gray_rooms)
     cv2.waitKey(1)

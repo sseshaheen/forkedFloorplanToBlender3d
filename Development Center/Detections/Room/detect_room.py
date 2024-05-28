@@ -1,9 +1,32 @@
 import cv2
 import numpy as np
+from . import image
+import logging
+import os
+from ....FloorplanToBlenderLib.globalConf import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
 
 """
 Testing functions before adding them to the library
 """
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def save_debug_image(filename, img):
+    """
+    Save an image to the debug directory if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        if img is None or img.size == 0:
+            if LOGGING_VERBOSE:
+                logger.debug(f'Cannot save debug image {filename}: image is empty or None')
+                print(f'Cannot save debug image {filename}: image is empty or None')
+            return
+        
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        cv2.imwrite(filepath, img)
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug image: {filepath}')
 
 
 def find_rooms(
@@ -12,6 +35,7 @@ def find_rooms(
     corners_threshold=0.001,
     room_closing_max_length=10,
     gap_in_wall_threshold=500000,
+    caller=None
 ):
     """
 
@@ -87,6 +111,7 @@ def find_rooms(
             color = np.random.randint(0, 255, size=3)
         img[component] = color
 
+    save_debug_image(f'{caller}-find_rooms.png', img)
     return rooms, img
 
 
@@ -98,7 +123,7 @@ example_image_path = (
 
 # Read gray image
 img = cv2.imread(example_image_path, 0)
-rooms, colored_house = find_rooms(img.copy())
+rooms, colored_house = find_rooms(img.copy(), caller='detect_room.py')
 cv2.imshow("result", colored_house)
 print(rooms)
 cv2.waitKey()

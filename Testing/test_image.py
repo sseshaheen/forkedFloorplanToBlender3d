@@ -24,7 +24,7 @@ def test_calculate_scale_factor():
 
 
 def test_denoising():
-    _ = image.denoising(blank_image)
+    _ = image.denoising(blank_image, caller='test_denoising')
     assert True
 
 

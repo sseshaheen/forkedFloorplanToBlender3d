@@ -45,13 +45,13 @@ def test(path):
     )  # output image same size as original
 
     # create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray)
+    wall_img = detect.wall_filter(gray, caller='detect_wall_in_find_walls_and_floor_and_rooms_scale2')
     wall_temp = wall_img
     """
     Detect Wall
     """
     # detect walls
-    boxes, img = detect.precise_boxes(wall_img, blank_image)
+    boxes, img = detect.precise_boxes(wall_img, blank_image, caller='detect_wall_in_find_walls_and_floor_and_rooms_scale2')
 
     """
     Detect Floor
@@ -79,10 +79,11 @@ def test(path):
         room_closing_max_length=150,
         gap_in_wall_max_threshold=2000,
         gap_in_wall_min_threshold=100,
+        caller='detect_details_in_find_walls_and_floor_and_rooms_scale2'
     )
     gray_details = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
     boxes, blank_image = detect.precise_boxes(
-        gray_details, blank_image, color=(0, 200, 100)
+        gray_details, blank_image, color=(0, 200, 100), caller='detect_details_in_find_walls_and_floor_and_rooms_scale2'
     )
 
     cv2.imshow("detection", blank_image)

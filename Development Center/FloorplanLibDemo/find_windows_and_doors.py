@@ -32,14 +32,14 @@ def detect_windows_and_doors_boxes(img, door_list):
 
     # grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = detect.wall_filter(gray)
+    gray = detect.wall_filter(gray, caller='detect_windows_and_doors_boxes')
     gray = ~gray
-    rooms, colored_rooms = detect.find_rooms(gray.copy())
-    doors, colored_doors = detect.find_details(gray.copy())
+    rooms, colored_rooms = detect.find_rooms(gray.copy(), caller='detect_windows_and_doors_boxes')
+    doors, colored_doors = detect.find_details(gray.copy(), caller='detect_windows_and_doors_boxes')
     gray_rooms = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
 
     # get box positions for rooms
-    boxes, gray_rooms = detect.precise_boxes(gray_rooms, blank_image)
+    boxes, gray_rooms = detect.precise_boxes(gray_rooms, blank_image, caller='detect_windows_and_doors_boxes')
 
     cv2.imshow("input", img)
     cv2.imshow("doors and windows", gray_rooms)

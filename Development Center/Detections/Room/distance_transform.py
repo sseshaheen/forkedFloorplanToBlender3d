@@ -43,19 +43,19 @@ blank_image = np.zeros(
 )  # output image same size as original
 
 # create wall image (filter out small objects from image)
-wall_img = detect.wall_filter(gray)
+wall_img = detect.wall_filter(gray, caller='room_distance_transform')
 wall_temp = wall_img
 """
 Detect Wall
 """
 # detect walls
-boxes, img = detect.precise_boxes(wall_img, blank_image)
+boxes, img = detect.precise_boxes(wall_img, blank_image, caller='room_distance_transform')
 
 cv.imshow("wall Image", wall_img)
 
 cv.imshow("wallbox Image", blank_image)
 
-contour, img = detect.outer_contours(gray, blank_image, color=(255, 0, 0))
+contour, img = detect.outer_contours(gray, blank_image, color=(255, 0, 0), caller='room_distance_transform')
 
 
 # src = img

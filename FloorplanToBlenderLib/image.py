@@ -85,7 +85,7 @@ def calculate_scale_factor(preferred: float, value: float):
         logging.debug(f'Calculated scale factor: {scale_factor}')
     return scale_factor
 
-def denoising(img):
+def denoising(img, caller=None):
     """
     Apply denoising to an image.
 
@@ -102,10 +102,10 @@ def denoising(img):
     )
     if LOGGING_VERBOSE:
         logging.debug('Applied denoising to image')
-    save_image('Denoised_Image', denoised_img)
+    save_image(f'{caller}-denoised_image', denoised_img)
     return denoised_img
 
-def remove_noise(img, noise_removal_threshold):
+def remove_noise(img, noise_removal_threshold, caller=None):
     """
     Remove noise from an image and return the mask.
 
@@ -123,10 +123,10 @@ def remove_noise(img, noise_removal_threshold):
             cv2.fillPoly(mask, [contour], 255)
     if LOGGING_VERBOSE:
         logging.debug('Removed noise from image')
-    save_image('Noise_Removed_Image', mask)
+    save_image(f'{caller}-noise_removed_image', mask)
     return mask
 
-def mark_outside_black(img, mask):
+def mark_outside_black(img, mask, caller=None):
     """
     Mark the outside of the image as black.
 
@@ -142,7 +142,7 @@ def mark_outside_black(img, mask):
     img[mask == 0] = 0
     if LOGGING_VERBOSE:
         logging.debug('Marked outside of the image as black')
-    save_image('Image_with_Outside_Black', img)
+    save_image(f'{caller}-Image_with_Outside_Black', img)
     return img, mask
 
 def detect_wall_rescale(reference_size, image):

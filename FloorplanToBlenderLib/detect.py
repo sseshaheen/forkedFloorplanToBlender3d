@@ -38,7 +38,7 @@ def save_debug_image(filename, img):
         if LOGGING_VERBOSE:
             logger.debug(f'Saved debug image: {filepath}')
 
-def wall_filter(gray):
+def wall_filter(gray, caller=None):
     """
     Filter walls
     Filter out walls from a grayscale image.
@@ -76,11 +76,11 @@ def wall_filter(gray):
 
     if LOGGING_VERBOSE:
         logger.debug('Filtered walls from the image')
-    save_debug_image('wall_filter.png', unknown)
+    save_debug_image(f'{caller}-wall_filter.png', unknown)
 
     return unknown
 
-def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
+def precise_boxes(detect_img, output_img=None, color=[100, 100, 0], caller=None):
     """
     Detect corners with boxes in image with high precision.
     @Param detect_img: Image to detect from @mandatory
@@ -101,7 +101,7 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0]):
 
     if LOGGING_VERBOSE:
         logger.debug('Detected precise boxes in the image')
-    save_debug_image('precise_boxes.png', output_img)
+    save_debug_image(f'{caller}-precise_boxes.png', output_img)
 
     return res, output_img
 
@@ -165,6 +165,7 @@ def find_rooms(
     corners_threshold=const.FIND_ROOMS_CORNERS_THRESHOLD,
     room_closing_max_length=const.FIND_ROOMS_CLOSING_MAX_LENGTH,
     gap_in_wall_min_threshold=const.FIND_ROOMS_GAP_IN_WALL_MIN_THRESHOLD,
+    caller=None
 ):
     """
     Detect rooms in the image.
@@ -181,12 +182,12 @@ def find_rooms(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
-    mask = image.remove_noise(img, noise_removal_threshold)
+    mask = image.remove_noise(img, noise_removal_threshold, caller='find_rooms')
     img = ~mask
 
     __corners_and_draw_lines(img, corners_threshold, room_closing_max_length)
 
-    img, mask = image.mark_outside_black(img, mask)
+    img, mask = image.mark_outside_black(img, mask, caller='find_rooms')
 
     # Find the connected components in the house
     ret, labels = cv2.connectedComponents(img)
@@ -207,7 +208,7 @@ def find_rooms(
 
     if LOGGING_VERBOSE:
         logger.debug('Detected rooms in the image')
-    save_debug_image('rooms_detected.png', img)
+    save_debug_image(f'{caller}-find_rooms-rooms_detected.png', img)
 
     return rooms, img
 
@@ -238,7 +239,7 @@ def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255])
 
     return res, output_img
 
-def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
+def outer_contours(detect_img, output_img=None, color=[255, 255, 255], caller=None):
     """
     Get the outer side of floorplan, used to get ground.
     @Param detect_img: Image to detect from  @mandatory
@@ -269,7 +270,7 @@ def outer_contours(detect_img, output_img=None, color=[255, 255, 255]):
 
     if LOGGING_VERBOSE:
         logger.debug('Detected outer contours of the floorplan')
-    save_debug_image('outer_contours.png', output_img)
+    save_debug_image(f'{caller}-outer_contours.png', output_img)
 
     return approx, output_img
 
@@ -485,9 +486,9 @@ def feature_match(img1, img2):
 
         list_of_proper_transformed_doors.append([moved_new_upper_left, moved_new_upper_right, moved_new_down])
 
-    gray = wall_filter(img1)
+    gray = wall_filter(img1, caller='detect_feature_match')
     gray = ~gray  # TODO: is it necessary to convert to grayscale again?
-    rooms, colored_rooms = find_rooms(gray.copy())
+    rooms, colored_rooms = find_rooms(gray.copy(), caller='detect_feature_match')
     doors, colored_doors = find_details(gray.copy())
     gray_rooms = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
 
@@ -541,6 +542,7 @@ def find_details(
     room_closing_max_length=const.DETAILS_CLOSING_MAX_LENGTH,
     gap_in_wall_max_threshold=const.DETAILS_GAP_IN_WALL_THRESHOLD[1],
     gap_in_wall_min_threshold=const.DETAILS_GAP_IN_WALL_THRESHOLD[0],
+    caller=None
 ):
     """
     Detect details in the image.
@@ -558,12 +560,12 @@ def find_details(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
-    mask = image.remove_noise(img, noise_removal_threshold)
+    mask = image.remove_noise(img, noise_removal_threshold, caller='find_details')
     img = ~mask
 
     __corners_and_draw_lines(img, corners_threshold, room_closing_max_length)
 
-    img, mask = image.mark_outside_black(img, mask)
+    img, mask = image.mark_outside_black(img, mask, caller='find_details')
 
     # Find the connected components in the house
     ret, labels = cv2.connectedComponents(img)
@@ -586,6 +588,6 @@ def find_details(
 
     if LOGGING_VERBOSE:
         logger.debug('Detected details in the image')
-    save_debug_image('details_detected.png', img)
+    save_debug_image(f'{caller}-details_detected.png', img)
 
     return details, img
