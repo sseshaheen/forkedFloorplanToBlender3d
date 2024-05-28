@@ -105,7 +105,7 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0], caller=None)
 
     return res, output_img
 
-def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
+def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=None):
     """
     Finds corners and draw lines from them.
     Help function for finding rooms.
@@ -154,7 +154,7 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length):
 
     if LOGGING_VERBOSE:
         logger.debug('Detected corners and drew lines in the image')
-    save_debug_image('corners_and_lines.png', debug_img)  # Save the debug image with red lines
+    save_debug_image(f'{caller}-corners_and_lines.png', debug_img)  # Save the debug image with red lines
 
     return img  # Return the original image
 
@@ -182,12 +182,12 @@ def find_rooms(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
-    mask = image.remove_noise(img, noise_removal_threshold, caller='find_rooms')
+    mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_rooms')
     img = ~mask
 
-    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length)
+    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_rooms')
 
-    img, mask = image.mark_outside_black(img, mask, caller='find_rooms')
+    img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_rooms')
 
     # Find the connected components in the house
     ret, labels = cv2.connectedComponents(img)
@@ -505,7 +505,7 @@ def feature_match(img1, img2, caller=None):
         is_door = False
         _door = []
         for door in list_of_proper_transformed_doors:
-            if calculate.points_are_inside_or_close_to_box(door, box, caller=caller):
+            if calculate.points_are_inside_or_close_to_box(door, box, caller=f'{caller}-feature_match'):
             # TODO: match door with only one box, the closest one!
                 is_door = True
                 _door = door
@@ -560,12 +560,12 @@ def find_details(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
-    mask = image.remove_noise(img, noise_removal_threshold, caller='find_details')
+    mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_details')
     img = ~mask
 
-    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length)
+    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_details')
 
-    img, mask = image.mark_outside_black(img, mask, caller='find_details')
+    img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_details')
 
     # Find the connected components in the house
     ret, labels = cv2.connectedComponents(img)

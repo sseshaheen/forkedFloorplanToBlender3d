@@ -485,4 +485,4 @@ if __name__ == "__main__":
     img1 = cv2.imread(example_image_path, 0)
     img2 = cv2.imread(door_image_path, 0)
 
-    detect_windows_and_doors_boxes(img0, feature_match(img1, img2, caller='find_windows_and_doors'))
+    detect_windows_and_doors_boxes(img0, feature_match(img1, img2, caller='detect_windows_and_doors_boxes'))
