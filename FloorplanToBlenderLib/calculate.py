@@ -85,39 +85,50 @@ def wall_width_average(img):
     @Param img: Input floorplan image.
     @Return: Average wall width as a float value.
     """
-    # Grayscale image
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Resulting image
-    height, width, channels = img.shape
-    blank_image = np.zeros((height, width, 3), np.uint8)  # Output image same size as original
-
-    # Create wall image (filter out small objects from image)
-    wall_img = detect.wall_filter(gray, caller='calculate_wall_width_average')
-    
-    # Detect walls
-    boxes, img = detect.precise_boxes(wall_img, blank_image, caller='calculate_wall_width_average')
-
-    # Filter out to only count walls
-    filtered_boxes = list()
-    for box in boxes:
-        if len(box) == 4:  # Got only 4 corners, detect oblong
-            x, y, w, h = cv2.boundingRect(box)
-            # Calculate scale value
-            # 1. Get shortest (width) side
-            shortest = min(w, h)
-            filtered_boxes.append(shortest)
-    # 2. Calculate average
-    if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
+    if img is None:
+        logging.error("ERROR: Provided image is None.")
         return None
+    
+    try:
+        # Grayscale image
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    avg_wall_width = average(filtered_boxes)
-    
-    if LOGGING_VERBOSE:
-        logger.debug('Calculated average wall width.')
-    save_debug_info('wall_width_average.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
-    
-    return avg_wall_width
+        # Resulting image
+        height, width, channels = img.shape
+        blank_image = np.zeros((height, width, 3), np.uint8)  # Output image same size as original
+
+        # Create wall image (filter out small objects from image)
+        wall_img = detect.wall_filter(gray, caller='calculate_wall_width_average')
+        
+        # Detect walls
+        boxes, img = detect.precise_boxes(wall_img, blank_image, caller='calculate_wall_width_average')
+
+        # Filter out to only count walls
+        filtered_boxes = list()
+        for box in boxes:
+            if len(box) == 4:  # Got only 4 corners, detect oblong
+                x, y, w, h = cv2.boundingRect(box)
+                # Calculate scale value
+                # 1. Get shortest (width) side
+                shortest = min(w, h)
+                filtered_boxes.append(shortest)
+        
+        # 2. Calculate average
+        if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
+            logging.error("ERROR: No valid wall boxes found in the image.")
+            return None
+
+        avg_wall_width = np.mean(filtered_boxes)
+        
+        if LOGGING_VERBOSE:
+            logger.debug('Calculated average wall width.')
+        save_debug_info('wall_width_average.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
+        
+        return avg_wall_width
+
+    except Exception as e:
+        logging.error(f"ERROR: Exception occurred while calculating wall width average: {e}")
+        return None
 
 def best_matches_with_modulus_angle(match_list):
     """

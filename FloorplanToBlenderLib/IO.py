@@ -124,18 +124,21 @@ def read_image(path, floorplan=None):
         if floorplan.remove_noise:
             img = image.denoising(img, caller='read_image')
         if floorplan.rescale_image:
-
             calibrations = config.read_calibration(floorplan)
             floorplan.wall_size_calibration = calibrations  # Store for debug
-            scale_factor = image.detect_wall_rescale(float(calibrations), img)
-            if scale_factor is None:
-                logger.warning(
-                    "WARNING: Auto rescale failed due to non-good walls found in image."
-                    + "If rescale still is needed, please rescale manually."
-                )
+            if calibrations is None:
+                logger.error("ERROR: Calibration data is None. Using default scale factor.")
                 scale_factor = 1
             else:
-                img = image.cv2_rescale_image(img, scale_factor)
+                scale_factor = image.detect_wall_rescale(float(calibrations), img)
+                if scale_factor is None:
+                    logger.warning(
+                        "WARNING: Auto rescale failed due to non-good walls found in image."
+                        + "If rescale still is needed, please rescale manually."
+                    )
+                    scale_factor = 1
+                else:
+                    img = image.cv2_rescale_image(img, scale_factor)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if LOGGING_VERBOSE:
