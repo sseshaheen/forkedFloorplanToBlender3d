@@ -2,6 +2,7 @@ import configparser
 import os
 import cv2
 import json
+import logging
 
 from . import IO
 from . import const
@@ -39,7 +40,18 @@ def create_image_scale_calibration(floorplan, got_settings=False):
     @Return: Wall width average.
     """
     calibration_img = cv2.imread(floorplan.calibration_image_path)
-    return calculate.wall_width_average(calibration_img)
+    
+    if calibration_img is None:
+        logging.error(f"ERROR: Calibration image {floorplan.calibration_image_path} could not be read.")
+        return None
+    
+    wall_width_avg = calculate.wall_width_average(calibration_img)
+    
+    if wall_width_avg is None:
+        logging.error("ERROR: Could not calculate wall width average from calibration image.")
+    
+    return wall_width_avg
+
 
 def generate_file():
     """
