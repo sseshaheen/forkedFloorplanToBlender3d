@@ -103,8 +103,8 @@ def rotate_round_origin_vector_2d(origin, point, angle):
     qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
     qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
 
-    if LOGGING_VERBOSE:
-        logger.debug('Rotated point around origin.')
+    # if LOGGING_VERBOSE:
+        # logger.debug('Rotated point around origin.')
     save_debug_info('rotate_round_origin_vector_2d.txt', {'origin': origin, 'point': point, 'angle': angle, 'rotated_point': (qx, qy)})
 
     return qx, qy
@@ -183,8 +183,8 @@ def scale_point_to_vector(boxes, pixelscale=100, height=0, scale=np.array([1, 1,
         for pos in box:
             res.extend([[(pos[0]) / pixelscale, (pos[1]) / pixelscale, height]])
 
-    if LOGGING_VERBOSE:
-        logger.debug('Scaled points to vectors.')
+    # if LOGGING_VERBOSE:
+        # logger.debug('Scaled points to vectors.')
     save_debug_info('scale_point_to_vector.txt', {'boxes': boxes, 'pixelscale': pixelscale, 'height': height, 'scale': scale, 'scaled_vectors': res})
 
     return res

@@ -164,8 +164,8 @@ def best_matches_with_modulus_angle(match_list):
                 index1 = i
                 index2 = j
     
-    if LOGGING_VERBOSE:
-        logger.debug('Calculated best matches with modulus angle.')
+    # if LOGGING_VERBOSE:
+        # logger.debug('Calculated best matches with modulus angle.')
     save_debug_info('best_matches_with_modulus_angle.txt', {'match_list': match_list, 'index1': index1, 'index2': index2})
     
     return index1, index2
@@ -196,8 +196,8 @@ def angle_between_vectors_2d(vector1, vector2):
     len2 = math.hypot(x2, y2)
     angle = math.acos(inner_product / (len1 * len2))
     
-    if LOGGING_VERBOSE:
-        logger.debug('Calculated angle between vectors.')
+    # if LOGGING_VERBOSE:
+        # logger.debug('Calculated angle between vectors.')
     save_debug_info('angle_between_vectors_2d.txt', {'vector1': vector1, 'vector2': vector2, 'angle': angle})
     
     return angle
