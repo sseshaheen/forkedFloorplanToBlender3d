@@ -222,8 +222,8 @@ def rect_contains_or_almost_contains_point(pt, box, caller=None):
             almost_inside = True
             break
 
-    if LOGGING_VERBOSE:
-        logger.debug('Checked if point is inside or almost inside box.')
+    # if LOGGING_VERBOSE:
+        # logger.debug('Checked if point is inside or almost inside box.')
     save_debug_info(f'{caller}-rect_contains_or_almost_contains_point.txt', {'point': pt, 'box': box, 'is_inside': is_inside, 'almost_inside': almost_inside})
     
     return is_inside or almost_inside
