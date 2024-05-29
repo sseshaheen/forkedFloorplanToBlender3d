@@ -16,11 +16,11 @@ def save_debug_info(filename, data):
     Save debug information to a file if DEBUG_MODE is enabled.
     """
     if DEBUG_MODE:
-        filepath  = os.path.join(DEBUG_STORAGE_PATH, filename)
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'a') as file:
             file.write(str(data))
-        if LOGGING_VERBOSE:
-            logger.debug(f'Saved debug info: {filepath}')
+        # if LOGGING_VERBOSE:
+            # logger.debug(f'Saved debug info: {filepath}')
 
 """
 Stacking
