@@ -45,25 +45,24 @@ def wall_filter(gray, caller=None):
     @Param gray: Grayscale image.
     @Return: Image of walls.
     """
-    # Apply Gaussian Blur to smooth out noise
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # Use Canny edge detection to highlight edges
-    edges = cv2.Canny(blurred, 50, 150)
+    _, thresh = cv2.threshold(
+        gray,
+        const.WALL_FILTER_TRESHOLD[0],
+        const.WALL_FILTER_TRESHOLD[1],
+        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
+    )
 
     # Noise removal
     kernel = np.ones(const.WALL_FILTER_KERNEL_SIZE, np.uint8)
     opening = cv2.morphologyEx(
-        edges,
-        cv2.MORPH_CLOSE,
+        thresh,
+        cv2.MORPH_OPEN,
         kernel,
         iterations=const.WALL_FILTER_MORPHOLOGY_ITERATIONS,
     )
 
-    # Ensure sure background
     sure_bg = cv2.dilate(opening, kernel, iterations=const.WALL_FILTER_DILATE_ITERATIONS)
 
-    # Distance transform and thresholding for sure foreground
     dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, const.WALL_FILTER_DISTANCE)
     ret, sure_fg = cv2.threshold(
         const.WALL_FILTER_DISTANCE_THRESHOLD[0] * dist_transform,
@@ -75,22 +74,11 @@ def wall_filter(gray, caller=None):
     sure_fg = np.uint8(sure_fg)
     unknown = cv2.subtract(sure_bg, sure_fg)
 
-    # Additional contour filtering based on area
-    contours, _ = cv2.findContours(unknown, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    filtered_contours = []
-    for cnt in contours:
-        if cv2.contourArea(cnt) > const.MIN_CONTOUR_AREA:
-            filtered_contours.append(cnt)
-    
-    # Create an empty mask to draw filtered contours
-    mask = np.zeros_like(gray)
-    cv2.drawContours(mask, filtered_contours, -1, 255, thickness=cv2.FILLED)
-
     if LOGGING_VERBOSE:
         logger.debug('Filtered walls from the image')
-    save_debug_image(f'{caller}-wall_filter.png', mask)
+    save_debug_image(f'{caller}-wall_filter.png', unknown)
 
-    return mask
+    return unknown
 
 def precise_boxes(detect_img, output_img=None, color=[100, 100, 0], caller=None):
     """
