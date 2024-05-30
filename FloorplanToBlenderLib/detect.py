@@ -48,8 +48,12 @@ def configure_logging():
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
 
+        # Set the root logger's level to WARNING to avoid interference
+        logging.getLogger().setLevel(logging.WARNING)
+
         return logger
     return None
+
 
 
 
