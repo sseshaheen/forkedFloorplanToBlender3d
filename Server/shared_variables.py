@@ -6,10 +6,8 @@ import random
 import os
 import hashlib
 import sys
-
+import json
 import logging
-
-from ..FloorplanToBlenderLib.globalConf import load_config_from_json, save_config_to_json
 
 """
 FloorplanToBlender3d
@@ -137,6 +135,32 @@ class shared_variables:
     def hash_generator(self, phrase):
         return hashlib.sha224(bytes(phrase, encoding="utf-8")).hexdigest()
 
+    def load_config_from_json(file_path):
+        """
+        Load configuration from a JSON file.
+        @Param file_path: Path to the JSON file.
+        @Return: Dictionary containing the configuration.
+        """
+        try:
+            with open(file_path, 'r') as json_file:
+                config = json.load(json_file)
+            return config
+        except Exception as e:
+            logger.error(f"Error loading configuration from {file_path}: {e}")
+            return {}
+
+    def save_config_to_json(file_path, config):
+        """
+        Save configuration to a JSON file.
+        @Param file_path: Path to the JSON file.
+        @Param config: Dictionary containing the configuration.
+        """
+        try:
+            with open(file_path, 'w') as json_file:
+                json.dump(config, json_file, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving configuration to {file_path}: {e}")
+
     def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
         """
         Generate a random string of specified length.
@@ -157,6 +181,7 @@ class shared_variables:
         save_config_to_json('config.json', config)
         
         return new_id
+
 
     def pid_generator(self, size=6):
         return self.random_with_N_digits(size)
