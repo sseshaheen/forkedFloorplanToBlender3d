@@ -14,7 +14,7 @@ if LOGGING_VERBOSE:
     # Load the DEBUG_SESSION_ID from the JSON file
     debug_config = load_config_from_json('./config.json')
     
-    log_file_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+    log_file_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID']) + 'debug.log'
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
 
@@ -54,9 +54,9 @@ def save_debug_image(filename, img):
         
         
         # Load the DEBUG_SESSION_ID from the JSON file
-        config = load_config_from_json('./config.json')
+        debug_config = load_config_from_json('./config.json')
 
-        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'], 'png')
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'], 'png')
         if not os.path.exists(DEBUG_STORAGE_PATH):
             os.makedirs(DEBUG_STORAGE_PATH)
 
