@@ -135,7 +135,7 @@ class shared_variables:
     def hash_generator(self, phrase):
         return hashlib.sha224(bytes(phrase, encoding="utf-8")).hexdigest()
 
-    def load_config_from_json(file_path):
+    def load_config_from_json(self, file_path):
         """
         Load configuration from a JSON file.
         @Param file_path: Path to the JSON file.
@@ -149,7 +149,7 @@ class shared_variables:
             logger.error(f"Error loading configuration from {file_path}: {e}")
             return {}
 
-    def save_config_to_json(file_path, config):
+    def save_config_to_json(self, file_path, config):
         """
         Save configuration to a JSON file.
         @Param file_path: Path to the JSON file.
