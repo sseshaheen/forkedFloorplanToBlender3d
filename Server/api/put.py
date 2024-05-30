@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime
 import time
 import requests
+import logging
 
 
 # Path to the downloaded service account key
@@ -106,6 +107,7 @@ class Put(Api):
         iformat: str,
         oformat: str,
         file: bytes,
+        filename: str,
         userId: str,
         *args,
         **kwargs
@@ -120,6 +122,8 @@ class Put(Api):
             message += Post(client=self.client, shared_variables=self.shared).transform(
                 func="transform", id=id, oformat=oformat
             )
+            logging.info(f"Started createandtransform for id: {id}, and filename: {filename}.")
+
             # The message so far is:
             # "File uploaded! TransformProcess started! Query Process Status for more Information.""
             # Define file paths

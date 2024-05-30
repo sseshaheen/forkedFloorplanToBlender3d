@@ -1,5 +1,4 @@
 from config.config_handler import ConfigHandler
-
 from random import randint
 
 import string
@@ -7,11 +6,17 @@ import random
 import os
 import hashlib
 import sys
+import json
+import logging
 
 """
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('shared_variables_logger')
 
 # TODO make threadsafe!
 
@@ -130,8 +135,52 @@ class shared_variables:
     def hash_generator(self, phrase):
         return hashlib.sha224(bytes(phrase, encoding="utf-8")).hexdigest()
 
+    def load_config_from_json(self, file_path):
+        """
+        Load configuration from a JSON file.
+        @Param file_path: Path to the JSON file.
+        @Return: Dictionary containing the configuration.
+        """
+        try:
+            with open(file_path, 'r') as json_file:
+                config = json.load(json_file)
+            return config
+        except Exception as e:
+            logger.error(f"Error loading configuration from {file_path}: {e}")
+            return {}
+
+    def save_config_to_json(self, file_path, config):
+        """
+        Save configuration to a JSON file.
+        @Param file_path: Path to the JSON file.
+        @Param config: Dictionary containing the configuration.
+        """
+        try:
+            with open(file_path, 'w') as json_file:
+                json.dump(config, json_file, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving configuration to {file_path}: {e}")
+
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
-        return "".join(random.choice(chars) for _ in range(size))
+        """
+        Generate a random string of specified length.
+        @Param size: Length of the random string.
+        @Param chars: Characters to use for generating the string.
+        @Return: Random string.
+        """
+        new_id = ''.join(random.choice(chars) for _ in range(size))
+        logging.debug(f"Generated new debug session ID: {new_id}")
+        
+        # Load existing configuration
+        config = self.load_config_from_json('config.json')
+        
+        # Update the debug_session_id
+        config['DEBUG_SESSION_ID'] = new_id
+        
+        # Save the updated configuration back to the JSON file
+        self.save_config_to_json('config.json', config)
+        
+        return new_id
 
     def pid_generator(self, size=6):
         return self.random_with_N_digits(size)

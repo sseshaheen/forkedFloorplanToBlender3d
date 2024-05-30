@@ -6,10 +6,32 @@ from PIL import Image
 from . import calculate
 from . import const
 import matplotlib.pyplot as plt
-from .globalConf import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
-
+from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+if LOGGING_VERBOSE:
+    # Load the DEBUG_SESSION_ID from the JSON file
+    debug_config = load_config_from_json('./config.json')
+    
+    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+    log_file_path = os.path.join(log_dir_path, 'debug.log')
+    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+
+    # Create a logger
+    logger = logging.getLogger('debug_logger')
+    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+
+    # Create a file handler to log everything
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create formatter and add it to the handler
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+
 
 """
 Image
@@ -20,7 +42,7 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
-def save_image(title, img):
+def save_debug_image(filename, img):
     """
     Save image to the debug directory.
 
@@ -28,10 +50,17 @@ def save_image(title, img):
     @param img: Image to be saved.
     """
     if DEBUG_MODE:
-        filepath  = os.path.join(DEBUG_STORAGE_PATH, f"{title}.png")
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'], 'png')
+        if not os.path.exists(DEBUG_STORAGE_PATH):
+            os.makedirs(DEBUG_STORAGE_PATH)
+
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
-            logging.debug(f'Saved debug image: {filepath}')
+            logger.debug(f'Saved debug image: {filepath}')
 
 def pil_rescale_image(image, factor):
     """
@@ -102,7 +131,7 @@ def denoising(img, caller=None):
     )
     if LOGGING_VERBOSE:
         logging.debug('Applied denoising to image')
-    save_image(f'{caller}-denoised_image', denoised_img)
+    save_debug_image(f'{caller}-denoised_image.png', denoised_img)
     return denoised_img
 
 def remove_noise(img, noise_removal_threshold, caller=None):
@@ -123,7 +152,7 @@ def remove_noise(img, noise_removal_threshold, caller=None):
             cv2.fillPoly(mask, [contour], 255)
     if LOGGING_VERBOSE:
         logging.debug('Removed noise from image')
-    save_image(f'{caller}-noise_removed_image', mask)
+    save_debug_image(f'{caller}-noise_removed_image.png', mask)
     return mask
 
 def mark_outside_black(img, mask, caller=None):
@@ -142,7 +171,7 @@ def mark_outside_black(img, mask, caller=None):
     img[mask == 0] = 0
     if LOGGING_VERBOSE:
         logging.debug('Marked outside of the image as black')
-    save_image(f'{caller}-Image_with_Outside_Black', img)
+    save_debug_image(f'{caller}-Image_with_Outside_Black.png', img)
     return img, mask
 
 def detect_wall_rescale(reference_size, image):

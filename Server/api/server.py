@@ -92,7 +92,7 @@ class S(BaseHTTPRequestHandler):
 
         logging.info(f"Debug mode: {debug_mode}, Logging verbose: {logging_verbose}, Session ID: {session_id}")
 
-        globalConf.update_config(debug_mode, logging_verbose, session_id)
+        # globalConf.update_config(debug_mode, logging_verbose, session_id)
         self.configure_logging()
 
         logging.info(f"Updated globalConf: DEBUG_MODE={globalConf.DEBUG_MODE}, LOGGING_VERBOSE={globalConf.LOGGING_VERBOSE}")

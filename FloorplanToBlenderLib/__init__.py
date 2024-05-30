@@ -17,7 +17,7 @@ execution...
 
 """
 import logging
-from .globalConf import LOGGING_VERBOSE
+from .globalConf import load_config_from_json, LOGGING_VERBOSE
 
 # Configure logging
 if LOGGING_VERBOSE:
