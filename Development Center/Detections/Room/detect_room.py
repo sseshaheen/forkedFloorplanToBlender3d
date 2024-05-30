@@ -30,7 +30,7 @@ if LOGGING_VERBOSE:
 
     # Create a console handler to log warnings and above
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.WARNING)
 
     # Create formatters and add them to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -43,7 +43,6 @@ if LOGGING_VERBOSE:
 
 
     logger = logging.getLogger(__name__)
-
 def save_debug_image(filename, img):
     """
     Save an image to the debug directory if DEBUG_MODE is enabled.
@@ -52,9 +51,7 @@ def save_debug_image(filename, img):
         if img is None or img.size == 0:
             if LOGGING_VERBOSE:
                 logger.debug(f'Cannot save debug image {filename}: image is empty or None')
-                print(f'Cannot save debug image {filename}: image is empty or None')
             return
-        
         
         # Load the DEBUG_SESSION_ID from the JSON file
         debug_config = load_config_from_json('./config.json')

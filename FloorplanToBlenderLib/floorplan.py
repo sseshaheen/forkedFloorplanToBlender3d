@@ -32,7 +32,7 @@ if LOGGING_VERBOSE:
 
     # Create a console handler to log warnings and above
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.WARNING)
 
     # Create formatters and add them to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
