@@ -37,12 +37,12 @@ if LOGGING_VERBOSE:
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
+
     # Add handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
 
-    logger = logging.getLogger(__name__)
 def save_debug_image(filename, img):
     """
     Save an image to the debug directory if DEBUG_MODE is enabled.
