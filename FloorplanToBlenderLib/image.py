@@ -154,11 +154,12 @@ def detect_wall_rescale(reference_size, image):
     @return: Scale factor if walls are detected, otherwise None.
     """
     image_wall_size = calculate.wall_width_average(image)
+    if LOGGING_VERBOSE:
+        logging.debug(f'Reference size (based on the reference calibration image) is: {float(reference_size)}')
     if image_wall_size is None:
         logging.warning('Calculation of average wall width (used for checking if rescaling is needed) gave None')
         return None
     scale_factor = calculate_scale_factor(float(reference_size), image_wall_size)
     if LOGGING_VERBOSE:
         logging.debug(f'Detected wall rescale factor: {scale_factor}')
-        logging.debug(f'Reference size (based on the reference calibration image) is: {float(reference_size)}')
     return scale_factor
