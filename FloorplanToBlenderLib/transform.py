@@ -14,35 +14,38 @@ This file contains functions for transforming data between different formats.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -62,7 +65,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 def rescale_rect(list_of_rects, scale_factor):
     """
@@ -104,7 +109,9 @@ def rescale_rect(list_of_rects, scale_factor):
         rescaled_rects.append(contour)
 
     if LOGGING_VERBOSE:
-        logger.debug('Rescaled rectangles.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Rescaled rectangles.')
     save_debug_info('rescale_rect.txt', {'original_rects': list_of_rects, 'rescaled_rects': rescaled_rects})
 
     return rescaled_rects
@@ -158,7 +165,9 @@ def scale_model_point_to_origin(origin, point, x_scale, y_scale):
     scaled_point = (dx * x_scale, dy * y_scale)
 
     if LOGGING_VERBOSE:
-        logger.debug('Scaled point relative to origin.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Scaled point relative to origin.')
     save_debug_info('scale_model_point_to_origin.txt', {'origin': origin, 'point': point, 'x_scale': x_scale, 'y_scale': y_scale, 'scaled_point': scaled_point})
 
     return scaled_point
@@ -198,7 +207,9 @@ def verts_to_poslist(verts):
         i += 3
 
     if LOGGING_VERBOSE:
-        logger.debug('Converted verts to position list.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Converted verts to position list.')
     save_debug_info('verts_to_poslist.txt', {'verts': verts, 'poslist': res})
 
     return res
@@ -238,7 +249,9 @@ def list_to_nparray(list, default=np.array([1, 1, 1])):
         np_array = np.array([list[0], list[1], list[2]])
 
     if LOGGING_VERBOSE:
-        logger.debug('Converted list to numpy array.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Converted list to numpy array.')
     save_debug_info('list_to_nparray.txt', {'list': list, 'default': default, 'np_array': np_array})
 
     return np_array
@@ -354,7 +367,9 @@ def create_nx4_verts_and_faces(
     faces = [(0, 1, 3, 2)]
 
     if LOGGING_VERBOSE:
-        logger.debug('Created nx4 vertices and faces.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Created nx4 vertices and faces.')
     save_debug_info('create_nx4_verts_and_faces.txt', {'boxes': boxes, 'height': height, 'scale': scale, 'pixelscale': pixelscale, 'ground': ground, 'verts': verts, 'faces': faces, 'counter': counter})
 
     return verts, faces, counter
@@ -389,7 +404,9 @@ def create_verts(boxes, height, pixelscale=100, scale=np.array([1, 1, 1])):
         verts.extend(temp_verts)
 
     if LOGGING_VERBOSE:
-        logger.debug('Created 3D vertices from 2D positions.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Created 3D vertices from 2D positions.')
     save_debug_info('create_verts.txt', {'boxes': boxes, 'height': height, 'pixelscale': pixelscale, 'scale': scale, 'verts': verts})
 
     return verts

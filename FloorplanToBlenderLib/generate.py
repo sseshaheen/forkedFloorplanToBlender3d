@@ -6,35 +6,38 @@ import logging
 from FloorplanToBlenderLib.generator import Door, Floor, Room, Wall, Window
 from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -54,7 +57,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 """
 Generate
@@ -164,7 +169,9 @@ def generate_all_files(
         shape = [0, 0, 0]
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
     save_debug_info('generate_all_files.txt', {'path': path, 'shape': shape})
 
     return path, shape
@@ -183,7 +190,9 @@ def validate_shape(old_shape, new_shape):
     shape[2] = max(old_shape[2], new_shape[2])
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Validated shape: old_shape={old_shape}, new_shape={new_shape}, combined_shape={shape}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Validated shape: old_shape={old_shape}, new_shape={new_shape}, combined_shape={shape}')
     save_debug_info('validate_shape.txt', {'old_shape': old_shape, 'new_shape': new_shape, 'combined_shape': shape})
 
     return shape
@@ -249,7 +258,9 @@ def generate_transform_file(
     IO.save_to_file(path + "transform", transform, info)
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Generated transform file for image: {img_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Generated transform file for image: {img_path}')
     save_debug_info('generate_transform_file.txt', transform)
 
     return transform

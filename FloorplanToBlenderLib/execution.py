@@ -13,35 +13,38 @@ This file contains some example usages and creations of multiple floorplans.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -61,7 +64,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 """
 Execution
@@ -81,7 +86,9 @@ def simple_single(floorplan, show=True):
     filepath, _ = generate.generate_all_files(floorplan, show)
     
     if LOGGING_VERBOSE:
-        logger.debug(f'Generated simple single floorplan: {filepath}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Generated simple single floorplan: {filepath}')
     save_debug_info('simple_single.txt', {'floorplan': floorplan, 'filepath': filepath})
     
     return filepath
@@ -158,7 +165,9 @@ def multiple_axis(
         data_paths.append(filepath)
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Generated multiple floorplans along axis {axis}: {data_paths}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Generated multiple floorplans along axis {axis}: {data_paths}')
     save_debug_info('multiple_axis.txt', {'floorplans': floorplans, 'axis': axis, 'dir': dir, 'margin': margin, 'worldpositionoffset': worldpositionoffset, 'worldrotationoffset': worldrotationoffset, 'worldscale': worldscale, 'data_paths': data_paths})
 
     return data_paths
@@ -178,7 +187,9 @@ def rotate_around_axis(axis, vec, degrees):
     rotated_vec = rotation.apply(vec)
 
     if LOGGING_VERBOSE:
-        logger.debug('Rotated vector around axis.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Rotated vector around axis.')
     save_debug_info('rotate_around_axis.txt', {'axis': axis, 'vec': vec, 'degrees': degrees, 'rotated_vec': rotated_vec})
 
     return rotated_vec
@@ -195,7 +206,9 @@ def AngleBtw2Points(pointA, pointB):
     angle = degrees(atan2(changeInY, changeInX))
 
     if LOGGING_VERBOSE:
-        logger.debug('Calculated angle between two points.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Calculated angle between two points.')
     save_debug_info('AngleBtw2Points.txt', {'pointA': pointA, 'pointB': pointB, 'angle': angle})
 
     return angle
@@ -264,7 +277,9 @@ def multiple_cylinder(
         curr_index += 1
 
     if LOGGING_VERBOSE:
-        logger.debug('Generated multiple floorplans in cylindrical shape.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Generated multiple floorplans in cylindrical shape.')
     save_debug_info('multiple_cylinder.txt', {'floorplans': floorplans, 'amount_per_level': amount_per_level, 'radie': radie, 'degree': degree, 'world_direction': world_direction, 'world_position': world_position, 'world_rotation': world_rotation, 'world_scale': world_scale, 'margin': margin, 'data_paths': data_paths})
 
     return data_paths

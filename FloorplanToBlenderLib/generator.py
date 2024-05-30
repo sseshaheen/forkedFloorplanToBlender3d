@@ -19,35 +19,38 @@ This file contains structures for different floorplan detection features.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -67,7 +70,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 
 
@@ -126,7 +131,9 @@ class Generator:
         ]
 
         if LOGGING_VERBOSE:
-            logger.debug('Calculated shape of verts.')
+            logger = configure_logging()
+            if logger:
+                logger.debug('Calculated shape of verts.')
         save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
 
         return rescaled_shape
@@ -168,7 +175,9 @@ class Floor(Generator):
         if info:
             print("Approximated apartment size: ", cv2.contourArea(contour))
             if LOGGING_VERBOSE:
-                logger.debug(f'Approximated apartment size: {cv2.contourArea(contour)}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Approximated apartment size: {cv2.contourArea(contour)}')
 
         IO.save_to_file(self.path + const.FLOOR_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.FLOOR_FACES, self.faces, info)
@@ -210,7 +219,9 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger.debug(f'Walls created: {wall_amount}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created: {wall_amount}')
 
         # Save data to file
         IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts, info)
@@ -228,7 +239,9 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger.debug(f'Walls created horizontally: {wall_amount}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
         # One solution to get data to blender is to write and read from file.
@@ -270,7 +283,9 @@ class Room(Generator):
         if info:
             print("Number of rooms detected: ", counter)
             if LOGGING_VERBOSE:
-                logger.debug(f'Number of rooms detected: {counter}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Number of rooms detected: {counter}')
 
         IO.save_to_file(self.path + const.ROOM_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.ROOM_FACES, self.faces, info)
@@ -305,7 +320,9 @@ class Door(Generator):
                     dist = distance
 
         if LOGGING_VERBOSE:
-            logger.debug('Calculated point furthest away from doorway.')
+            logger = configure_logging()
+            if logger:
+                logger.debug('Calculated point furthest away from doorway.')
         save_debug_info('get_point_the_furthest_away.txt', {'door_features': door_features, 'door_box': door_box, 'best_point': best_point})
 
         return best_point
@@ -339,7 +356,9 @@ class Door(Generator):
                     dist = distance
 
         if LOGGING_VERBOSE:
-            logger.debug('Calculated closest box point to door point.')
+            logger = configure_logging()
+            if logger:
+                logger.debug('Calculated closest box point to door point.')
         save_debug_info('get_closest_box_point_to_door_point.txt', {'wall_point': wall_point, 'box': box, 'best_point': best_point})
 
         return (int(best_point[0]), int(best_point[1]))
@@ -415,7 +434,9 @@ class Door(Generator):
         if info:
             print("Doors created: ", int(door_amount / 4))
             if LOGGING_VERBOSE:
-                logger.debug(f'Doors created: {int(door_amount / 4)}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Doors created: {int(door_amount / 4)}')
 
         IO.save_to_file(self.path + "door_vertical_verts", self.verts, info)
         IO.save_to_file(self.path + "door_vertical_faces", self.faces, info)
@@ -479,7 +500,9 @@ class Window(Generator):
         if info:
             print("Windows created: ", int(window_amount))
             if LOGGING_VERBOSE:
-                logger.debug(f'Windows created: {int(window_amount)}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Windows created: {int(window_amount)}')
 
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)

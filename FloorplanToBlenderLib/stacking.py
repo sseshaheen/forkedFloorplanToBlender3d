@@ -7,35 +7,38 @@ from . import floorplan
 from . import transform
 from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -55,7 +58,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 """
 Stacking
@@ -79,7 +84,9 @@ def parse_stacking_file(path):
 
     logger.info(f'Building stack from file {path}')
     if LOGGING_VERBOSE:
-        logger.debug(f'Reading stacking file from: {path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Reading stacking file from: {path}')
 
     for index, line in enumerate(array_of_commands):
         args = line.split(" ")
@@ -121,7 +128,9 @@ def parse_stacking_file(path):
     worlds.extend(world)
     
     if LOGGING_VERBOSE:
-        logger.debug(f'Parsed stacking file: {path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Parsed stacking file: {path}')
     save_debug_info('parse_stacking_file.txt', {'path': path, 'worlds': worlds})
 
     return worlds
@@ -134,7 +143,9 @@ def CLEAR():
     IO.clean_data_folder(const.BASE_PATH)
     logger.info('Cleared data folder.')
     if LOGGING_VERBOSE:
-        logger.debug(f'Cleared data folder at path: {const.BASE_PATH}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Cleared data folder at path: {const.BASE_PATH}')
 
 def SEPARATE():
     """
@@ -206,7 +217,9 @@ def ADD(
         mode = mode[1]
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Adding floorplans with config: {conf}, image_path: {image_path}, amount: {amount}, mode: {mode}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Adding floorplans with config: {conf}, image_path: {image_path}, amount: {amount}, mode: {mode}')
 
     if mode == "cylinder":
         result = execution.multiple_cylinder(
@@ -236,7 +249,9 @@ def ADD(
         )
     
     if LOGGING_VERBOSE:
-        logger.debug(f'Added floorplans result: {result}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Added floorplans result: {result}')
     save_debug_info('ADD.txt', {
         'config': conf,
         'image_path': image_path,

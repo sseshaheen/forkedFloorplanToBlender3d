@@ -19,35 +19,38 @@ This file contains functions for handling files.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -90,7 +93,9 @@ def find_reuseable_data(image_path, path):
             except IOError:
                 continue
     if LOGGING_VERBOSE:
-        logger.debug(f'No reusable data found for image: {image_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'No reusable data found for image: {image_path}')
     return None, None
 
 
@@ -104,10 +109,14 @@ def find_files(filename, search_path):
     for root, _, files in os.walk(search_path):
         if filename in files:
             if LOGGING_VERBOSE:
-                logger.debug(f'File found: {filename} at {root}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'File found: {filename} at {root}')
             return os.path.join(root, filename)
     if LOGGING_VERBOSE:
-        logger.debug(f'File not found: {filename}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'File not found: {filename}')
     return None
 
 
@@ -177,7 +186,9 @@ def read_image(path, floorplan=None):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if LOGGING_VERBOSE:
-        logger.debug(f'Read and processed image: {path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Read and processed image: {path}')
     save_debug_info('read_image.txt', {'path': path, 'scale_factor': scale_factor})
 
     return img, gray, scale_factor
@@ -192,7 +203,9 @@ def readlines_file(path):
     with open(path, "r") as f:
         res = f.readlines()
     if LOGGING_VERBOSE:
-        logger.debug(f'Read lines from file: {path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Read lines from file: {path}')
     save_debug_info('readlines_file.txt', {'path': path, 'lines': res})
     return res
 
@@ -228,7 +241,9 @@ def save_to_file(file_path, data, show=True):
     if show:
         logger.info(f'Created file: {full_path}')
     if LOGGING_VERBOSE:
-        logger.debug(f'Saved data to file: {full_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Saved data to file: {full_path}')
     save_debug_info(f'save_to_file-{os.path.basename(file_path)}.txt', {'file_path': full_path, 'data': data})
 
 def read_from_file(file_path):
@@ -241,7 +256,9 @@ def read_from_file(file_path):
     with open(full_path, "r") as f:
         data = json.loads(f.read())
     if LOGGING_VERBOSE:
-        logger.debug(f'Read data from file: {full_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Read data from file: {full_path}')
     save_debug_info('read_from_file.txt', {'file_path': full_path, 'data': data})
     return data
 
@@ -258,7 +275,9 @@ def clean_data_folder(folder):
             shutil.rmtree(os.path.join(root, d))
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Cleaned data folder: {folder}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Cleaned data folder: {folder}')
     # save_debug_info('clean_data_folder.txt', {'folder': folder})
 
 def create_new_floorplan_path(path):
@@ -283,7 +302,9 @@ def create_new_floorplan_path(path):
     if not os.path.exists(res_path):
         os.makedirs(res_path)
     if LOGGING_VERBOSE:
-        logger.debug(f'Created new floorplan path: {res_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Created new floorplan path: {res_path}')
     # save_debug_info('create_new_floorplan_path.txt', {'path': res_path})
     return res_path
 
@@ -295,7 +316,9 @@ def get_current_path():
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if LOGGING_VERBOSE:
-        logger.debug(f'Current path: {dir_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Current path: {dir_path}')
     save_debug_info('get_current_path.txt', {'path': dir_path})
     return dir_path
 
@@ -308,7 +331,9 @@ def find_program_path(name):
     """
     program_path = which(name)
     if LOGGING_VERBOSE:
-        logger.debug(f'Program path for {name}: {program_path}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Program path for {name}: {program_path}')
     save_debug_info('find_program_path.txt', {'name': name, 'path': program_path})
     return program_path
 
@@ -329,6 +354,8 @@ def get_next_target_base_name(target_base, target_path):
         target_base += str(fid)
 
     if LOGGING_VERBOSE:
-        logger.debug(f'Next target base name: {target_base}')
+        logger = configure_logging()
+        if logger:
+            logger.debug(f'Next target base name: {target_base}')
     save_debug_info('get_next_target_base_name.txt', {'target_base': target_base, 'target_path': target_path, 'fid': fid})
     return target_base

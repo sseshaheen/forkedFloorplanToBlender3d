@@ -18,35 +18,38 @@ This file contains functions used when detecting and calculating shapes in image
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -58,7 +61,9 @@ def save_debug_image(filename, img):
     if DEBUG_MODE:
         if img is None or img.size == 0:
             if LOGGING_VERBOSE:
-                logger.debug(f'Cannot save debug image {filename}: image is empty or None')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Cannot save debug image {filename}: image is empty or None')
                 print(f'Cannot save debug image {filename}: image is empty or None')
             return
         
@@ -71,7 +76,9 @@ def save_debug_image(filename, img):
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug image: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug image: {filepath}')
 
 def save_debug_info(filename, data):
     """
@@ -88,7 +95,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 def wall_filter(gray, caller=None):
     """
@@ -140,7 +149,9 @@ def wall_filter(gray, caller=None):
     save_debug_info(f'{caller}-wall_filter-debug.txt', "Subtracted sure foreground from sure background to get unknown regions")
 
     if LOGGING_VERBOSE:
-        logger.debug('Filtered walls from the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Filtered walls from the image')
     save_debug_image(f'{caller}-wall_filter.png', unknown)
 
     return unknown
@@ -186,7 +197,9 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0], caller=None)
     save_debug_info(f'{caller}-precise_boxes-debug.txt', f"Resulting corners: {res}")
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected precise boxes in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected precise boxes in the image')
     save_debug_image(f'{caller}-precise_boxes.png', output_img)
 
     return res, output_img
@@ -239,7 +252,9 @@ def __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, ca
                 cv2.line(debug_img, (x, y1[0]), (x, y2[0]), debug_color, 1)
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected corners and drew lines in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected corners and drew lines in the image')
     save_debug_image(f'{caller}-corners_and_lines.png', debug_img)  # Save the debug image with red lines
 
     return img  # Return the original image
@@ -293,7 +308,9 @@ def find_rooms(
         img[component] = color
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected rooms in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected rooms in the image')
     save_debug_image(f'{caller}-find_rooms-rooms_detected.png', img)
 
     return rooms, img
@@ -320,7 +337,9 @@ def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255])
         res.append(approx)
 
     if LOGGING_VERBOSE:
-        logger.debug('Removed precise boxes from the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Removed precise boxes from the image')
     save_debug_image('precise_boxes_removed.png', output_img)
 
     return res, output_img
@@ -355,7 +374,9 @@ def outer_contours(detect_img, output_img=None, color=[255, 255, 255], caller=No
         output_img = cv2.drawContours(output_img, [approx], 0, color)
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected outer contours of the floorplan')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected outer contours of the floorplan')
     save_debug_image(f'{caller}-outer_contours.png', output_img)
 
     return approx, output_img
@@ -375,7 +396,9 @@ def doors(image_path, scale_factor):
     _, doors = feature_match(img, model, caller='detect-doors')
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected doors in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected doors in the image')
     save_debug_image('detect-doors-doors_detected.png', img)
 
     return doors
@@ -394,7 +417,9 @@ def windows(image_path, scale_factor):
     windows, _ = feature_match(img, model, caller='detect-windows')
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected windows in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected windows in the image')
     save_debug_image('detect-windows-windows_detected.png', img)
 
     return windows
@@ -616,7 +641,9 @@ def feature_match(img1, img2, caller=None):
             windows.append(box)
 
     if LOGGING_VERBOSE:
-        logger.debug('Feature matched the models to the floorplan')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Feature matched the models to the floorplan')
     save_debug_image(f'{caller}-feature_matched.png', img1)
 
     return transform.rescale_rect(windows, const.WINDOWS_RESCALE_TO_FIT), doors
@@ -673,7 +700,9 @@ def find_details(
         img[component] = color
 
     if LOGGING_VERBOSE:
-        logger.debug('Detected details in the image')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Detected details in the image')
     save_debug_image(f'{caller}-details_detected.png', img)
 
     return details, img

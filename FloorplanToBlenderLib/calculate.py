@@ -14,35 +14,38 @@ This file contains functions for handling math or calculations.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-# Configure logging
-if LOGGING_VERBOSE:
-    # Load the DEBUG_SESSION_ID from the JSON file
-    debug_config = load_config_from_json('./config.json')
-    
-    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
-    log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+def configure_logging():
+    if LOGGING_VERBOSE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+        
+        log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+        log_file_path = os.path.join(log_dir_path, 'debug.log')
+        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
 
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+        # Create a logger
+        logger = logging.getLogger('debug_logger')
+        logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create a file handler to log everything
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
+        # Create a file handler to log everything
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a console handler to log warnings and above
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+        # Create a console handler to log warnings and above
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
 
-    # Create formatters and add them to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Create formatters and add them to the handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+    return None
 
 
 
@@ -62,7 +65,9 @@ def save_debug_info(filename, data):
         with open(filepath, 'a') as file:
             file.write(str(data))
         # if LOGGING_VERBOSE:
-        #     logger.debug(f'Saved debug info: {filepath}')
+        #     logger = configure_logging()
+        #     if logger:
+        #         logger.debug(f'Saved debug info: {filepath}')
 
 
 def average(lst):
@@ -74,7 +79,9 @@ def average(lst):
     avg = sum(lst) / len(lst)
     
     if LOGGING_VERBOSE:
-        logger.debug('Calculated average of list.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Calculated average of list.')
     save_debug_info('average.txt', {'list': lst, 'average': avg})
     
     return avg
@@ -107,7 +114,9 @@ def remove_walls_not_in_contour(walls, contour):
                 break
     
     if LOGGING_VERBOSE:
-        logger.debug('Removed walls not inside contour.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Removed walls not inside contour.')
     save_debug_info('remove_walls_not_in_contour.txt', {'walls': walls, 'contour': contour, 'filtered_walls': res})
     
     return res
@@ -161,8 +170,9 @@ def wall_width_average(img, image_type=None):
 
         avg_wall_width = np.mean(filtered_boxes)
         
-        if LOGGING_VERBOSE:
-            logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
+            logger = configure_logging()
+            if logger:
+                logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
         save_debug_info(f'wall_width_average_{image_type}.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
         
         return avg_wall_width
@@ -279,7 +289,9 @@ def box_center(box):
     center = (x + w / 2, y + h / 2)
     
     if LOGGING_VERBOSE:
-        logger.debug('Calculated center of box.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Calculated center of box.')
     save_debug_info('box_center.txt', {'box': box, 'center': center})
     
     return center
@@ -294,7 +306,9 @@ def euclidean_distance_2d(p1, p2):
     distance = math.sqrt(abs(math.pow(p1[0] - p2[0], 2) - math.pow(p1[1] - p2[1], 2)))
     
     if LOGGING_VERBOSE:
-        logger.debug('Calculated Euclidean distance between points.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Calculated Euclidean distance between points.')
     save_debug_info('euclidean_distance_2d.txt', {'point1': p1, 'point2': p2, 'distance': distance})
     
     return distance
@@ -308,7 +322,9 @@ def magnitude_2d(point):
     magnitude = math.sqrt(point[0] * point[0] + point[1] * point[1])
     
     if LOGGING_VERBOSE:
-        logger.debug('Calculated magnitude of vector.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Calculated magnitude of vector.')
     save_debug_info('magnitude_2d.txt', {'point': point, 'magnitude': magnitude})
     
     return magnitude
@@ -324,7 +340,9 @@ def normalize_2d(normal):
         normal[i] = val / mag
     
     if LOGGING_VERBOSE:
-        logger.debug('Normalized 2D vector.')
+        logger = configure_logging()
+        if logger:
+            logger.debug('Normalized 2D vector.')
     save_debug_info('normalize_2d.txt', {'vector': normal, 'magnitude': mag})
     
     return normal
