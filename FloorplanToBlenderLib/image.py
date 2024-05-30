@@ -20,7 +20,7 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
-def save_image(title, img):
+def save_debug_image(filename, img):
     """
     Save image to the debug directory.
 
@@ -31,8 +31,11 @@ def save_image(title, img):
         # Load the DEBUG_SESSION_ID from the JSON file
         config = load_config_from_json('./config.json')
 
-        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'])
-        filepath  = os.path.join(DEBUG_STORAGE_PATH, f"{title}.png")
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'], '/png')
+        if not os.path.exists(DEBUG_STORAGE_PATH):
+            os.makedirs(DEBUG_STORAGE_PATH)
+
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
             logging.debug(f'Saved debug image: {filepath}')
@@ -106,7 +109,7 @@ def denoising(img, caller=None):
     )
     if LOGGING_VERBOSE:
         logging.debug('Applied denoising to image')
-    save_image(f'{caller}-denoised_image', denoised_img)
+    save_debug_image(f'{caller}-denoised_image.png', denoised_img)
     return denoised_img
 
 def remove_noise(img, noise_removal_threshold, caller=None):
