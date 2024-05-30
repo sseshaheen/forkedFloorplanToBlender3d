@@ -169,7 +169,7 @@ def wall_width_average(img, image_type=None):
             return None
 
         avg_wall_width = np.mean(filtered_boxes)
-        
+        if LOGGING_VERBOSE:
             logger = configure_logging()
             if logger:
                 logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
