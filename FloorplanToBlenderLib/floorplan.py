@@ -18,7 +18,7 @@ def configure_logging():
         
         log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
         log_file_path = os.path.join(log_dir_path, 'debug.log')
-        os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+        os.makedirs(log_dir_path, exist_ok=True)
 
         # Create a logger
         logger = logging.getLogger('debug_logger')
@@ -92,7 +92,7 @@ class Floorplan:
             conf = const.IMAGE_DEFAULT_CONFIG_FILE_NAME
         self.conf = conf
         self.create_variables_from_config(self.conf)
-        
+
         if LOGGING_VERBOSE:
             logger = configure_logging()
             if logger:
