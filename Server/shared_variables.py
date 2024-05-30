@@ -9,7 +9,7 @@ import sys
 
 import logging
 
-from FloorplanToBlenderLib.globalConf import load_config_from_json, save_config_to_json
+from ..FloorplanToBlenderLib.globalConf import load_config_from_json, save_config_to_json
 
 """
 FloorplanToBlender3d
