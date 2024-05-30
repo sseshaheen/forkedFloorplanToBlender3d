@@ -160,4 +160,5 @@ def detect_wall_rescale(reference_size, image):
     scale_factor = calculate_scale_factor(float(reference_size), image_wall_size)
     if LOGGING_VERBOSE:
         logging.debug(f'Detected wall rescale factor: {scale_factor}')
+        logging.debug(f'Reference size (based on the reference calibration image) is: {float(reference_size)}')
     return scale_factor
