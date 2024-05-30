@@ -3,7 +3,7 @@ import numpy as np
 from . import image
 import logging
 import os
-from ....FloorplanToBlenderLib.globalConf import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
+from ....FloorplanToBlenderLib.globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 
 """
 Testing functions before adding them to the library
@@ -23,6 +23,14 @@ def save_debug_image(filename, img):
                 print(f'Cannot save debug image {filename}: image is empty or None')
             return
         
+        
+        # Load the DEBUG_SESSION_ID from the JSON file
+        config = load_config_from_json('./config.json')
+
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'])
+        if not os.path.exists(DEBUG_STORAGE_PATH):
+            os.makedirs(DEBUG_STORAGE_PATH)
+
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:

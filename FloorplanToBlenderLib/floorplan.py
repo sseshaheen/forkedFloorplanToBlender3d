@@ -2,7 +2,7 @@ import json
 import logging
 from . import const
 from . import config
-from .globalConf import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
 """
 Floorplan
@@ -19,7 +19,13 @@ def save_debug_info(filename, data):
     Save debug information to a file if DEBUG_MODE is enabled.
     """
     if DEBUG_MODE:
-        filepath  = os.path.join(DEBUG_STORAGE_PATH, filename)
+        # Load the DEBUG_SESSION_ID from the JSON file
+        config = load_config_from_json('./config.json')
+
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'])
+        if not os.path.exists(DEBUG_STORAGE_PATH):
+            os.makedirs(DEBUG_STORAGE_PATH)
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'a') as file:
             file.write(json.dumps(data, indent=4))
         if LOGGING_VERBOSE:

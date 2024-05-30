@@ -6,7 +6,7 @@ from PIL import Image
 from . import calculate
 from . import const
 import matplotlib.pyplot as plt
-from .globalConf import DEBUG_MODE, DEBUG_STORAGE_PATH, LOGGING_VERBOSE
+from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,6 +28,10 @@ def save_image(title, img):
     @param img: Image to be saved.
     """
     if DEBUG_MODE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        config = load_config_from_json('./config.json')
+
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'])
         filepath  = os.path.join(DEBUG_STORAGE_PATH, f"{title}.png")
         cv2.imwrite(filepath, img)
         if LOGGING_VERBOSE:
