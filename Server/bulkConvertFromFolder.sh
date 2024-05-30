@@ -34,33 +34,38 @@ for file in "$IMAGE_DIR"/*; do
         echo "POST response: $response"
 
         # Parse the response
-        id=$(echo "$response" | awk -F\' '{print $2}')
-        hash=$(echo "$response" | awk -F\' '{print $4}')
+        if [[ $response =~ \('id',\ '([^']*)',\ 'hash',\ '([^']*)',\ false\) ]]; then
+            id="${BASH_REMATCH[1]}"
+            hash="${BASH_REMATCH[2]}"
 
-        echo "Parsed id: $id, hash: $hash"
+            echo "Parsed id: $id, hash: $hash"
 
-        # File name without directory
-        filename=$(basename -- "$file")
+            # File name without directory
+            filename=$(basename -- "$file")
 
-        # PUT request
-        put_response=$(curl -s -X PUT "http://localhost:8000/?func=createandtransform&id=${id}&hash=${hash}&iformat=.${extension}&oformat=.obj&userId=Oq37pxGdFPYnvWbOL94ttbIFqD23&debug=1&verbose=1&session_id=${id}&filename=${filename}" \
-                          -H "Accept: application/json" \
-                          -H "Content-Type: multipart/form-data; boundary=$BOUNDARY" \
-                          --form "file=@${file}")
+            # PUT request
+            put_response=$(curl -s -X PUT "http://localhost:8000/?func=createandtransform&id=${id}&hash=${hash}&iformat=.${extension}&oformat=.obj&userId=Oq37pxGdFPYnvWbOL94ttbIFqD23&debug=1&verbose=1&session_id=${id}&filename=${filename}" \
+                              -H "Accept: application/json" \
+                              -H "Content-Type: multipart/form-data; boundary=$BOUNDARY" \
+                              --form "file=@${file}")
 
-        echo "PUT response: $put_response"
+            echo "PUT response: $put_response"
 
-        # Check if the .obj file is created every 2 seconds
-        obj_file="${OBJECT_DIR}/${id}.obj"
-        while [ ! -f "$obj_file" ]; do
-            echo "Waiting for $obj_file to be created..."
-            sleep 2
-        done
+            # Check if the .obj file is created every 2 seconds
+            obj_file="${OBJECT_DIR}/${id}.obj"
+            while [ ! -f "$obj_file" ]; do
+                echo "Waiting for $obj_file to be created..."
+                sleep 2
+            done
 
-        echo "$obj_file has been created."
+            echo "$obj_file has been created."
 
-        # Series of actions
-        # Add your series of actions here
+            # Series of actions
+            # Add your series of actions here
+
+        else
+            echo "Failed to parse POST response: $response"
+        fi
 
     else
         echo "Skipping unsupported file format: $file"
