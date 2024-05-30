@@ -1,16 +1,10 @@
 import os
 import time
 import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
 
 def process_images(image_dir):
-    object_dir = "./storage/objects"
+    object_dir = "/home/apps/forkedFloorplanToBlender3d/Server/storage/objects"
     supported_formats = ["jpg", "jpeg", "png", "tiff", "bmp", "gif"]
-
-    session = requests.Session()
-    retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
-    session.mount('http://', HTTPAdapter(max_retries=retries))
 
     # Loop through each file in the directory
     for file in os.listdir(image_dir):
@@ -28,7 +22,7 @@ def process_images(image_dir):
                 "Content-Length": "0"
             }
 
-            response = session.post(post_url, headers=post_headers)
+            response = requests.post(post_url, headers=post_headers)
             print(f"POST response: {response.text}")
 
             # Parse the response
@@ -45,16 +39,13 @@ def process_images(image_dir):
             # PUT request
             put_url = f"http://localhost:8000/?func=createandtransform&id={id}&hash={hash}&iformat=.{extension}&oformat=.obj&userId=Oq37pxGdFPYnvWbOL94ttbIFqD23&debug=1&verbose=1&session_id={id}&filename={filename}"
             put_headers = {
-                "Accept": "application/json"
+                "Accept": "application/json",
+                "Content-Type": "multipart/form-data"
             }
             files = {'file': open(file_path, 'rb')}
 
-            try:
-                put_response = session.put(put_url, headers=put_headers, files=files)
-                print(f"PUT response: {put_response.text}")
-            except requests.exceptions.RequestException as e:
-                print(f"PUT request failed: {e}")
-                continue
+            put_response = requests.put(put_url, headers=put_headers, files=files)
+            print(f"PUT response: {put_response.text}")
 
             # Check if the .obj file is created every 2 seconds
             obj_file = os.path.join(object_dir, f"{id}.obj")
