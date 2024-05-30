@@ -2,7 +2,10 @@ import os
 import random
 import string
 import logging
+import json
+
 from FloorplanToBlenderLib import const
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -42,29 +45,63 @@ def initialize_debug_directory(session_id=None):
         logging.debug(f"Debug directory created: {debug_path}")
     return debug_path
 
-def update_config(debug_mode, logging_verbose, session_id):
-    """
-    Update configuration settings for debug mode and logging verbosity.
-    @Param debug_mode: Boolean to set debug mode.
-    @Param logging_verbose: Boolean to set logging verbosity.
-    @Param session_id: Unique identifier for the debug session.
-    """
-    global DEBUG_MODE, LOGGING_VERBOSE, DEBUG_SESSION_ID, DEBUG_STORAGE_PATH
-    DEBUG_MODE = debug_mode
-    LOGGING_VERBOSE = logging_verbose
-    DEBUG_SESSION_ID = session_id or '12345'
-    if DEBUG_MODE:
-        DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
-    else:
-        DEBUG_STORAGE_PATH = None
+# def update_config(debug_mode, logging_verbose, session_id):
+#     """
+#     Update configuration settings for debug mode and logging verbosity.
+#     @Param debug_mode: Boolean to set debug mode.
+#     @Param logging_verbose: Boolean to set logging verbosity.
+#     @Param session_id: Unique identifier for the debug session.
+#     """
+#     global DEBUG_MODE, LOGGING_VERBOSE, DEBUG_SESSION_ID, DEBUG_STORAGE_PATH
+#     DEBUG_MODE = debug_mode
+#     LOGGING_VERBOSE = logging_verbose
+#     DEBUG_SESSION_ID = session_id or '12345'
+#     if DEBUG_MODE:
+#         DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID)
+#     else:
+#         DEBUG_STORAGE_PATH = None
     
-    if LOGGING_VERBOSE:
-        logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
+#     if LOGGING_VERBOSE:
+#         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
+
+def load_config_from_json(file_path):
+    """
+    Load configuration from a JSON file.
+    @Param file_path: Path to the JSON file.
+    @Return: Dictionary containing the configuration.
+    """
+    try:
+        with open(file_path, 'r') as json_file:
+            config = json.load(json_file)
+        return config
+    except Exception as e:
+        logger.error(f"Error loading configuration from {file_path}: {e}")
+        return {}
+
+def save_config_to_json(file_path, config):
+    """
+    Save configuration to a JSON file.
+    @Param file_path: Path to the JSON file.
+    @Param config: Dictionary containing the configuration.
+    """
+    try:
+        with open(file_path, 'w') as json_file:
+            json.dump(config, json_file, indent=4)
+    except Exception as e:
+        logger.error(f"Error saving configuration to {file_path}: {e}")
+
+
 
 # Initialize configuration
 
 DEBUG_MODE = True
 LOGGING_VERBOSE = True
 
-DEBUG_SESSION_ID = '987654321'
+# Load the DEBUG_SESSION_ID from the JSON file
+config = load_config_from_json('./config.json')
+if 'DEBUG_SESSION_ID' not in config:
+    raise ValueError("DEBUG_SESSION_ID not found in the configuration file")
+
+DEBUG_SESSION_ID = config['DEBUG_SESSION_ID']
+
 DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID) if DEBUG_MODE else None

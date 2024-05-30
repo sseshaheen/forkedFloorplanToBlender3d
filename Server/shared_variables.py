@@ -1,5 +1,4 @@
 from config.config_handler import ConfigHandler
-
 from random import randint
 
 import string
@@ -8,10 +7,18 @@ import os
 import hashlib
 import sys
 
+import logging
+
+from FloorplanToBlenderLib.globalConf import load_config_from_json, save_config_to_json
+
 """
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # TODO make threadsafe!
 
@@ -130,8 +137,26 @@ class shared_variables:
     def hash_generator(self, phrase):
         return hashlib.sha224(bytes(phrase, encoding="utf-8")).hexdigest()
 
-    def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
-        return "".join(random.choice(chars) for _ in range(size))
+    def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+        """
+        Generate a random string of specified length.
+        @Param size: Length of the random string.
+        @Param chars: Characters to use for generating the string.
+        @Return: Random string.
+        """
+        new_id = ''.join(random.choice(chars) for _ in range(size))
+        logging.debug(f"Generated new debug session ID: {new_id}")
+        
+        # Load existing configuration
+        config = load_config_from_json('config.json')
+        
+        # Update the debug_session_id
+        config['DEBUG_SESSION_ID'] = new_id
+        
+        # Save the updated configuration back to the JSON file
+        save_config_to_json('config.json', config)
+        
+        return new_id
 
     def pid_generator(self, size=6):
         return self.random_with_N_digits(size)
