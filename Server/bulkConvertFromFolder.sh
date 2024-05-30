@@ -11,7 +11,6 @@ fi
 
 IMAGE_DIR="$1"
 OBJECT_DIR="./storage/objects"
-BOUNDARY="----WebKitFormBoundary7MA4YWxkTrZu0gW"
 SUPPORTED_FORMATS="jpg jpeg png tiff bmp gif"
 
 echo "Starting script to process images in directory: $IMAGE_DIR"
@@ -29,7 +28,7 @@ for file in "$IMAGE_DIR"/*; do
         # POST request
         response=$(curl -s -X POST "http://localhost:8000/?func=create&debug=1&verbose=1" \
                           -H "Accept: application/json" \
-                          -F "file=@${file}")
+                          -H "Content-Length: 0")
 
         echo "POST response: $response"
 
