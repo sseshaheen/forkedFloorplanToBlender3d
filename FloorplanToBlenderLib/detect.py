@@ -63,8 +63,8 @@ def save_debug_image(filename, img):
             os.makedirs(DEBUG_STORAGE_PATH)
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
-        if LOGGING_VERBOSE:
-            logger.debug(f'Saved debug image: {filepath}')
+        # if LOGGING_VERBOSE:
+        #     logger.debug(f'Saved debug image: {filepath}')
 
 def save_debug_info(filename, data):
     """

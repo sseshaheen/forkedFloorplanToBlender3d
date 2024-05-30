@@ -59,8 +59,8 @@ def save_debug_image(filename, img):
 
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         cv2.imwrite(filepath, img)
-        if LOGGING_VERBOSE:
-            logger.debug(f'Saved debug image: {filepath}')
+        # if LOGGING_VERBOSE:
+        #     logger.debug(f'Saved debug image: {filepath}')
 
 def pil_rescale_image(image, factor):
     """

@@ -275,8 +275,8 @@ def create_4xn_verts_and_faces(
             count += 1
         faces.append([(temp)])
 
-    if LOGGING_VERBOSE:
-        logger.debug('Created 4xn vertices and faces.')
+    # if LOGGING_VERBOSE:
+    #     logger.debug('Created 4xn vertices and faces.')
     save_debug_info('create_4xn_verts_and_faces.txt', {'boxes': boxes, 'height': height, 'pixelscale': pixelscale, 'scale': scale, 'ground': ground, 'ground_height': ground_height, 'verts': verts, 'faces': faces, 'counter': counter})
 
     return verts, faces, counter
