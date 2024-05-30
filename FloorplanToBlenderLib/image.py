@@ -130,7 +130,7 @@ def remove_noise(img, noise_removal_threshold, caller=None):
             cv2.fillPoly(mask, [contour], 255)
     if LOGGING_VERBOSE:
         logging.debug('Removed noise from image')
-    save_debug_image(f'{caller}-noise_removed_image', mask)
+    save_debug_image(f'{caller}-noise_removed_image.png', mask)
     return mask
 
 def mark_outside_black(img, mask, caller=None):
@@ -149,7 +149,7 @@ def mark_outside_black(img, mask, caller=None):
     img[mask == 0] = 0
     if LOGGING_VERBOSE:
         logging.debug('Marked outside of the image as black')
-    save_debug_image(f'{caller}-Image_with_Outside_Black', img)
+    save_debug_image(f'{caller}-Image_with_Outside_Black.png', img)
     return img, mask
 
 def detect_wall_rescale(reference_size, image):
