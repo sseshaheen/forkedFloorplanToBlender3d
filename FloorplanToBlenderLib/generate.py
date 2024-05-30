@@ -12,7 +12,7 @@ if LOGGING_VERBOSE:
     # Load the DEBUG_SESSION_ID from the JSON file
     debug_config = load_config_from_json('./config.json')
     
-    log_file_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID']) + 'debug.log'
+    log_file_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID']) + '/debug.log'
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
 
@@ -20,12 +20,13 @@ if LOGGING_VERBOSE:
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
-    # Create handlers
+    # Create a file handler to log everything
     file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)  # Log everything to the file
+    file_handler.setLevel(logging.DEBUG)
 
+    # Create a console handler to log warnings and above
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)  # Log warnings and above to the console
+    console_handler.setLevel(logging.INFO)
 
     # Create formatters and add them to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
