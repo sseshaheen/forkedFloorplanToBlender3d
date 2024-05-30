@@ -106,26 +106,29 @@ def wall_width_average(img, image_type=None):
         # Filter out to only count walls
         filtered_boxes = list()
         for i, box in enumerate(boxes):
-            if len(box) == 4:  # Got only 4 corners, detect oblong
+            if len(box) >= 4:  # Allow for more than 4 corners
                 x, y, w, h = cv2.boundingRect(box)
-                shortest = min(w, h)
-                filtered_boxes.append(shortest)
-                if LOGGING_VERBOSE:
-                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}")
+                # Check for aspect ratio to identify potential walls
+                aspect_ratio = w / h if h > 0 else 0
+                if 0.1 < aspect_ratio < 10:  # Proposed aspect ratio range for walls
+                    shortest = min(w, h)
+                    filtered_boxes.append(shortest)
+                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}, aspect_ratio={aspect_ratio}")
+                else:
+                    logging.debug(f"Box {i} skipped due to aspect ratio: aspect_ratio={aspect_ratio}")
             else:
-                if LOGGING_VERBOSE:
-                    logging.debug(f"Box {i} skipped: len(box)={len(box)}")
+                logging.debug(f"Box {i} skipped: len(box)={len(box)}")
 
-        # 2. Calculate average
+        # Calculate average
         if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
-            logging.error(f"ERROR: No valid wall boxes found in the {image_type}.")
+            logging.error("ERROR: No valid wall boxes found in the image.")
             return None
 
         avg_wall_width = np.mean(filtered_boxes)
         
         if LOGGING_VERBOSE:
-            logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
-        save_debug_info(f'wall_width_average_{image_type}.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
+            logger.debug('Calculated average wall width.')
+        save_debug_info('wall_width_average.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
         
         return avg_wall_width
 
