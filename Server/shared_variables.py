@@ -161,7 +161,7 @@ class shared_variables:
         except Exception as e:
             logger.error(f"Error saving configuration to {file_path}: {e}")
 
-    def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         """
         Generate a random string of specified length.
         @Param size: Length of the random string.
@@ -172,16 +172,15 @@ class shared_variables:
         logging.debug(f"Generated new debug session ID: {new_id}")
         
         # Load existing configuration
-        config = load_config_from_json('config.json')
+        config = self.load_config_from_json('config.json')
         
         # Update the debug_session_id
         config['DEBUG_SESSION_ID'] = new_id
         
         # Save the updated configuration back to the JSON file
-        save_config_to_json('config.json', config)
+        self.save_config_to_json('config.json', config)
         
         return new_id
-
 
     def pid_generator(self, size=6):
         return self.random_with_N_digits(size)
