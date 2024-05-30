@@ -27,7 +27,7 @@ def save_debug_image(filename, img):
         # Load the DEBUG_SESSION_ID from the JSON file
         config = load_config_from_json('./config.json')
 
-        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'], '/png')
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', config['DEBUG_SESSION_ID'], 'png')
         if not os.path.exists(DEBUG_STORAGE_PATH):
             os.makedirs(DEBUG_STORAGE_PATH)
 
