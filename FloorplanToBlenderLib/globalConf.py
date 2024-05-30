@@ -5,10 +5,52 @@ import logging
 import json
 
 from FloorplanToBlenderLib import const
+# Initialize configuration
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+DEBUG_MODE = True
+LOGGING_VERBOSE = True
+
+
+def load_config_from_json(file_path):
+    """
+    Load configuration from a JSON file.
+    @Param file_path: Path to the JSON file.
+    @Return: Dictionary containing the configuration.
+    """
+    try:
+        with open(file_path, 'r') as json_file:
+            config = json.load(json_file)
+        return config
+    except Exception as e:
+        logger.error(f"Error loading configuration from {file_path}: {e}")
+        return {}
+
+if LOGGING_VERBOSE:
+    # Load the DEBUG_SESSION_ID from the JSON file
+    debug_config = load_config_from_json('./config.json')
+    
+    log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+    log_file_path = os.path.join(log_dir_path, 'debug.log')
+    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+
+
+
+    # Create a logger
+    logger = logging.getLogger('debug_logger')
+    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+
+    # Create a file handler to log everything
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create a console handler to log warnings and above
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.WARNING)
+
+    # Create formatters and add them to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
 
 def generate_random_string(length=6):
     """
@@ -64,24 +106,6 @@ def generate_random_string(length=6):
 #     if LOGGING_VERBOSE:
 #         logger.debug(f'Updated config: DEBUG_MODE={DEBUG_MODE}, LOGGING_VERBOSE={LOGGING_VERBOSE}, DEBUG_SESSION_ID={DEBUG_SESSION_ID}')
 
-def load_config_from_json(file_path):
-    """
-    Load configuration from a JSON file.
-    @Param file_path: Path to the JSON file.
-    @Return: Dictionary containing the configuration.
-    """
-    try:
-        with open(file_path, 'r') as json_file:
-            config = json.load(json_file)
-        return config
-    except Exception as e:
-        logger.error(f"Error loading configuration from {file_path}: {e}")
-        return {}
-
-# Initialize configuration
-
-DEBUG_MODE = True
-LOGGING_VERBOSE = True
 
 # Load the DEBUG_SESSION_ID from the JSON file
 config = load_config_from_json('./config.json')

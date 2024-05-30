@@ -14,9 +14,59 @@ FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+
+def load_config_from_json(self, file_path):
+    """
+    Load configuration from a JSON file.
+    @Param file_path: Path to the JSON file.
+    @Return: Dictionary containing the configuration.
+    """
+    try:
+        with open(file_path, 'r') as json_file:
+            config = json.load(json_file)
+        return config
+    except Exception as e:
+        logger.error(f"Error loading configuration from {file_path}: {e}")
+        return {}
+
+def save_config_to_json(self, file_path, config):
+    """
+    Save configuration to a JSON file.
+    @Param file_path: Path to the JSON file.
+    @Param config: Dictionary containing the configuration.
+    """
+    try:
+        with open(file_path, 'w') as json_file:
+            json.dump(config, json_file, indent=4)
+    except Exception as e:
+        logger.error(f"Error saving configuration to {file_path}: {e}")
+
+
+# Load the DEBUG_SESSION_ID from the JSON file
+debug_config = load_config_from_json('./config.json')
+
+log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
+log_file_path = os.path.join(log_dir_path, 'debug.log')
+os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
+
+
+
+# Create a logger
+logger = logging.getLogger('debug_logger')
+logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+
+# Create a file handler to log everything
+file_handler = logging.FileHandler(log_file_path)
+file_handler.setLevel(logging.DEBUG)
+
+# Create a console handler to log warnings and above
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.WARNING)
+
+# Create formatters and add them to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
 
 # TODO make threadsafe!
 
@@ -134,32 +184,6 @@ class shared_variables:
 
     def hash_generator(self, phrase):
         return hashlib.sha224(bytes(phrase, encoding="utf-8")).hexdigest()
-
-    def load_config_from_json(self, file_path):
-        """
-        Load configuration from a JSON file.
-        @Param file_path: Path to the JSON file.
-        @Return: Dictionary containing the configuration.
-        """
-        try:
-            with open(file_path, 'r') as json_file:
-                config = json.load(json_file)
-            return config
-        except Exception as e:
-            logger.error(f"Error loading configuration from {file_path}: {e}")
-            return {}
-
-    def save_config_to_json(self, file_path, config):
-        """
-        Save configuration to a JSON file.
-        @Param file_path: Path to the JSON file.
-        @Param config: Dictionary containing the configuration.
-        """
-        try:
-            with open(file_path, 'w') as json_file:
-                json.dump(config, json_file, indent=4)
-        except Exception as e:
-            logger.error(f"Error saving configuration to {file_path}: {e}")
 
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         """

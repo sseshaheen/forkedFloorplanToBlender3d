@@ -26,7 +26,7 @@ if LOGGING_VERBOSE:
 
 
     # Create a logger
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('debug_logger')
     logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
 
     # Create a file handler to log everything
