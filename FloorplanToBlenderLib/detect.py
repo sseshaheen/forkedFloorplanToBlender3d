@@ -71,11 +71,17 @@ def save_debug_info(filename, data):
     Save debug information to a file if DEBUG_MODE is enabled.
     """
     if DEBUG_MODE:
+        # Load the DEBUG_SESSION_ID from the JSON file
+        debug_config = load_config_from_json('./config.json')
+
+        DEBUG_STORAGE_PATH = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'], 'txt')
+        if not os.path.exists(DEBUG_STORAGE_PATH):
+            os.makedirs(DEBUG_STORAGE_PATH)
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'a') as file:
-            file.write(str(data) + '\n')
-        # if LOGGING_VERBOSE:
-            # logger.debug(f'Saved debug info: {filepath}')
+            file.write(str(data))
+        if LOGGING_VERBOSE:
+            logger.debug(f'Saved debug info: {filepath}')
 
 def wall_filter(gray, caller=None):
     """
