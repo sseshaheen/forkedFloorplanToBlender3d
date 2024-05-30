@@ -33,7 +33,7 @@ for file in "$IMAGE_DIR"/*; do
         echo "POST response: $response"
 
         # Parse the response
-        if [[ $response =~ \('id',\ \'([^']*)\',\ 'hash',\ \'([^']*)\',\ false\) ]]; then
+        if [[ $response =~ \(\'id\',\ \'([^']*)\',\ \'hash\',\ \'([^']*)\',\ False\) ]]; then
             id="${BASH_REMATCH[1]}"
             hash="${BASH_REMATCH[2]}"
 
