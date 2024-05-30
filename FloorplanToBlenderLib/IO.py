@@ -19,21 +19,21 @@ This file contains functions for handling files.
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
-
 # Configure logging
+logger = logging.getLogger('debug_logger')
+logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+
+# Remove any existing handlers
+if logger.hasHandlers():
+    logger.handlers.clear()
+
 if LOGGING_VERBOSE:
     # Load the DEBUG_SESSION_ID from the JSON file
     debug_config = load_config_from_json('./config.json')
     
     log_dir_path = os.path.join('./storage/debug', debug_config['DEBUG_SESSION_ID'])
     log_file_path = os.path.join(log_dir_path, 'debug.log')
-    os.makedirs(os.path.dirname(log_dir_path), exist_ok=True)
-
-
-
-    # Create a logger
-    logger = logging.getLogger('debug_logger')
-    logger.setLevel(logging.DEBUG)  # Set the logger to the lowest level
+    os.makedirs(log_dir_path, exist_ok=True)
 
     # Create a file handler to log everything
     file_handler = logging.FileHandler(log_file_path)
