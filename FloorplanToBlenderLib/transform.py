@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import logging
 from . import const
-from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
 
 
