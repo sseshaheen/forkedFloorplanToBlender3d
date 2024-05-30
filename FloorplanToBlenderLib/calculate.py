@@ -154,16 +154,12 @@ def wall_width_average(img, image_type=None):
         # Filter out to only count walls
         filtered_boxes = list()
         for i, box in enumerate(boxes):
-            if len(box) >= 4:  # Allow for more than 4 corners
+            if len(box) == 4:  # Got only 4 corners, detect oblong
                 x, y, w, h = cv2.boundingRect(box)
-                # Check for aspect ratio to identify potential walls
-                aspect_ratio = w / h if h > 0 else 0
-                if 0.1 < aspect_ratio < 10:  # Proposed aspect ratio range for walls
-                    shortest = min(w, h)
-                    filtered_boxes.append(shortest)
-                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}, aspect_ratio={aspect_ratio}")
-                else:
-                    logging.debug(f"Box {i} skipped due to aspect ratio: aspect_ratio={aspect_ratio}")
+                shortest = min(w, h)
+                filtered_boxes.append(shortest)
+                if LOGGING_VERBOSE:
+                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}")
             else:
                 logging.debug(f"Box {i} skipped: len(box)={len(box)}")
 
