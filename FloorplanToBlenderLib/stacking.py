@@ -47,8 +47,8 @@ def save_debug_info(filename, data):
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'a') as file:
             file.write(str(data))
-        if LOGGING_VERBOSE:
-            logger.debug(f'Saved debug info: {filepath}')
+        # if LOGGING_VERBOSE:
+        #     logger.debug(f'Saved debug info: {filepath}')
 
 """
 Stacking
