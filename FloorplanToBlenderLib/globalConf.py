@@ -90,4 +90,4 @@ if 'DEBUG_SESSION_ID' not in config:
 
 DEBUG_SESSION_ID = config['DEBUG_SESSION_ID']
 
-DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID) if DEBUG_MODE else None
+# DEBUG_STORAGE_PATH = initialize_debug_directory(DEBUG_SESSION_ID) if DEBUG_MODE else None
