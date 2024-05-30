@@ -82,6 +82,7 @@ def parse_stacking_file(path):
     world = []
     worlds = []
 
+    logger = configure_logging()
     logger.info(f'Building stack from file {path}')
     if LOGGING_VERBOSE:
         logger = configure_logging()
@@ -115,6 +116,7 @@ def parse_stacking_file(path):
             else:
                 argstring += arg + ","
 
+        logger = configure_logging()
         logger.info(f'>Line {index} Command: {command}({argstring})')
 
         if command == "SEPARATE":
@@ -141,6 +143,7 @@ def CLEAR():
     Clear the data folder.
     """
     IO.clean_data_folder(const.BASE_PATH)
+    logger = configure_logging()
     logger.info('Cleared data folder.')
     if LOGGING_VERBOSE:
         logger = configure_logging()

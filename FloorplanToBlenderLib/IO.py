@@ -176,6 +176,7 @@ def read_image(path, floorplan=None):
             else:
                 scale_factor = image.detect_wall_rescale(float(calibrations), img)
                 if scale_factor is None:
+                    logger = configure_logging()
                     logger.warning(
                         "WARNING: Auto rescale failed due to non-good walls found in image."
                         + "If rescale still is needed, please rescale manually."
@@ -239,6 +240,7 @@ def save_to_file(file_path, data, show=True):
             logger.error(f'Error saving data to file: {e}')
             raise
     if show:
+        logger = configure_logging()
         logger.info(f'Created file: {full_path}')
     if LOGGING_VERBOSE:
         logger = configure_logging()
