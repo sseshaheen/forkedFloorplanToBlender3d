@@ -38,6 +38,17 @@ def save_debug_image(filename, img):
         if LOGGING_VERBOSE:
             logger.debug(f'Saved debug image: {filepath}')
 
+def save_debug_info(filename, data):
+    """
+    Save debug information to a file if DEBUG_MODE is enabled.
+    """
+    if DEBUG_MODE:
+        filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
+        with open(filepath, 'a') as file:
+            file.write(str(data) + '\n')
+        # if LOGGING_VERBOSE:
+            # logger.debug(f'Saved debug info: {filepath}')
+
 def wall_filter(gray, caller=None):
     """
     Filter walls
@@ -45,12 +56,21 @@ def wall_filter(gray, caller=None):
     @Param gray: Grayscale image.
     @Return: Image of walls.
     """
+    if DEBUG_MODE:
+        initial_info = (
+            "Starting wall_filter function\n"
+            f"Input grayscale image shape: {gray.shape}\n"
+            f"Caller: {caller}\n"
+        )
+        save_debug_info(f'{caller}-wall_filter-debug.txt', initial_info)
+
     _, thresh = cv2.threshold(
         gray,
         const.WALL_FILTER_TRESHOLD[0],
         const.WALL_FILTER_TRESHOLD[1],
         cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
     )
+    save_debug_info(f'{caller}-wall_filter-debug.txt', "Applied thresholding")
 
     # Noise removal
     kernel = np.ones(const.WALL_FILTER_KERNEL_SIZE, np.uint8)
@@ -60,8 +80,10 @@ def wall_filter(gray, caller=None):
         kernel,
         iterations=const.WALL_FILTER_MORPHOLOGY_ITERATIONS,
     )
+    save_debug_info(f'{caller}-wall_filter-debug.txt', "Performed noise removal with morphological opening")
 
     sure_bg = cv2.dilate(opening, kernel, iterations=const.WALL_FILTER_DILATE_ITERATIONS)
+    save_debug_info(f'{caller}-wall_filter-debug.txt', "Dilated to get sure background")
 
     dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, const.WALL_FILTER_DISTANCE)
     ret, sure_fg = cv2.threshold(
@@ -70,9 +92,11 @@ def wall_filter(gray, caller=None):
         const.WALL_FILTER_MAX_VALUE,
         const.WALL_FILTER_THRESHOLD_TECHNIQUE,
     )
+    save_debug_info(f'{caller}-wall_filter-debug.txt', "Applied distance transform and thresholding for sure foreground")
 
     sure_fg = np.uint8(sure_fg)
     unknown = cv2.subtract(sure_bg, sure_fg)
+    save_debug_info(f'{caller}-wall_filter-debug.txt', "Subtracted sure foreground from sure background to get unknown regions")
 
     if LOGGING_VERBOSE:
         logger.debug('Filtered walls from the image')
@@ -89,15 +113,36 @@ def precise_boxes(detect_img, output_img=None, color=[100, 100, 0], caller=None)
     @Return: corners (list of boxes), output image.
     @Source: https://stackoverflow.com/questions/50930033/drawing-lines-and-distance-to-them-on-image-opencv-python
     """
+    if DEBUG_MODE:
+        initial_info = (
+            "Starting precise_boxes function\n"
+            f"Input image shape: {detect_img.shape}\n"
+            f"Output image shape: {output_img.shape if output_img is not None else 'None'}\n"
+            f"Color for drawing: {color}\n"
+            f"Caller: {caller}\n"
+        )
+        save_debug_info(f'{caller}-precise_boxes-debug.txt', initial_info)
+
     res = []
     contours, _ = cv2.findContours(detect_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    save_debug_info(f'{caller}-precise_boxes-debug.txt', f"Number of contours found: {len(contours)}")
 
-    for cnt in contours:
+    for i, cnt in enumerate(contours):
         epsilon = const.PRECISE_BOXES_ACCURACY * cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, epsilon, True)
+        contour_info = (
+            f"Contour {i}:\n"
+            f"  epsilon = {epsilon}\n"
+            f"  approx = {approx}\n"
+        )
+        save_debug_info(f'{caller}-precise_boxes-debug.txt', contour_info)
         if output_img is not None:
             output_img = cv2.drawContours(output_img, [approx], 0, color)
+            save_debug_info(f'{caller}-precise_boxes-debug.txt', f"Contour {i} drawn on output image")
+
         res.append(approx)
+
+    save_debug_info(f'{caller}-precise_boxes-debug.txt', f"Resulting corners: {res}")
 
     if LOGGING_VERBOSE:
         logger.debug('Detected precise boxes in the image')
