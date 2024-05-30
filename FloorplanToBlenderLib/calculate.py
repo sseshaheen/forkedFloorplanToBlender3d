@@ -105,14 +105,17 @@ def wall_width_average(img, image_type=None):
 
         # Filter out to only count walls
         filtered_boxes = list()
-        for box in boxes:
+        for i, box in enumerate(boxes):
             if len(box) == 4:  # Got only 4 corners, detect oblong
                 x, y, w, h = cv2.boundingRect(box)
-                # Calculate scale value
-                # 1. Get shortest (width) side
                 shortest = min(w, h)
                 filtered_boxes.append(shortest)
-        
+                if LOGGING_VERBOSE:
+                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}")
+            else:
+                if LOGGING_VERBOSE:
+                    logging.debug(f"Box {i} skipped: len(box)={len(box)}")
+
         # 2. Calculate average
         if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
             logging.error(f"ERROR: No valid wall boxes found in the {image_type}.")
