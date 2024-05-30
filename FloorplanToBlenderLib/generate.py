@@ -103,6 +103,7 @@ def generate_all_files(
     ]
 
     if info:
+        logger = configure_logging()
         logger.info(
             " ----- Generate ",
             floorplan.image_path,

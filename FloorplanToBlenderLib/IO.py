@@ -244,6 +244,7 @@ def save_to_file(file_path, data, show=True):
             logger.error(f'Error saving data to file: {e}')
             raise
     if show:
+        logger = configure_logging()
         logger.info(f'Created file: {full_path}')
     if LOGGING_VERBOSE:
         logger = configure_logging()
