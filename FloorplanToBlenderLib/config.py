@@ -45,7 +45,7 @@ def create_image_scale_calibration(floorplan, got_settings=False):
         logging.error(f"ERROR: Calibration image {floorplan.calibration_image_path} could not be read.")
         return None
     
-    wall_width_avg = calculate.wall_width_average(calibration_img)
+    wall_width_avg = calculate.wall_width_average(calibration_img, image_type='calibration_img')
     
     if wall_width_avg is None:
         logging.error("ERROR: Could not calculate wall width average from calibration image.")

@@ -78,7 +78,7 @@ def remove_walls_not_in_contour(walls, contour):
     return res
 
 
-def wall_width_average(img):
+def wall_width_average(img, image_type=None):
     """
     Calculate the average width of walls in a floorplan image.
     Used to scale the size of the image for better accuracy.
@@ -115,14 +115,14 @@ def wall_width_average(img):
         
         # 2. Calculate average
         if len(filtered_boxes) == 0:  # If no good boxes could be found, we use default scale
-            logging.error("ERROR: No valid wall boxes found in the image.")
+            logging.error(f"ERROR: No valid wall boxes found in the {image_type}.")
             return None
 
         avg_wall_width = np.mean(filtered_boxes)
         
         if LOGGING_VERBOSE:
-            logger.debug('Calculated average wall width.')
-        save_debug_info('wall_width_average.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
+            logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
+        save_debug_info(f'wall_width_average_{image_type}.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
         
         return avg_wall_width
 
