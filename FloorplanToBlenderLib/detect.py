@@ -6,6 +6,7 @@ from . import const
 from . import calculate
 from . import transform
 import math
+import time
 from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
 
@@ -294,30 +295,43 @@ def find_rooms(
 
     img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_rooms')
 
+    start_time = time.time()
+    if LOGGING_VERBOSE:
+        logger = configure_logging()
+        if logger:
+            logger.debug(f"Starting find_rooms() by {caller}")
+
     # Find the connected components in the house
-    ret, labels = cv2.connectedComponents(img)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    ret, labels = cv2.connectedComponents(img) #TODO: optimize since it could cause server crash or take a long time
+    if LOGGING_VERBOSE:
+        if logger:
+            logger.debug(f"Found {ret} connected components")
+
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     unique = np.unique(labels)
+    if LOGGING_VERBOSE:
+        logger.debug(f"Unique labels found: {unique}")
     rooms = []
+
     for label in unique:
         component = labels == label
-        if (
-            img[component].sum() == 0
-            or np.count_nonzero(component) < gap_in_wall_min_threshold
-        ):
+        num_nonzero = np.count_nonzero(component)
+
+        if img_rgb[component].sum() == 0 or num_nonzero < gap_in_wall_min_threshold:
             color = 0
         else:
             rooms.append(component)
             color = np.random.randint(0, 255, size=3)
-        img[component] = color
+
+        img_rgb[component] = color
 
     if LOGGING_VERBOSE:
-        logger = configure_logging()
         if logger:
+            logger.debug(f"find_rooms() by {caller} completed in {time.time() - start_time:.2f} seconds")
             logger.debug('Detected rooms in the image')
     save_debug_image(f'{caller}-find_rooms-rooms_detected.png', img)
 
-    return rooms, img
+    return rooms, img_rgb
 
 def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255]):
     """
@@ -685,27 +699,39 @@ def find_details(
     img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_details')
 
     # Find the connected components in the house
-    ret, labels = cv2.connectedComponents(img)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    start_time = time.time()
+    if LOGGING_VERBOSE:
+        logger = configure_logging()
+        if logger:
+            logger.debug(f"Starting find_details() by {caller}")
+    ret, labels = cv2.connectedComponents(img) #TODO: optimize since it could cause server crash or take a long time
+    logger.debug(f"Found {ret} connected components")
+
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     unique = np.unique(labels)
+    if LOGGING_VERBOSE:
+        logger.debug(f"Unique labels found: {unique}")
+
     details = []
     for label in unique:
         component = labels == label
+        num_nonzero = np.count_nonzero(component)
+
         if (
-            img[component].sum() == 0
-            or np.count_nonzero(component) < gap_in_wall_min_threshold
-            or np.count_nonzero(component) > gap_in_wall_max_threshold
+            img_rgb[component].sum() == 0
+            or num_nonzero < gap_in_wall_min_threshold
+            or num_nonzero > gap_in_wall_max_threshold
         ):
             color = 0
         else:
             details.append(component)
             color = np.random.randint(0, 255, size=3)
 
-        img[component] = color
+        img_rgb[component] = color
 
     if LOGGING_VERBOSE:
-        logger = configure_logging()
         if logger:
+            logger.debug(f"find_details() by {caller} completed in {time.time() - start_time:.2f} seconds")
             logger.debug('Detected details in the image')
     save_debug_image(f'{caller}-details_detected.png', img)
 
