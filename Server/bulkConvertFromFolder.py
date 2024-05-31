@@ -77,11 +77,12 @@ def process_images(image_dir):
 
             # Copy the input file to the debug directory
             debug_file_path = os.path.join(debug_id_dir, filename)
+            print(f"Copying {file_path} to {debug_file_path}")
             shutil.copy(file_path, debug_file_path)
 
             # Check if the .obj file is created every 10 seconds, up to 25 retries
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            retries = 25 # 25 retries * 10 seconds ~= 4 mins
+            retries = 36 # 36 retries * 10 seconds = 6 mins
             while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
                 time.sleep(10)
@@ -92,15 +93,21 @@ def process_images(image_dir):
 
                 # Copy the debug folder to the final directory
                 final_id_dir = os.path.join(final_dir, id)
+                print(f"Copying {debug_id_dir} to {final_id_dir}")
                 shutil.copytree(debug_id_dir, final_id_dir, dirs_exist_ok=True)
 
                 # Copy all files containing the ID in their filename to the final directory
                 for obj_filename in os.listdir(object_dir):
                     if id in obj_filename:
-                        shutil.copy(os.path.join(object_dir, obj_filename), final_id_dir)
+                        src_file = os.path.join(object_dir, obj_filename)
+                        dest_file = os.path.join(final_id_dir, obj_filename)
+                        print(f"Copying {src_file} to {dest_file}")
+                        shutil.copy(src_file, dest_file)
+                        # shutil.copy(os.path.join(object_dir, obj_filename), final_id_dir)
+
 
             else:
-                print(f"{obj_file} was not created after 25 retries. Moving on to the next file.")
+                print(f"{obj_file} was not created after 35 retries. Moving on to the next file.")
 
         else:
             print(f"Skipping unsupported file format: {file}")
