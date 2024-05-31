@@ -67,12 +67,12 @@ def process_images(image_dir):
                 print(f"PUT request failed: {e}")
                 continue
 
-            # Check if the .obj file is created every 4 seconds, up to 5 retries
+            # Check if the .obj file is created every 10 seconds, up to 10 retries
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            retries = 5
+            retries = 10
             while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
-                time.sleep(4)
+                time.sleep(10)
                 retries -= 1
 
             if os.path.isfile(obj_file):
