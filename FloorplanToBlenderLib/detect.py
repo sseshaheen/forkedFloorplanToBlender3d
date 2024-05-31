@@ -635,12 +635,6 @@ def feature_match(img1, img2, caller=None):
     gray = ~gray  # TODO: is it necessary to convert to grayscale again?
     rooms, colored_rooms = find_rooms(gray.copy(), caller=f'{caller}-feature_match')
     doors, colored_doors = find_details(gray.copy(), caller=f'{caller}-feature_match')
-
-    # # Ensure colored_doors has 3 channels
-    # if len(colored_doors.shape) == 2 or colored_doors.shape[2] != 3:
-    #     logger.error("Invalid number of channels in colored_doors. Expected 3 channels.")
-    #     return None, None
-
     gray_rooms = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
 
     # get box positions for rooms
