@@ -6,8 +6,10 @@ from . import const
 from . import calculate
 from . import transform
 import math
+import time
 from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
+import psutil
 
 # Calculate (actual) size of apartment
 
@@ -18,6 +20,12 @@ This file contains functions used when detecting and calculating shapes in image
 FloorplanToBlender3d
 Copyright (C) 2022 Daniel Westberg
 """
+
+def log_memory_usage(logger):
+    process = psutil.Process()
+    memory_info = process.memory_info()
+    logger.debug(f"Memory usage: RSS = {memory_info.rss / (1024 ** 2):.2f} MB")
+
 def configure_logging():
     if LOGGING_VERBOSE:
         # Load the DEBUG_SESSION_ID from the JSON file
@@ -285,39 +293,61 @@ def find_rooms(
              colored_house: A colored version of the input image, where each room has a random color.
     """
     assert 0 <= corners_threshold <= 1
-    # Remove noise left from door removal
-    
-    mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_rooms')
-    img = ~mask
 
-    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_rooms')
+    logger = configure_logging()
+    log_memory_usage(logger)
 
-    img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_rooms')
+    try:
+        # Remove noise left from door removal
+        mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_rooms')
+        img = ~mask
 
-    # Find the connected components in the house
-    ret, labels = cv2.connectedComponents(img)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    unique = np.unique(labels)
-    rooms = []
-    for label in unique:
-        component = labels == label
-        if (
-            img[component].sum() == 0
-            or np.count_nonzero(component) < gap_in_wall_min_threshold
-        ):
-            color = 0
-        else:
-            rooms.append(component)
-            color = np.random.randint(0, 255, size=3)
-        img[component] = color
+        __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_rooms')
 
-    if LOGGING_VERBOSE:
-        logger = configure_logging()
-        if logger:
+        img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_rooms')
+        if LOGGING_VERBOSE:
+            log_memory_usage(logger)
+
+        start_time = time.time()
+        if LOGGING_VERBOSE:
+            if logger:
+                logger.debug(f"Starting find_rooms() to find connectedComponents by {caller}")
+
+        # Find the connected components in the house
+        ret, labels = cv2.connectedComponents(img)
+        if LOGGING_VERBOSE:
+            if logger:
+                logger.debug(f"Found {ret} connected components")
+
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        unique = np.unique(labels)
+        if LOGGING_VERBOSE:
+            logger.debug(f"Unique labels found: {unique}")
+        rooms = []
+        for label in unique:
+            component = labels == label
+            num_nonzero = np.count_nonzero(component)
+
+            if img_rgb[component].sum() == 0 or num_nonzero < gap_in_wall_min_threshold:
+                color = 0
+            else:
+                rooms.append(component)
+                color = np.random.randint(0, 255, size=3)
+
+            img_rgb[component] = color
+
+        if LOGGING_VERBOSE:
+            logger.debug(f"find_rooms() by {caller} completed in {time.time() - start_time:.2f} seconds")
             logger.debug('Detected rooms in the image')
-    save_debug_image(f'{caller}-find_rooms-rooms_detected.png', img)
+            log_memory_usage(logger)
+        save_debug_image(f'{caller}-find_rooms-rooms_detected.png', img_rgb)
 
-    return rooms, img
+        return rooms, img_rgb
+
+    except Exception as e:
+        logger.error(f"Error in find_rooms() by {caller}: {e}", exc_info=True)
+        return None, None
+
 
 def and_remove_precise_boxes(detect_img, output_img=None, color=[255, 255, 255]):
     """
@@ -605,6 +635,12 @@ def feature_match(img1, img2, caller=None):
     gray = ~gray  # TODO: is it necessary to convert to grayscale again?
     rooms, colored_rooms = find_rooms(gray.copy(), caller=f'{caller}-feature_match')
     doors, colored_doors = find_details(gray.copy(), caller=f'{caller}-feature_match')
+
+    # # Ensure colored_doors has 3 channels
+    # if len(colored_doors.shape) == 2 or colored_doors.shape[2] != 3:
+    #     logger.error("Invalid number of channels in colored_doors. Expected 3 channels.")
+    #     return None, None
+
     gray_rooms = cv2.cvtColor(colored_doors, cv2.COLOR_BGR2GRAY)
 
     # get box positions for rooms
@@ -677,36 +713,61 @@ def find_details(
     assert 0 <= corners_threshold <= 1
     # Remove noise left from door removal
 
-    mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_details')
-    img = ~mask
+    logger = configure_logging()
+    log_memory_usage(logger)
+    
+    try:
+        mask = image.remove_noise(img, noise_removal_threshold, caller=f'{caller}-find_details')
+        img = ~mask
 
-    __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_details')
+        __corners_and_draw_lines(img, corners_threshold, room_closing_max_length, caller=f'{caller}-find_details')
 
-    img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_details')
+        img, mask = image.mark_outside_black(img, mask, caller=f'{caller}-find_details')
+        if LOGGING_VERBOSE:
+            log_memory_usage(logger)
+        
+        # Find the connected components in the house
+        start_time = time.time()
+        if LOGGING_VERBOSE:
+            logger = configure_logging()
+            if logger:
+                logger.debug(f"Starting find_details() by {caller}")
+                log_memory_usage(logger)
+        ret, labels = cv2.connectedComponents(img) #TODO: optimize since it could cause server crash or take a long time
+        logger.debug(f"Found {ret} connected components")
 
-    # Find the connected components in the house
-    ret, labels = cv2.connectedComponents(img)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    unique = np.unique(labels)
-    details = []
-    for label in unique:
-        component = labels == label
-        if (
-            img[component].sum() == 0
-            or np.count_nonzero(component) < gap_in_wall_min_threshold
-            or np.count_nonzero(component) > gap_in_wall_max_threshold
-        ):
-            color = 0
-        else:
-            details.append(component)
-            color = np.random.randint(0, 255, size=3)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        unique = np.unique(labels)
+        if LOGGING_VERBOSE:
+            logger.debug(f"Unique labels found: {unique}")
 
-        img[component] = color
+        details = []
+        for label in unique:
+            component = labels == label
+            num_nonzero = np.count_nonzero(component)
 
-    if LOGGING_VERBOSE:
-        logger = configure_logging()
-        if logger:
-            logger.debug('Detected details in the image')
-    save_debug_image(f'{caller}-details_detected.png', img)
+            if (
+                img_rgb[component].sum() == 0
+                or num_nonzero < gap_in_wall_min_threshold
+                or num_nonzero > gap_in_wall_max_threshold
+            ):
+                color = 0
+            else:
+                details.append(component)
+                color = np.random.randint(0, 255, size=3)
 
-    return details, img
+            img_rgb[component] = color
+
+        if LOGGING_VERBOSE:
+            if logger:
+                logger.debug(f"find_details() by {caller} completed in {time.time() - start_time:.2f} seconds")
+                logger.debug('Detected details in the image')
+                log_memory_usage(logger)
+        save_debug_image(f'{caller}-details_detected.png', img)
+
+        return details, img_rgb
+    
+    except Exception as e:
+        logger.error(f"Error in find_details() by {caller}: {e}", exc_info=True)
+        return None, None
+
