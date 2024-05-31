@@ -293,7 +293,7 @@ def find_rooms(
              colored_house: A colored version of the input image, where each room has a random color.
     """
     assert 0 <= corners_threshold <= 1
-    unique_threshold = 500
+    unique_threshold = 300
 
     logger = configure_logging()
     log_memory_usage(logger)
@@ -321,7 +321,7 @@ def find_rooms(
                 logger.debug(f"Found {ret} connected components")
 
         img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        unique = np.unique(labels) #TODO: optimize, it could crash server when labels are > ~500
+        unique = np.unique(labels) #TODO: optimize, it could crash server when labels are > ~300
 
         if len(unique) > unique_threshold:
             logger.warning(f"Too many unique labels ({len(unique)}). Processing only the first {unique_threshold} labels.")
@@ -711,7 +711,7 @@ def find_details(
              colored_house: A colored version of the input image, where each detail has a random color.
     """
     assert 0 <= corners_threshold <= 1
-    unique_threshold = 500
+    unique_threshold = 300
 
     # Remove noise left from door removal
 
@@ -739,7 +739,7 @@ def find_details(
         logger.debug(f"Found {ret} connected components")
 
         img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        unique = np.unique(labels) #TODO: optimize, it could crash server when labels are > ~500
+        unique = np.unique(labels) #TODO: optimize, it could crash server when labels are > ~300
 
         if len(unique) > unique_threshold:
             logger.warning(f"Too many unique labels ({len(unique)}). Processing only the first {unique_threshold} labels.")
