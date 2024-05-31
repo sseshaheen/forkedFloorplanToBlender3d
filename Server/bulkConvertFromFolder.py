@@ -1,11 +1,15 @@
 import os
+import shutil
 import time
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 def process_images(image_dir):
-    object_dir = "/home/apps/forkedFloorplanToBlender3d/Server/storage/objects"
+    base_dir = "/home/apps/forkedFloorplanToBlender3d/Server/storage"
+    object_dir = os.path.join(base_dir, "objects")
+    debug_dir = os.path.join(base_dir, "debug")
+    final_dir = os.path.join(base_dir, "final")
     supported_formats = ["jpg", "jpeg", "png", "tiff", "bmp", "gif"]
 
     session = requests.Session()
@@ -67,9 +71,17 @@ def process_images(image_dir):
                 print(f"PUT request failed: {e}")
                 continue
 
-            # Check if the .obj file is created every 10 seconds, up to 10 retries
+            # Create the debug directory for this ID if it doesn't exist
+            debug_id_dir = os.path.join(debug_dir, id)
+            os.makedirs(debug_id_dir, exist_ok=True)
+
+            # Copy the input file to the debug directory
+            debug_file_path = os.path.join(debug_id_dir, filename)
+            shutil.copy(file_path, debug_file_path)
+
+            # Check if the .obj file is created every 10 seconds, up to 25 retries
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            retries = 10
+            retries = 25 # 25 retries * 10 seconds ~= 4 mins
             while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
                 time.sleep(10)
@@ -77,10 +89,18 @@ def process_images(image_dir):
 
             if os.path.isfile(obj_file):
                 print(f"{obj_file} has been created.")
-                # Series of actions
-                # Add your series of actions here
+
+                # Copy the debug folder to the final directory
+                final_id_dir = os.path.join(final_dir, id)
+                shutil.copytree(debug_id_dir, final_id_dir, dirs_exist_ok=True)
+
+                # Copy all files containing the ID in their filename to the final directory
+                for obj_filename in os.listdir(object_dir):
+                    if id in obj_filename:
+                        shutil.copy(os.path.join(object_dir, obj_filename), final_id_dir)
+
             else:
-                print(f"{obj_file} was not created after 5 retries. Moving on to the next file.")
+                print(f"{obj_file} was not created after 25 retries. Moving on to the next file.")
 
         else:
             print(f"Skipping unsupported file format: {file}")
