@@ -176,23 +176,36 @@ def scale_model_point_to_origin(origin, point, x_scale, y_scale):
 
     return scaled_point
 
-def flatten_iterative_safe(thelist, res):
+# refactored function uses an iterative approach with a stack to avoid deep recursion.
+# This ensures that the function can handle deeply nested lists without exceeding the maximum recursion depth.
+def flatten_iterative_safe(thelist):
     """
     Flatten list iteratively in a safe manner.
     @Param thelist: Incoming list.
     @Param res: Resulting list (initially empty).
     @Return: Flattened list.
     """
-    if not thelist or not isinstance(thelist, list):
-        return res
-    else:
-        if isinstance(thelist[0], int) or isinstance(thelist[0], float):
-            res.append(thelist[0])
-            return flatten_iterative_safe(thelist[1:], res)
-        else:
-            res.extend(flatten_iterative_safe(thelist[0], []))
-            return flatten_iterative_safe(thelist[1:], res)
+    res = []
+    stack = [thelist]
 
+    while stack:
+        current = stack.pop()
+        if isinstance(current, list):
+            stack.extend(current[::-1])
+        else:
+            res.append(current)
+
+    return res
+
+    # if not thelist or not isinstance(thelist, list):
+    #     return res
+    # else:
+    #     if isinstance(thelist[0], int) or isinstance(thelist[0], float):
+    #         res.append(thelist[0])
+    #         return flatten_iterative_safe(thelist[1:], res)
+    #     else:
+    #         res.extend(flatten_iterative_safe(thelist[0], []))
+    #         return flatten_iterative_safe(thelist[1:], res)
 
 def verts_to_poslist(verts):
     """
@@ -200,11 +213,11 @@ def verts_to_poslist(verts):
     @Param verts: Array of vertices.
     @Return: List of positions.
     """
-    list_of_elements = flatten_iterative_safe(verts, [])  # TODO: this stopped working!
+    list_of_elements = flatten_iterative_safe(verts)
 
     res = []
     i = 0
-    while i < len(list_of_elements) - 2:  # Might miss one vertex here!
+    while i < len(list_of_elements) - 2:
         res.append(
             [list_of_elements[i], list_of_elements[i + 1], list_of_elements[i + 2]]
         )
