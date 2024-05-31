@@ -133,6 +133,8 @@ def wall_width_average(img, image_type=None):
     @Param img: Input floorplan image.
     @Return: Average wall width as a float value.
     """
+    if LOGGING_VERBOSE:
+        logger = configure_logging()
     if img is None:
         logging.error("ERROR: Provided image is None.")
         return None
@@ -154,12 +156,17 @@ def wall_width_average(img, image_type=None):
         # Filter out to only count walls
         filtered_boxes = list()
         for i, box in enumerate(boxes):
-            if len(box) == 4:  # Got only 4 corners, detect oblong
+            if len(box) >= 4:  # Allow for more than 4 corners
                 x, y, w, h = cv2.boundingRect(box)
-                shortest = min(w, h)
-                filtered_boxes.append(shortest)
+                # Check for aspect ratio to identify potential walls
+                aspect_ratio = w / h if h > 0 else 0
+                if 0.1 < aspect_ratio < 10:  # Proposed aspect ratio range for walls
+                    shortest = min(w, h)
+                    filtered_boxes.append(shortest)
                 if LOGGING_VERBOSE:
-                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}")
+                    logging.debug(f"Box {i}: x={x}, y={y}, w={w}, h={h}, shortest={shortest}, aspect_ratio={aspect_ratio}")
+                else:
+                    logging.debug(f"Box {i} skipped due to aspect ratio: aspect_ratio={aspect_ratio}")
             else:
                 logging.debug(f"Box {i} skipped: len(box)={len(box)}")
 
@@ -170,7 +177,6 @@ def wall_width_average(img, image_type=None):
 
         avg_wall_width = np.mean(filtered_boxes)
         if LOGGING_VERBOSE:
-            logger = configure_logging()
             if logger:
                 logger.debug(f'Calculated average wall width in {image_type}: {avg_wall_width}')
         save_debug_info(f'wall_width_average_{image_type}.txt', {'image_shape': img.shape, 'average_wall_width': avg_wall_width})
