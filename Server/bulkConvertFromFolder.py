@@ -43,7 +43,18 @@ def process_images(image_dir):
             filename = os.path.basename(file_path)
 
             # PUT request
-            put_url = f"http://localhost:8000/?func=createandtransform&id={id}&hash={hash}&iformat=.{extension}&oformat=.obj&userId=Oq37pxGdFPYnvWbOL94ttbIFqD23&debug=1&verbose=1&session_id={id}&filename={filename}"
+            put_url = (
+                f"http://localhost:8000/?func=createandtransform&id={id}"
+                f"&hash={hash}"
+                f"&iformat=.{extension}"
+                f"&oformat=.obj"
+                f"&userId=Oq37pxGdFPYnvWbOL94ttbIFqD23"
+                f"&debug=1"
+                f"&verbose=1"
+                f"&session_id={id}"
+                f"&filename={filename}"
+            )
+
             put_headers = {
                 "Accept": "application/json"
             }
@@ -56,16 +67,20 @@ def process_images(image_dir):
                 print(f"PUT request failed: {e}")
                 continue
 
-            # Check if the .obj file is created every 2 seconds
+            # Check if the .obj file is created every 4 seconds, up to 5 retries
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            while not os.path.isfile(obj_file):
+            retries = 5
+            while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
-                time.sleep(2)
+                time.sleep(4)
+                retries -= 1
 
-            print(f"{obj_file} has been created.")
-
-            # Series of actions
-            # Add your series of actions here
+            if os.path.isfile(obj_file):
+                print(f"{obj_file} has been created.")
+                # Series of actions
+                # Add your series of actions here
+            else:
+                print(f"{obj_file} was not created after 5 retries. Moving on to the next file.")
 
         else:
             print(f"Skipping unsupported file format: {file}")
