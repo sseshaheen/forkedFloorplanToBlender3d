@@ -6,11 +6,17 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 def process_images(image_dir):
+    processing_dir = os.path.join(image_dir, "processing")
+    success_dir = os.path.join(image_dir, "fullSuccess")
     base_dir = "/home/apps/forkedFloorplanToBlender3d/Server/storage"
     object_dir = os.path.join(base_dir, "objects")
     debug_dir = os.path.join(base_dir, "debug")
     final_dir = os.path.join(base_dir, "final")
     supported_formats = ["jpg", "jpeg", "png", "tiff", "bmp", "gif"]
+
+    # Create necessary directories if they do not exist
+    os.makedirs(processing_dir, exist_ok=True)
+    os.makedirs(success_dir, exist_ok=True)
 
     session = requests.Session()
     retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
@@ -24,6 +30,10 @@ def process_images(image_dir):
         # Check if the file is an image of supported format
         if extension in supported_formats:
             print(f"Processing {file_path}")
+
+            # Move the file to the processing directory
+            processing_file_path = os.path.join(processing_dir, file)
+            shutil.move(file_path, processing_file_path)
 
             # POST request
             post_url = "http://localhost:8000/?func=create&debug=1&verbose=1"
@@ -44,7 +54,7 @@ def process_images(image_dir):
                 continue
 
             # File name without directory
-            filename = os.path.basename(file_path)
+            filename = os.path.basename(processing_file_path)
 
             # PUT request
             put_url = (
@@ -62,7 +72,7 @@ def process_images(image_dir):
             put_headers = {
                 "Accept": "application/json"
             }
-            with open(file_path, 'rb') as file:
+            with open(processing_file_path, 'rb') as file:
                 try:
                     put_response = session.put(put_url, headers=put_headers, files={'file': file})
                     print(f"PUT response: {put_response.text}")
@@ -76,8 +86,8 @@ def process_images(image_dir):
 
             # Copy the input file to the debug directory
             debug_file_path = os.path.join(debug_id_dir, filename)
-            print(f"Copying {file_path} to {debug_file_path}")
-            shutil.copy(file_path, debug_file_path)
+            print(f"Copying {processing_file_path} to {debug_file_path}")
+            shutil.copy(processing_file_path, debug_file_path)
 
             # Check if the .obj file is created every 10 seconds, up to 24 retries (4 minutes)
             # TODO: optimize to be based on actual conversion results
@@ -105,6 +115,10 @@ def process_images(image_dir):
                         print(f"Moving {src_file} to {dest_file}")
                         shutil.move(src_file, dest_file)
 
+                # Move the processed file from processing to success directory
+                success_file_path = os.path.join(success_dir, file)
+                print(f"Moving {processing_file_path} to {success_file_path}")
+                shutil.move(processing_file_path, success_file_path)
             else:
                 print(f"{obj_file} was not created after {retries} retries. Moving on to the next file.")
 
