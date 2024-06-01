@@ -81,6 +81,7 @@ def process_images(image_dir):
 
             # Check if the .obj file is created every 10 seconds, up to 24 retries (4 minutes)
             # TODO: optimize to be based on actual conversion results
+            # TODO: when a file is done successfully, move it to a done folder
             obj_file = os.path.join(object_dir, f"{id}.obj")
             retries = 24
             while not os.path.isfile(obj_file) and retries > 0:
@@ -91,18 +92,18 @@ def process_images(image_dir):
             if os.path.isfile(obj_file):
                 print(f"{obj_file} has been created.")
 
-                # Copy the debug folder to the final directory
+                # Move the debug folder to the final directory
                 final_id_dir = os.path.join(final_dir, id)
-                print(f"Copying {debug_id_dir} to {final_id_dir}")
-                shutil.copytree(debug_id_dir, final_id_dir, dirs_exist_ok=True)
+                print(f"Moving {debug_id_dir} to {final_id_dir}")
+                shutil.move(debug_id_dir, final_id_dir)
 
-                # Copy all files containing the ID in their filename to the final directory
+                # Move all files containing the ID in their filename to the final directory
                 for obj_filename in os.listdir(object_dir):
                     if id in obj_filename:
                         src_file = os.path.join(object_dir, obj_filename)
                         dest_file = os.path.join(final_id_dir, obj_filename)
-                        print(f"Copying {src_file} to {dest_file}")
-                        shutil.copy(src_file, dest_file)
+                        print(f"Moving {src_file} to {dest_file}")
+                        shutil.move(src_file, dest_file)
 
             else:
                 print(f"{obj_file} was not created after {retries} retries. Moving on to the next file.")
