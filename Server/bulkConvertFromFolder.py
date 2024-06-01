@@ -17,7 +17,7 @@ def process_images(image_dir):
     session.mount('http://', HTTPAdapter(max_retries=retries))
 
     # Loop through each file in the directory
-    for file in os.listdir(image_dir):
+    for file in sorted(os.listdir(image_dir)):
         file_path = os.path.join(image_dir, file)
         extension = file.split('.')[-1].lower()
 
