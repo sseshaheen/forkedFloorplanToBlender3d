@@ -22,6 +22,7 @@ def load_config_from_json(file_path):
             config = json.load(json_file)
         return config
     except Exception as e:
+        logger = logging.getLogger('debug_logger')
         logger.error(f"Error loading configuration from {file_path}: {e}")
         return {}
 
