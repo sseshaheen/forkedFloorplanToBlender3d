@@ -62,14 +62,13 @@ def process_images(image_dir):
             put_headers = {
                 "Accept": "application/json"
             }
-            files = {'file': open(file_path, 'rb')}
-
-            try:
-                put_response = session.put(put_url, headers=put_headers, files=files)
-                print(f"PUT response: {put_response.text}")
-            except requests.exceptions.RequestException as e:
-                print(f"PUT request failed: {e}")
-                continue
+            with open(file_path, 'rb') as file:
+                try:
+                    put_response = session.put(put_url, headers=put_headers, files={'file': file})
+                    print(f"PUT response: {put_response.text}")
+                except requests.exceptions.RequestException as e:
+                    print(f"PUT request failed: {e}")
+                    continue
 
             # Create the debug directory for this ID if it doesn't exist
             debug_id_dir = os.path.join(debug_dir, id)
@@ -80,9 +79,10 @@ def process_images(image_dir):
             print(f"Copying {file_path} to {debug_file_path}")
             shutil.copy(file_path, debug_file_path)
 
-            # Check if the .obj file is created every 10 seconds, up to 25 retries
+            # Check if the .obj file is created every 10 seconds, up to 24 retries (4 minutes)
+            # TODO: optimize to be based on actual conversion results
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            retries = 36 # 36 retries * 10 seconds = 6 mins
+            retries = 24
             while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
                 time.sleep(10)
@@ -103,11 +103,9 @@ def process_images(image_dir):
                         dest_file = os.path.join(final_id_dir, obj_filename)
                         print(f"Copying {src_file} to {dest_file}")
                         shutil.copy(src_file, dest_file)
-                        # shutil.copy(os.path.join(object_dir, obj_filename), final_id_dir)
-
 
             else:
-                print(f"{obj_file} was not created after 35 retries. Moving on to the next file.")
+                print(f"{obj_file} was not created after {retries} retries. Moving on to the next file.")
 
         else:
             print(f"Skipping unsupported file format: {file}")
