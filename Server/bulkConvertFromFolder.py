@@ -72,9 +72,9 @@ def process_images(image_dir):
             put_headers = {
                 "Accept": "application/json"
             }
-            with open(processing_file_path, 'rb') as file:
+            with open(processing_file_path, 'rb') as file_obj:
                 try:
-                    put_response = session.put(put_url, headers=put_headers, files={'file': file})
+                    put_response = session.put(put_url, headers=put_headers, files={'file': file_obj})
                     print(f"PUT response: {put_response.text}")
                 except requests.exceptions.RequestException as e:
                     print(f"PUT request failed: {e}")
@@ -89,11 +89,11 @@ def process_images(image_dir):
             print(f"Copying {processing_file_path} to {debug_file_path}")
             shutil.copy(processing_file_path, debug_file_path)
 
-            # Check if the .obj file is created every 10 seconds, up to 24 retries (4 minutes)
+            # Check if the .obj file is created every 10 seconds, up to 61 retries (~10 minutes)
             # TODO: optimize to be based on actual conversion results
             # TODO: when a file is done successfully, move it to a done folder
             obj_file = os.path.join(object_dir, f"{id}.obj")
-            retries = 24
+            retries = 61
             while not os.path.isfile(obj_file) and retries > 0:
                 print(f"Waiting for {obj_file} to be created...")
                 time.sleep(10)
