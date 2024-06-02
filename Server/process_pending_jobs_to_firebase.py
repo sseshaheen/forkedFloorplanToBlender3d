@@ -7,7 +7,7 @@ from datetime import datetime
 import logging
 
 # Configure logging
-log_file_path = '/home/apps/forkedFloorplanToBlender3d/logs/process_pending_jobs.log'
+log_file_path = '/home/apps/forkedFloorplanToBlender3d/logs/process_pending_jobs_to_firebase.log'
 os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 logging.basicConfig(filename=log_file_path, level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
