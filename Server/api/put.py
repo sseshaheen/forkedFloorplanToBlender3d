@@ -9,10 +9,10 @@ from datetime import datetime
 import time
 import requests
 import logging
-
+import json
 
 # Path to the downloaded service account key
-# TODO: verify incoming userId through appropriate authentcation received from the mobile app
+# TODO: verify incoming userId through appropriate authentication received from the mobile app
 # change the file from public to private in "upload_file_to_firebase"
 # TODO: delete old files after certain interval so as not to fill up the server disk
 cred = credentials.Certificate("/home/apps/credentials/dreamnestvr-firebase-adminsdk-j4uqg-f108fd7a39.json")
@@ -81,12 +81,11 @@ class Put(Api):
         return message, status
 
     def upload_file_to_firebase(self, local_path: str, firebase_path: str) -> str:
-        # bucket = storage.bucket()
-        # blob = bucket.blob(firebase_path)
-        # blob.upload_from_filename(local_path)
-        # blob.make_public()  # Make the file public
-        # return blob.public_url
-        return 'placeholder url for id.obj'
+        bucket = storage.bucket()
+        blob = bucket.blob(firebase_path)
+        blob.upload_from_filename(local_path)
+        blob.make_public()  # Make the file public
+        return blob.public_url
 
     def check_process_status(self, id: str, oformat: str) -> bool:
         baseUrl = "http://localhost:8000"
@@ -97,7 +96,6 @@ class Put(Api):
                 if process['out'] == f"{id}{oformat}" and process['state'] in [3, 4]:
                     return True
         return False
-
 
 
     def createandtransform(
@@ -152,7 +150,7 @@ class Put(Api):
             image_record = {
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": image_firebase_path,
-                "successConversionTo3d": True,
+                "successConversionTo3d": "",
                 "url": image_url
             }
 
@@ -167,19 +165,39 @@ class Put(Api):
             # obj_url = self.upload_file_to_firebase(obj_local_path, obj_firebase_path)
 
             # message += f"\nOBJ uploaded to: {obj_url}"
-            # obj_record = {
-            #     "dateTimeUploaded": dateTimeUploaded,
-            #     "path": obj_firebase_path,
-            #     "type": "obj",
-            #     "url": obj_url
-            # }
+            obj_record = {
+                "dateTimeUploaded": dateTimeUploaded,
+                "path": obj_firebase_path,
+                "type": oformat,
+                "url": ""  #initialize it empty 
+            }
+
+            # Create pending job folder and job.json
+            pending_job_folder = f"/home/apps/firebase_upload_cron/pending_jobs/{id}"
+            os.makedirs(pending_job_folder, exist_ok=True)
+
+            job_data = {
+                "id": id,
+                "hash": hash,
+                "filename": filename,
+                "userId": userId,
+                "status": "pending",
+                "image_record": image_record,
+                "obj_record": obj_record
+            }
+
+            with open(os.path.join(pending_job_folder, "job.json"), "w") as job_file:
+                json.dump(job_data, job_file, indent=4)
 
             # Reference to the user document
-            # user_ref = db.collection("user_floorplans").document(userId)
+            user_ref = db.collection("user_floorplans").document(userId)
             # Update the user document
+            user_ref.update({
+                "images": firestore.ArrayUnion([image_record]),
+                # "objects": firestore.ArrayUnion([obj_record])
+            })
             # user_ref.update({
             #     "images": firestore.ArrayUnion([image_record]),
             #     "objects": firestore.ArrayUnion([obj_record])
             # })
-
         return message, status
