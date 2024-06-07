@@ -10,9 +10,25 @@ def get_env_var(var_name):
         print(f"Error: Environment variable {var_name} not set.")
         sys.exit(1)
 
+# Function to remove BOM from a file
+def remove_bom(file_path):
+    with open(file_path, 'rb') as file:
+        content = file.read()
+    
+    if content.startswith(b'\xef\xbb\xbf'):
+        content = content[3:]
+        with open(file_path, 'wb') as file:
+            file.write(content)
+        print(f"BOM removed from {file_path}")
+    else:
+        print(f"No BOM found in {file_path}")
+
 # Read environment variables for file paths
 input_file_path = get_env_var("INPUT_FILE_PATH")
 output_file_path = get_env_var("OUTPUT_FILE_PATH")
+
+# Remove BOM from the input GLTF file if present
+remove_bom(input_file_path)
 
 # Enable necessary Blender addons
 from addon_utils import check, enable
