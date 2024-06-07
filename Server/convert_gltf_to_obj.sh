@@ -15,4 +15,4 @@ export INPUT_FILE_PATH=$INPUT_FILE_PATH
 export OUTPUT_FILE_PATH=$OUTPUT_FILE_PATH
 
 # Run Blender in background mode with the Python script
-blender --background --python convert_gltf_to_obj.py
+blender --background --python /home/apps/forkedFloorplanToBlender3d/Server/convert_gltf_to_obj.py
