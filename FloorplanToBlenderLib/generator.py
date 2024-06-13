@@ -376,20 +376,22 @@ class Door(Generator):
         @Return: Shape of the doors.
         """
         doors = detect.doors(self.image_path, self.scale_factor)
+        print(f"Detected doors: {doors}")
 
         door_contours = []
         # Get best door shapes!
         for door in doors:
             door_features = door[0]
             door_box = door[1]
+            print(f"Door features: {door_features}, Door box: {door_box}")
 
             # Find door to space point
             space_point = self.get_point_the_furthest_away(door_features, door_box)
+            print(f"Space point: {space_point}")
 
             # Find best box corner to use as attachment
-            closest_box_point = self.get_closest_box_point_to_door_point(
-                space_point, door_box
-            )
+            closest_box_point = self.get_closest_box_point_to_door_point(space_point, door_box)
+            print(f"Closest box point: {closest_box_point}")
 
             # Calculate normal
             normal_line = [
@@ -399,6 +401,7 @@ class Door(Generator):
 
             # Normalize point
             normal_line = calculate.normalize_2d(normal_line)
+            print(f"Normal line: {normal_line}")
 
             # Create door contour
             x1 = closest_box_point[0] + normal_line[1] * const.DOOR_WIDTH
@@ -420,6 +423,7 @@ class Door(Generator):
 
             door_contour = np.array([[c1], [c2], [c3], [c4]], dtype=np.int32)
             door_contours.append(door_contour)
+            print(f"Door contour: {door_contour}")
 
         if const.DEBUG_DOOR:
             print("Showing DEBUG door. Press any key to continue...")
@@ -437,9 +441,8 @@ class Door(Generator):
                 ])
                 idx = len(frame_verts)
                 frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
-
-        print("Frame Verts: ", frame_verts)
-        print("Frame Faces: ", frame_faces)
+        print(f"Frame Verts: {frame_verts}")
+        print(f"Frame Faces: {frame_faces}")
 
         self.verts, self.faces, door_amount = transform.create_nx4_verts_and_faces(
             boxes=door_contours,
@@ -497,6 +500,7 @@ class Window(Generator):
         @Return: Shape of the windows.
         """
         windows = detect.windows(self.image_path, self.scale_factor)
+        print(f"Detected windows: {windows}")
 
         # Create verts for window, vertical
         v, self.faces, window_amount1 = transform.create_nx4_verts_and_faces(
@@ -544,8 +548,8 @@ class Window(Generator):
                 idx = len(frame_verts)
                 frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
 
-        print("Frame Verts: ", frame_verts)
-        print("Frame Faces: ", frame_faces)
+        print(f"Frame Verts: {frame_verts}")
+        print(f"Frame Faces: {frame_faces}")
 
         # Create verts for window, horizontal
         v, f, _ = transform.create_4xn_verts_and_faces(

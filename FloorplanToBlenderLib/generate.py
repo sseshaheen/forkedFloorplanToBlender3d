@@ -6,6 +6,7 @@ import logging
 from FloorplanToBlenderLib.generator import Door, Floor, Room, Wall, Window
 from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
 import os
+
 def configure_logging():
     if LOGGING_VERBOSE:
         # Load the DEBUG_SESSION_ID from the JSON file
@@ -39,6 +40,7 @@ def configure_logging():
         # # Set the root logger's level to WARNING to avoid interference
         # logging.getLogger().setLevel(logging.WARNING)
 
+
         return logger
     return None
 
@@ -59,7 +61,7 @@ def save_debug_info(filename, data):
             os.makedirs(DEBUG_STORAGE_PATH)
         filepath = os.path.join(DEBUG_STORAGE_PATH, filename)
         with open(filepath, 'a') as file:
-            file.write(str(data))
+            file.write(str(data) + '\n')
         # if LOGGING_VERBOSE:
         #     logger = configure_logging()
         #     if logger:
@@ -93,6 +95,7 @@ def generate_all_files(
     @Param world_rotation: Rotation vector  of float
     @Return: Path to the generated file, shape of the generated object.
     """
+    logger = configure_logging()
     if world_direction is None:
         world_direction = 1
 
@@ -103,7 +106,6 @@ def generate_all_files(
     ]
 
     if info:
-        logger = configure_logging()
         logger.info(
             " ----- Generate ",
             floorplan.image_path,
@@ -127,26 +129,36 @@ def generate_all_files(
         _, gray, scale_factor = IO.read_image(floorplan.image_path, floorplan)
 
         if floorplan.floors:
+            logger.debug("Generating floor data...")
             shape = Floor(gray, path, scale, info).shape
+            logger.debug(f"Floor shape: {shape}")
 
         if floorplan.walls:
+            logger.debug("Generating wall data...")
             if shape is not None:
                 new_shape = Wall(gray, path, scale, info).shape
                 shape = validate_shape(shape, new_shape)
+                logger.debug(f"Validated shape (with walls): {shape}")
             else:
                 shape = Wall(gray, path, scale, info).shape
+                logger.debug(f"Wall shape: {shape}")
 
         if floorplan.rooms:
+            logger.debug("Generating room data...")
             if shape is not None:
                 new_shape = Room(gray, path, scale, info).shape
                 shape = validate_shape(shape, new_shape)
+                logger.debug(f"Validated shape (with rooms): {shape}")
             else:
                 shape = Room(gray, path, scale, info).shape
+                logger.debug(f"Room shape: {shape}")
 
         if floorplan.windows:
+            logger.debug("Generating window data...")
             Window(gray, path, floorplan.image_path, scale_factor, scale, info)
 
         if floorplan.doors:
+            logger.debug("Generating door data...")
             Door(gray, path, floorplan.image_path, scale_factor, scale, info)
 
     generate_transform_file(
@@ -174,9 +186,7 @@ def generate_all_files(
         shape = [0, 0, 0]
 
     if LOGGING_VERBOSE:
-        logger = configure_logging()
-        if logger:
-            logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
+        logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
     save_debug_info('generate_all_files.txt', {'path': path, 'shape': shape})
 
     return path, shape
@@ -196,8 +206,7 @@ def validate_shape(old_shape, new_shape):
 
     if LOGGING_VERBOSE:
         logger = configure_logging()
-        if logger:
-            logger.debug(f'Validated shape: old_shape={old_shape}, new_shape={new_shape}, combined_shape={shape}')
+        logger.debug(f'Validated shape: old_shape={old_shape}, new_shape={new_shape}, combined_shape={shape}')
     save_debug_info('validate_shape.txt', {'old_shape': old_shape, 'new_shape': new_shape, 'combined_shape': shape})
 
     return shape
@@ -232,6 +241,8 @@ def generate_transform_file(
     @Param origin_path: Path to the origin data.
     @Return: Transform dictionary.
     """
+    logger = configure_logging()
+    
     # Create transform map
     transform = {}
     if position is None:
@@ -263,9 +274,7 @@ def generate_transform_file(
     IO.save_to_file(path + "transform", transform, info)
 
     if LOGGING_VERBOSE:
-        logger = configure_logging()
-        if logger:
-            logger.debug(f'Generated transform file for image: {img_path}')
+        logger.debug(f'Generated transform file for image: {img_path}')
     save_debug_info('generate_transform_file.txt', transform)
 
     return transform
