@@ -426,7 +426,20 @@ class Door(Generator):
             img = draw.contoursOnImage(gray, door_contours)
             draw.image(img)
 
-        # Create verts for door
+        # Create verts and faces for door frames
+        frame_verts = []
+        frame_faces = []
+        for contour in door_contours:
+            for i in range(4):
+                frame_verts.extend([
+                    [contour[i][0][0], contour[i][0][1], 0],
+                    [contour[i][0][0], contour[i][0][1], 1],
+                ])
+                idx = len(frame_verts)
+                frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
+
+        print("Frame Verts: ", frame_verts)
+        print("Frame Faces: ", frame_faces)
 
         self.verts, self.faces, door_amount = transform.create_nx4_verts_and_faces(
             boxes=door_contours,
@@ -435,6 +448,9 @@ class Door(Generator):
             pixelscale=self.pixelscale,
         )
 
+        print("Vertical Door Verts: ", self.verts)
+        print("Vertical Door Faces: ", self.faces)
+
         if info:
             print("Doors created: ", int(door_amount / 4))
             if LOGGING_VERBOSE:
@@ -442,8 +458,8 @@ class Door(Generator):
                 if logger:
                     logger.debug(f'Doors created: {int(door_amount / 4)}')
 
-        IO.save_to_file(self.path + "door_vertical_verts", self.verts, info)
-        IO.save_to_file(self.path + "door_vertical_faces", self.faces, info)
+        IO.save_to_file(self.path + "door_vertical_verts", self.verts + frame_verts, info)
+        IO.save_to_file(self.path + "door_vertical_faces", self.faces + frame_faces, info)
 
         self.verts, self.faces, door_amount = transform.create_4xn_verts_and_faces(
             boxes=door_contours,
@@ -454,9 +470,11 @@ class Door(Generator):
             ground_height=const.WALL_GROUND,
         )
 
-        # One solution to get data to blender is to write and read from file.
-        IO.save_to_file(self.path + "door_horizontal_verts", self.verts, info)
-        IO.save_to_file(self.path + "door_horizontal_faces", self.faces, info)
+        print("Horizontal Door Verts: ", self.verts)
+        print("Horizontal Door Faces: ", self.faces)
+
+        IO.save_to_file(self.path + "door_horizontal_verts", self.verts + frame_verts, info)
+        IO.save_to_file(self.path + "door_horizontal_faces", self.faces + frame_faces, info)
 
         return self.get_shape(self.verts)
 
@@ -501,6 +519,9 @@ class Window(Generator):
         parts_per_window = 2
         window_amount = len(v) / parts_per_window
 
+        print("Vertical Window Verts: ", self.verts)
+        print("Vertical Window Faces: ", self.faces)
+
         if info:
             print("Windows created: ", int(window_amount))
             if LOGGING_VERBOSE:
@@ -511,8 +532,22 @@ class Window(Generator):
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)
 
-        # Create verts for window, horizontal
+        # Create verts and faces for window frames
+        frame_verts = []
+        frame_faces = []
+        for box in windows:
+            for i in range(4):
+                frame_verts.extend([
+                    [box[i][0][0], box[i][0][1], 0],
+                    [box[i][0][0], box[i][0][1], 1],
+                ])
+                idx = len(frame_verts)
+                frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
 
+        print("Frame Verts: ", frame_verts)
+        print("Frame Faces: ", frame_faces)
+
+        # Create verts for window, horizontal
         v, f, _ = transform.create_4xn_verts_and_faces(
             boxes=windows,
             height=self.height,
@@ -535,8 +570,10 @@ class Window(Generator):
         self.faces = f
         self.faces.extend(f2)
 
-        # One solution to get data to blender is to write and read from file.
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
+        print("Horizontal Window Verts: ", self.verts)
+        print("Horizontal Window Faces: ", self.faces)
+
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts + frame_verts, info)
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces + frame_faces, info)
 
         return self.get_shape(self.verts)
