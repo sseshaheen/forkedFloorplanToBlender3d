@@ -305,7 +305,7 @@ def create_floorplan(base_path, program_path, name=None):
         wall_parent.parent = parent
 
     """
-    Create Windows with Frames
+    Create Windows
     """
     if (
         os.path.isfile(path_to_windows_vertical_verts_file + ".txt")
@@ -313,6 +313,8 @@ def create_floorplan(base_path, program_path, name=None):
         and os.path.isfile(path_to_windows_horizontal_verts_file + ".txt")
         and os.path.isfile(path_to_windows_horizontal_faces_file + ".txt")
     ):
+        print("Creating Windows...")
+
         # get image wall data
         verts = read_from_file(path_to_windows_vertical_verts_file)
         faces = read_from_file(path_to_windows_vertical_faces_file)
@@ -326,8 +328,10 @@ def create_floorplan(base_path, program_path, name=None):
 
         for walls in verts:
             boxname = "Box" + str(boxcount)
+            print(f"Creating box: {boxname}")
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
+                print(f"Creating wall: {wallname}")
 
                 # Create frame around window
                 frame_verts = [
@@ -348,6 +352,8 @@ def create_floorplan(base_path, program_path, name=None):
                     [4, 5, 6, 7],  # Bottom face
                     [0, 1, 2, 3]   # Top face
                 ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
                 frame_obj = create_custom_mesh(
                     boxname + wallname + "Frame",
                     frame_verts,
@@ -379,6 +385,7 @@ def create_floorplan(base_path, program_path, name=None):
 
         for i in range(0, len(verts)):
             roomname = "VertWindow" + str(i)
+            print(f"Creating window: {roomname}")
 
             # Create frame around window
             frame_verts = [
@@ -399,6 +406,8 @@ def create_floorplan(base_path, program_path, name=None):
                 [4, 5, 6, 7],  # Bottom face
                 [0, 1, 2, 3]   # Top face
             ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
             frame_obj = create_custom_mesh(
                 roomname + "Frame",
                 frame_verts,
@@ -418,9 +427,10 @@ def create_floorplan(base_path, program_path, name=None):
             obj.parent = wall_parent
 
         wall_parent.parent = parent
+        print("Finished creating windows.")
 
     """
-    Create Doors with Frames
+    Create Doors
     """
     if (
         os.path.isfile(path_to_doors_vertical_verts_file + ".txt")
@@ -428,6 +438,7 @@ def create_floorplan(base_path, program_path, name=None):
         and os.path.isfile(path_to_doors_horizontal_verts_file + ".txt")
         and os.path.isfile(path_to_doors_horizontal_faces_file + ".txt")
     ):
+        print("Creating Doors...")
 
         # get image wall data
         verts = read_from_file(path_to_doors_vertical_verts_file)
@@ -442,8 +453,10 @@ def create_floorplan(base_path, program_path, name=None):
 
         for walls in verts:
             boxname = "Box" + str(boxcount)
+            print(f"Creating box: {boxname}")
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
+                print(f"Creating wall: {wallname}")
 
                 # Create frame around door
                 frame_verts = [
@@ -464,6 +477,8 @@ def create_floorplan(base_path, program_path, name=None):
                     [4, 5, 6, 7],  # Bottom face
                     [0, 1, 2, 3]   # Top face
                 ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
                 frame_obj = create_custom_mesh(
                     boxname + wallname + "Frame",
                     frame_verts,
@@ -495,6 +510,7 @@ def create_floorplan(base_path, program_path, name=None):
 
         for i in range(0, len(verts)):
             roomname = "VertDoor" + str(i)
+            print(f"Creating door: {roomname}")
 
             # Create frame around door
             frame_verts = [
@@ -515,6 +531,8 @@ def create_floorplan(base_path, program_path, name=None):
                 [4, 5, 6, 7],  # Bottom face
                 [0, 1, 2, 3]   # Top face
             ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
             frame_obj = create_custom_mesh(
                 roomname + "Frame",
                 frame_verts,
@@ -534,7 +552,7 @@ def create_floorplan(base_path, program_path, name=None):
             obj.parent = wall_parent
 
         wall_parent.parent = parent
-
+        print("Finished creating doors.")
 
     """
     Create Floor
