@@ -461,8 +461,15 @@ class Door(Generator):
                 if logger:
                     logger.debug(f'Doors created: {int(door_amount / 4)}')
 
+        IO.save_to_file(self.path + "debug_door_vertical_verts", self.verts, info)
+        IO.save_to_file(self.path + "debug_door_vertical_faces", self.faces, info)
+
         IO.save_to_file(self.path + "door_vertical_verts", self.verts + frame_verts, info)
         IO.save_to_file(self.path + "door_vertical_faces", self.faces + frame_faces, info)
+
+        # Adding debug prints for vertical frames
+        # print(f"Saved vertical door verts to {self.path + 'door_vertical_verts'}: {self.verts}")
+        # print(f"Saved vertical door faces to {self.path + 'door_vertical_faces'}: {self.faces}")
 
         self.verts, self.faces, door_amount = transform.create_4xn_verts_and_faces(
             boxes=door_contours,
@@ -476,8 +483,16 @@ class Door(Generator):
         print("Horizontal Door Verts: ", self.verts)
         print("Horizontal Door Faces: ", self.faces)
 
+        IO.save_to_file(self.path + "debug_door_horizontal_verts", self.verts, info)
+        IO.save_to_file(self.path + "debug_door_horizontal_faces", self.faces, info)
+
+
         IO.save_to_file(self.path + "door_horizontal_verts", self.verts + frame_verts, info)
         IO.save_to_file(self.path + "door_horizontal_faces", self.faces + frame_faces, info)
+
+        # Adding debug prints for horizontal frames
+        # print(f"Saved horizontal door verts to {self.path + 'door_horizontal_verts'}: {self.verts}")
+        # print(f"Saved horizontal door faces to {self.path + 'door_horizontal_faces'}: {self.faces}")
 
         return self.get_shape(self.verts)
 
@@ -551,6 +566,10 @@ class Window(Generator):
         print(f"Frame Verts: {frame_verts}")
         print(f"Frame Faces: {frame_faces}")
 
+        # Adding debug prints for vertical frames
+        # print(f"Saved vertical window verts to {self.path + const.WINDOW_VERTICAL_VERTS}: {self.verts}")
+        # print(f"Saved vertical window faces to {self.path + const.WINDOW_VERTICAL_FACES}: {self.faces}")
+
         # Create verts for window, horizontal
         v, f, _ = transform.create_4xn_verts_and_faces(
             boxes=windows,
@@ -577,7 +596,15 @@ class Window(Generator):
         print("Horizontal Window Verts: ", self.verts)
         print("Horizontal Window Faces: ", self.faces)
 
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
+
+
         IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts + frame_verts, info)
         IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces + frame_faces, info)
+
+        # Adding debug prints for horizontal frames
+        # print(f"Saved horizontal window verts to {self.path + const.WINDOW_HORIZONTAL_VERTS}: {self.verts}")
+        # print(f"Saved horizontal window faces to {self.path + const.WINDOW_HORIZONTAL_FACES}: {self.faces}")
 
         return self.get_shape(self.verts)
