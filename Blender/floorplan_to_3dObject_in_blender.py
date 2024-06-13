@@ -331,12 +331,23 @@ def create_floorplan(base_path, program_path, name=None):
 
                 # Create frame around window
                 frame_verts = [
-                    [wall[0][0], wall[0][1], wall[0][2] - 0.05],
-                    [wall[1][0], wall[1][1], wall[1][2] + 0.05],
-                    [wall[2][0], wall[2][1], wall[2][2] - 0.05],
-                    [wall[3][0], wall[3][1], wall[3][2] + 0.05],
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
                 ]
-                frame_faces = [[0, 1, 3, 2]]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
                 frame_obj = create_custom_mesh(
                     boxname + wallname + "Frame",
                     frame_verts,
@@ -371,12 +382,23 @@ def create_floorplan(base_path, program_path, name=None):
 
             # Create frame around window
             frame_verts = [
-                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.05],
-                [verts[i][1][0], verts[i][1][1], verts[i][1][2] + 0.05],
-                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.05],
-                [verts[i][3][0], verts[i][3][1], verts[i][3][2] + 0.05],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
             ]
-            frame_faces = [[0, 1, 3, 2]]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
             frame_obj = create_custom_mesh(
                 roomname + "Frame",
                 frame_verts,
@@ -425,12 +447,23 @@ def create_floorplan(base_path, program_path, name=None):
 
                 # Create frame around door
                 frame_verts = [
-                    [wall[0][0], wall[0][1], wall[0][2] - 0.05],
-                    [wall[1][0], wall[1][1], wall[1][2] + 0.05],
-                    [wall[2][0], wall[2][1], wall[2][2] - 0.05],
-                    [wall[3][0], wall[3][1], wall[3][2] + 0.05],
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
                 ]
-                frame_faces = [[0, 1, 3, 2]]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
                 frame_obj = create_custom_mesh(
                     boxname + wallname + "Frame",
                     frame_verts,
@@ -465,12 +498,23 @@ def create_floorplan(base_path, program_path, name=None):
 
             # Create frame around door
             frame_verts = [
-                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.05],
-                [verts[i][1][0], verts[i][1][1], verts[i][1][2] + 0.05],
-                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.05],
-                [verts[i][3][0], verts[i][3][1], verts[i][3][2] + 0.05],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
             ]
-            frame_faces = [[0, 1, 3, 2]]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
             frame_obj = create_custom_mesh(
                 roomname + "Frame",
                 frame_verts,
@@ -490,6 +534,7 @@ def create_floorplan(base_path, program_path, name=None):
             obj.parent = wall_parent
 
         wall_parent.parent = parent
+
 
     """
     Create Floor
