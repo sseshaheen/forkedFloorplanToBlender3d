@@ -305,7 +305,7 @@ def create_floorplan(base_path, program_path, name=None):
         wall_parent.parent = parent
 
     """
-    Create Windows
+    Create Windows with Frames
     """
     if (
         os.path.isfile(path_to_windows_vertical_verts_file + ".txt")
@@ -329,6 +329,23 @@ def create_floorplan(base_path, program_path, name=None):
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
 
+                # Create frame around window
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.05],
+                    [wall[1][0], wall[1][1], wall[1][2] + 0.05],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.05],
+                    [wall[3][0], wall[3][1], wall[3][2] + 0.05],
+                ]
+                frame_faces = [[0, 1, 3, 2]]
+                frame_obj = create_custom_mesh(
+                    boxname + wallname + "Frame",
+                    frame_verts,
+                    frame_faces,
+                    cen=cen,
+                    mat=create_mat((0.3, 0.3, 0.3, 1)),
+                )
+                frame_obj.parent = wall_parent
+
                 obj = create_custom_mesh(
                     boxname + wallname,
                     wall,
@@ -351,6 +368,24 @@ def create_floorplan(base_path, program_path, name=None):
 
         for i in range(0, len(verts)):
             roomname = "VertWindow" + str(i)
+
+            # Create frame around window
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.05],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] + 0.05],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.05],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] + 0.05],
+            ]
+            frame_faces = [[0, 1, 3, 2]]
+            frame_obj = create_custom_mesh(
+                roomname + "Frame",
+                frame_verts,
+                frame_faces,
+                cen=cen,
+                mat=create_mat((0.3, 0.3, 0.3, 1)),
+            )
+            frame_obj.parent = wall_parent
+
             obj = create_custom_mesh(
                 roomname,
                 verts[i],
@@ -363,7 +398,7 @@ def create_floorplan(base_path, program_path, name=None):
         wall_parent.parent = parent
 
     """
-    Create Doors
+    Create Doors with Frames
     """
     if (
         os.path.isfile(path_to_doors_vertical_verts_file + ".txt")
@@ -388,6 +423,23 @@ def create_floorplan(base_path, program_path, name=None):
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
 
+                # Create frame around door
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.05],
+                    [wall[1][0], wall[1][1], wall[1][2] + 0.05],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.05],
+                    [wall[3][0], wall[3][1], wall[3][2] + 0.05],
+                ]
+                frame_faces = [[0, 1, 3, 2]]
+                frame_obj = create_custom_mesh(
+                    boxname + wallname + "Frame",
+                    frame_verts,
+                    frame_faces,
+                    cen=cen,
+                    mat=create_mat((0.3, 0.3, 0.3, 1)),
+                )
+                frame_obj.parent = wall_parent
+
                 obj = create_custom_mesh(
                     boxname + wallname,
                     wall,
@@ -400,7 +452,7 @@ def create_floorplan(base_path, program_path, name=None):
                 wallcount += 1
             boxcount += 1
 
-        # get windows
+        # get doors
         verts = read_from_file(path_to_doors_horizontal_verts_file)
         faces = read_from_file(path_to_doors_horizontal_faces_file)
 
@@ -409,7 +461,25 @@ def create_floorplan(base_path, program_path, name=None):
         wallcount = 0
 
         for i in range(0, len(verts)):
-            roomname = "VertWindow" + str(i)
+            roomname = "VertDoor" + str(i)
+
+            # Create frame around door
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.05],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] + 0.05],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.05],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] + 0.05],
+            ]
+            frame_faces = [[0, 1, 3, 2]]
+            frame_obj = create_custom_mesh(
+                roomname + "Frame",
+                frame_verts,
+                frame_faces,
+                cen=cen,
+                mat=create_mat((0.3, 0.3, 0.3, 1)),
+            )
+            frame_obj.parent = wall_parent
+
             obj = create_custom_mesh(
                 roomname,
                 verts[i],
