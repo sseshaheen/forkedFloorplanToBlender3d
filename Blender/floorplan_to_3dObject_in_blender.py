@@ -319,6 +319,9 @@ def create_floorplan(base_path, program_path, name=None):
         verts = read_from_file(path_to_windows_vertical_verts_file)
         faces = read_from_file(path_to_windows_vertical_faces_file)
 
+        print(f"Window vertical verts: {verts}")
+        print(f"Window vertical faces: {faces}")
+
         # Create mesh from data
         boxcount = 0
         wallcount = 0
@@ -378,6 +381,9 @@ def create_floorplan(base_path, program_path, name=None):
         # get windows
         verts = read_from_file(path_to_windows_horizontal_verts_file)
         faces = read_from_file(path_to_windows_horizontal_faces_file)
+
+        print(f"Window horizontal verts: {verts}")
+        print(f"Window horizontal faces: {faces}")
 
         # Create mesh from data
         boxcount = 0
@@ -444,6 +450,9 @@ def create_floorplan(base_path, program_path, name=None):
         verts = read_from_file(path_to_doors_vertical_verts_file)
         faces = read_from_file(path_to_doors_vertical_faces_file)
 
+        print(f"Door vertical verts: {verts}")
+        print(f"Door vertical faces: {faces}")
+
         # Create mesh from data
         boxcount = 0
         wallcount = 0
@@ -503,6 +512,9 @@ def create_floorplan(base_path, program_path, name=None):
         # get doors
         verts = read_from_file(path_to_doors_horizontal_verts_file)
         faces = read_from_file(path_to_doors_horizontal_faces_file)
+
+        print(f"Door horizontal verts: {verts}")
+        print(f"Door horizontal faces: {faces}")
 
         # Create mesh from data
         boxcount = 0
