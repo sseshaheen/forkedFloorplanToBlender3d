@@ -548,6 +548,9 @@ class Window(Generator):
                 if logger:
                     logger.debug(f'Windows created: {int(window_amount)}')
 
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_VERTICAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_VERTICAL_FACES, self.faces, info)
+
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)
 
