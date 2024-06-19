@@ -15,7 +15,7 @@ import logging
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from shared_variables import shared_variables
+from shared_variables_custom import shared_variables
 # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 sys.path.insert(0, "..")
