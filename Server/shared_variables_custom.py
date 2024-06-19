@@ -55,7 +55,7 @@ class shared_variables:
     def get_object_path(self, id, format=".blend"):
         for file in self.objects:
             if str(id + format) == file:
-                return self.parentPath + "/" + self.objectsPath + "/" + id + format
+                return "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.objectsPath + "/" + id + format
         return None
 
     def get_process(self, pid):
@@ -68,7 +68,7 @@ class shared_variables:
         """return full path to file with id, return None if can't be found"""
         for file in list:
             if id in file:
-                return self.parentPath + "/" + type_path + "/" + file
+                return "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + type_path + "/" + file
         return None
 
     def reindex_files(self):
@@ -78,7 +78,7 @@ class shared_variables:
             self.objects,
             self.stackingfiles,
             self.configfiles,
-        ) = self.list_files(self.parentPath)
+        ) = self.list_files("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI")
 
     def init_ids(self):
         # initialize ids
@@ -210,23 +210,23 @@ class shared_variables:
     def init_server_file_structure(self):
         """Creating folders for server files if they do not already exist"""
 
-        if not os.path.exists(self.parentPath):
-            os.makedirs(self.parentPath)
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI")
 
-        if not os.path.exists(self.parentPath + "/data"):
-            os.makedirs(self.parentPath + "/data")
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/data"):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/data")
 
-        if not os.path.exists(self.parentPath + "/" + self.imagesPath):
-            os.makedirs(self.parentPath + "/" + self.imagesPath)
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.imagesPath):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.imagesPath)
 
-        if not os.path.exists(self.parentPath + "/" + self.objectsPath):
-            os.makedirs(self.parentPath + "/" + self.objectsPath)
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.objectsPath):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.objectsPath)
 
-        if not os.path.exists(self.parentPath + "/" + self.stackingPath):
-            os.makedirs(self.parentPath + "/" + self.stackingPath)
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.stackingPath):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.stackingPath)
 
-        if not os.path.exists(self.parentPath + "/" + self.configPath):
-            os.makedirs(self.parentPath + "/" + self.configPath)
+        if not os.path.exists("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.configPath):
+            os.makedirs("/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" + "/" + self.configPath)
 
     def init_config(self):
         """Load configs from config file"""
@@ -239,7 +239,7 @@ class shared_variables:
         # self.swaggerHost = conf.get("Swagger", "HOST")
         # self.swaggerPort = conf.get("Swagger", "PORT")
 
-        # self.parentPath = conf.get("Storage", "PARENT")
+        # "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI" = conf.get("Storage", "PARENT")
         # self.imagesPath = conf.get("Storage", "IMAGES")
         # self.objectsPath = conf.get("Storage", "OBJECTS")
         # self.stackingPath = conf.get("Storage", "STACKING")
