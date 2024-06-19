@@ -232,12 +232,12 @@ class shared_variables:
         """Load configs from config file"""
         conf = ConfigHandler()
         # [self.flaskHost, self.flaskPort] = conf.get_all("Website")
-        self.flaskurl = "http://" + self.flaskHost + ":{0}".format(self.flaskPort)
-        self.restapiHost = conf.get("RestApi", "HOST")
-        self.restapiPort = conf.get("RestApi", "PORT")
+        # self.flaskurl = "http://" + self.flaskHost + ":{0}".format(self.flaskPort)
+        # self.restapiHost = conf.get("RestApi", "HOST")
+        # self.restapiPort = conf.get("RestApi", "PORT")
 
-        self.swaggerHost = conf.get("Swagger", "HOST")
-        self.swaggerPort = conf.get("Swagger", "PORT")
+        # self.swaggerHost = conf.get("Swagger", "HOST")
+        # self.swaggerPort = conf.get("Swagger", "PORT")
 
         self.parentPath = conf.get("Storage", "PARENT")
         self.imagesPath = conf.get("Storage", "IMAGES")
