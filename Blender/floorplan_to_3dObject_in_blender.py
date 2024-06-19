@@ -154,6 +154,11 @@ def main(argv):
     """
     for i in range(7, len(argv)):
         base_path = argv[i]
+
+        # manual debugging:
+        program_path = "/home/apps/blender"  # Change this to your program path
+        base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"  # Change this to your transform data path
+
         create_floorplan(base_path, program_path, i)
 
     """
