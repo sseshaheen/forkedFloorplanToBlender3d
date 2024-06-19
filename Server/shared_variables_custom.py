@@ -246,7 +246,7 @@ class shared_variables:
         # self.configPath = conf.get("Storage", "CONFIG")
 
         self.parentPath = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"
-        self.imagesPath = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI/images"
-        self.objectsPath = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI/objects"
-        self.stackingPath = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI/stacking"
-        self.configPath = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI/config"
+        self.imagesPath = "images"
+        self.objectsPath = "objects"
+        self.stackingPath = "stacking"
+        self.configPath = "config"
