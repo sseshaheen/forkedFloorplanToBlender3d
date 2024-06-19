@@ -239,8 +239,8 @@ class shared_variables:
         # self.swaggerHost = conf.get("Swagger", "HOST")
         # self.swaggerPort = conf.get("Swagger", "PORT")
 
-        self.parentPath = conf.get("Storage", "PARENT")
-        self.imagesPath = conf.get("Storage", "IMAGES")
-        self.objectsPath = conf.get("Storage", "OBJECTS")
-        self.stackingPath = conf.get("Storage", "STACKING")
-        self.configPath = conf.get("Storage", "CONFIG")
+        # self.parentPath = conf.get("Storage", "PARENT")
+        # self.imagesPath = conf.get("Storage", "IMAGES")
+        # self.objectsPath = conf.get("Storage", "OBJECTS")
+        # self.stackingPath = conf.get("Storage", "STACKING")
+        # self.configPath = conf.get("Storage", "CONFIG")
