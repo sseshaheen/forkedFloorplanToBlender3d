@@ -134,6 +134,40 @@ def create_mat(rgb_color):
 """
 Main functionality here!
 """
+def main(argv):
+
+    # Remove starting object cube
+    objs = bpy.data.objects
+    objs.remove(objs["Cube"], do_unlink=True)
+
+    if len(argv) > 7:  # Note YOU need 8 arguments!
+        program_path = argv[5]
+        target = argv[6]
+    else:
+        exit(0)
+
+    """
+    Instantiate
+    Each argument after 7 will be a floorplan path
+    """
+    for i in range(7, len(argv)):
+        # base_path = argv[i]
+        program_path = "/home/apps/blender"  # Change this to your program path
+        base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"  # Change this to your transform data path
+
+        create_floorplan(base_path, program_path, i)
+
+    """
+    Save to file
+    TODO add several save modes here!
+    """
+    bpy.ops.wm.save_as_mainfile(filepath=program_path + target)  # "/floorplan.blend"
+
+    """
+    Send correct exit code
+    """
+    exit(0)
+
 
 def create_floorplan(base_path, program_path, name=None):
 
@@ -590,14 +624,14 @@ def create_floorplan(base_path, program_path, name=None):
 
     print("Finished creating floorplan.")
 
-# Run the script independently with specified paths
-program_path = "/home/apps/blender"  # Change this to your program path
-base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"  # Change this to your transform data path
+# # Run the script independently with specified paths
+# program_path = "/home/apps/blender"  # Change this to your program path
+# base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/7ZX5LI"  # Change this to your transform data path
 
-# Call the function directly to create the floorplan
-create_floorplan(base_path, program_path, name=0)
+# # Call the function directly to create the floorplan
+# create_floorplan(base_path, program_path, name=0)
 
-# Save the Blender file
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "output_floorplan.blend"))
+# # Save the Blender file
+# bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "output_floorplan.blend"))
 
-print("Blender file saved successfully.")
+# print("Blender file saved successfully.")
