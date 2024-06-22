@@ -128,20 +128,20 @@ def generate_all_files(
 
         _, gray, scale_factor = IO.read_image(floorplan.image_path, floorplan)
 
-        if floorplan.floors:
-            logger.debug("Generating floor data...")
-            shape = Floor(gray, path, scale, info).shape
-            logger.debug(f"Floor shape: {shape}")
+        # if floorplan.floors:
+        #     logger.debug("Generating floor data...")
+        #     shape = Floor(gray, path, scale, info).shape
+        #     logger.debug(f"Floor shape: {shape}")
 
-        # if floorplan.walls:
-        #     logger.debug("Generating wall data...")
-        #     if shape is not None:
-        #         new_shape = Wall(gray, path, scale, info).shape
-        #         shape = validate_shape(shape, new_shape)
-        #         logger.debug(f"Validated shape (with walls): {shape}")
-        #     else:
-        #         shape = Wall(gray, path, scale, info).shape
-        #         logger.debug(f"Wall shape: {shape}")
+        if floorplan.walls:
+            logger.debug("Generating wall data...")
+            if shape is not None:
+                new_shape = Wall(gray, path, scale, info).shape
+                shape = validate_shape(shape, new_shape)
+                logger.debug(f"Validated shape (with walls): {shape}")
+            else:
+                shape = Wall(gray, path, scale, info).shape
+                logger.debug(f"Wall shape: {shape}")
 
         if floorplan.rooms:
             logger.debug("Generating room data...")
@@ -153,13 +153,13 @@ def generate_all_files(
                 shape = Room(gray, path, scale, info).shape
                 logger.debug(f"Room shape: {shape}")
 
-        if floorplan.windows:
-            logger.debug("Generating window data...")
-            Window(gray, path, floorplan.image_path, scale_factor, scale, info)
+        # if floorplan.windows:
+        #     logger.debug("Generating window data...")
+        #     Window(gray, path, floorplan.image_path, scale_factor, scale, info)
 
-        if floorplan.doors:
-            logger.debug("Generating door data...")
-            Door(gray, path, floorplan.image_path, scale_factor, scale, info)
+        # if floorplan.doors:
+        #     logger.debug("Generating door data...")
+        #     Door(gray, path, floorplan.image_path, scale_factor, scale, info)
 
     generate_transform_file(
         floorplan.image_path,
