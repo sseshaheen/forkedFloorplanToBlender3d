@@ -153,13 +153,13 @@ def generate_all_files(
                 shape = Room(gray, path, scale, info).shape
                 logger.debug(f"Room shape: {shape}")
 
-        # if floorplan.windows:
-        #     logger.debug("Generating window data...")
-        #     Window(gray, path, floorplan.image_path, scale_factor, scale, info)
+        if floorplan.windows:
+            logger.debug("Generating window data...")
+            Window(gray, path, floorplan.image_path, scale_factor, scale, info)
 
-        # if floorplan.doors:
-        #     logger.debug("Generating door data...")
-        #     Door(gray, path, floorplan.image_path, scale_factor, scale, info)
+        if floorplan.doors:
+            logger.debug("Generating door data...")
+            Door(gray, path, floorplan.image_path, scale_factor, scale, info)
 
     generate_transform_file(
         floorplan.image_path,
