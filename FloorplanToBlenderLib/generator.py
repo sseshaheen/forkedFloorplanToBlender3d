@@ -268,21 +268,22 @@ class Wall(Generator):
         current_index = len(self.verts)
 
         for gap in gaps:
-            if len(gap) != 4:
-                if LOGGING_VERBOSE:
-                    logger.error(f"Gap does not have exactly 4 points: {gap}")
-                continue
-
             try:
+                flattened_gap = [point[0] for point in gap]  # Flatten the gap coordinates
+                if len(flattened_gap) != 4:
+                    if LOGGING_VERBOSE:
+                        logger.error(f"Flattened gap does not have exactly 4 points: {flattened_gap}")
+                    continue
+
                 new_verts = [
-                    [gap[0][0], gap[0][1], 0],
-                    [gap[0][0], gap[0][1], self.height],
-                    [gap[1][0], gap[1][1], 0],
-                    [gap[1][0], gap[1][1], self.height],
-                    [gap[2][0], gap[2][1], 0],
-                    [gap[2][0], gap[2][1], self.height],
-                    [gap[3][0], gap[3][1], 0],
-                    [gap[3][0], gap[3][1], self.height],
+                    [flattened_gap[0][0], flattened_gap[0][1], 0],
+                    [flattened_gap[0][0], flattened_gap[0][1], self.height],
+                    [flattened_gap[1][0], flattened_gap[1][1], 0],
+                    [flattened_gap[1][0], flattened_gap[1][1], self.height],
+                    [flattened_gap[2][0], flattened_gap[2][1], 0],
+                    [flattened_gap[2][0], flattened_gap[2][1], self.height],
+                    [flattened_gap[3][0], flattened_gap[3][1], 0],
+                    [flattened_gap[3][0], flattened_gap[3][1], self.height],
                 ]
             except IndexError as e:
                 if LOGGING_VERBOSE:
