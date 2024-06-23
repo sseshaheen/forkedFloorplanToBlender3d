@@ -255,17 +255,31 @@ class Wall(Generator):
         @Param info: Boolean indicating if information should be printed.
         @Return: Shape of the walls.
         """
+        logger = configure_logging()
+        
         # Create wall image (filter out small objects from image)
         wall_img = detect.wall_filter(gray, caller='generator_wall')
+        if wall_img is None:
+            logger.error("Wall filter did not return any data.")
+            return None
 
         # Detect walls
         boxes, _ = detect.precise_boxes(wall_img, caller='generator_wall')
+        if not boxes:
+            logger.error("No boxes detected for walls.")
+            return None
 
         # Detect contour
         contour, _ = detect.outer_contours(gray, caller='generator_wall')
+        if contour is None:
+            logger.error("No contours detected in the image.")
+            return None
 
         # Remove walls outside of contour
         boxes = calculate.remove_walls_not_in_contour(boxes, contour)
+        if not boxes:
+            logger.error("All detected boxes were removed by the contour filter.")
+            return None
 
         # Convert boxes to verts and faces, vertically
         self.verts, self.faces, wall_amount = transform.create_nx4_verts_and_faces(
@@ -277,10 +291,8 @@ class Wall(Generator):
 
         if info:
             print("Walls created: ", wall_amount)
-            if LOGGING_VERBOSE:
-                logger = configure_logging()
-                if logger:
-                    logger.debug(f'Walls created: {wall_amount}')
+        if LOGGING_VERBOSE:
+            logger.debug(f'Walls created: {wall_amount}')
 
         # Save data to file
         IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts)
@@ -297,24 +309,19 @@ class Wall(Generator):
 
         if info:
             print("Walls created: ", wall_amount)
-            if LOGGING_VERBOSE:
-                logger = configure_logging()
-                if logger:
-                    logger.debug(f'Walls created horizontally: {wall_amount}')
+        if LOGGING_VERBOSE:
+            logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts)
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces)
-        
-        self.add_frames_for_gaps()
-        return self.get_shape(self.verts)
 
 
     def add_frames_for_gaps(self):
+        logger = configure_logging()
+
         if LOGGING_VERBOSE:
-            logger = configure_logging()
-            if logger:
-                logger.debug('Adding frames for gaps...')
+            logger.debug('Adding frames for gaps...')
 
         doors = detect.doors(self.image_path, self.scale_factor)
         windows = detect.windows(self.image_path, self.scale_factor)
@@ -328,8 +335,7 @@ class Wall(Generator):
             try:
                 flattened_gap = [point[0] for point in gap]  # Flatten the gap coordinates
                 if len(flattened_gap) != 4:
-                    if LOGGING_VERBOSE:
-                        logger.error(f"Flattened gap does not have exactly 4 points: {flattened_gap}")
+                    logger.error(f"Flattened gap does not have exactly 4 points: {flattened_gap}")
                     continue
 
                 new_verts = [
@@ -343,14 +349,12 @@ class Wall(Generator):
                     [flattened_gap[3][0], flattened_gap[3][1], self.height],
                 ]
             except IndexError as e:
-                if LOGGING_VERBOSE:
-                    logger.error(f"Error processing gap: {gap}, error: {e}")
+                logger.error(f"Error processing gap: {gap}, error: {e}")
                 continue
 
             is_valid, invalid_vert = self.validate_vertices(new_verts)
             if not is_valid:
-                if LOGGING_VERBOSE:
-                    logger.error(f"Invalid vertex format detected: {invalid_vert}")
+                logger.error(f"Invalid vertex format detected: {invalid_vert}")
                 raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
             
             frame_verts.extend(new_verts)
@@ -369,8 +373,7 @@ class Wall(Generator):
         # Validate all vertices before saving
         for vert in self.verts:
             if not self.is_valid_vertex(vert):
-                if LOGGING_VERBOSE:
-                    logger.error(f"Invalid vertex format in final list: {vert}")
+                logger.error(f"Invalid vertex format in final list: {vert}")
                 raise ValueError(f"Invalid vertex format in final list: {vert}")
 
         # Save frame data to file
