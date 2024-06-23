@@ -64,16 +64,33 @@ def average(lst):
 
 def get_mesh_center(verts):
     # Calculate center location of a mesh from verts
-    x = []
-    y = []
-    z = []
+    """
+    Calculate the center of the mesh.
+    @Param verts: List of vertices.
+    @Return: Center of the mesh.
+    """
+    # Ensure that verts is a list of lists,
+    # where each sublist represents a vertex with
+    # three coordinates [x, y, z]
+    if not verts:
+        return [0, 0, 0]
+
+    x, y, z = [], [], []
 
     for vert in verts:
-        x.append(vert[0])
-        y.append(vert[1])
-        z.append(vert[2])
+        if isinstance(vert, list) and len(vert) == 3:
+            x.append(vert[0])
+            y.append(vert[1])
+            z.append(vert[2])
+        else:
+            raise ValueError(f"Invalid vertex format: {vert}")
 
-    return [average(x), average(y), average(z)]
+    center_x = sum(x) / len(x)
+    center_y = sum(y) / len(y)
+    center_z = sum(z) / len(z)
+
+    return [center_x, center_y, center_z]
+
 
 
 def subtract_center_verts(verts1, verts2):
