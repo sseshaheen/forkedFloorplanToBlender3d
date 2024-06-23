@@ -1,4 +1,6 @@
-import abc
+# backup of generator.py original
+# 
+# import abc
 import cv2
 import math
 import numpy as np
@@ -78,6 +80,7 @@ def save_debug_info(filename, data):
         #     logger = configure_logging()
         #     if logger:
         #         logger.debug(f'Saved debug info: {filepath}')
+
 
 # def convert_to_lists(poslist):
 #     """
@@ -243,9 +246,7 @@ class Floor(Generator):
 
 
 class Wall(Generator):
-    def __init__(self, gray, path, image_path, scale_factor, scale, info=False):
-        self.image_path = image_path
-        self.scale_factor = scale_factor
+    def __init__(self, gray, path, scale, info=False):
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
@@ -255,31 +256,17 @@ class Wall(Generator):
         @Param info: Boolean indicating if information should be printed.
         @Return: Shape of the walls.
         """
-        logger = configure_logging()
-        
         # Create wall image (filter out small objects from image)
         wall_img = detect.wall_filter(gray, caller='generator_wall')
-        if wall_img is None:
-            logger.error("Wall filter did not return any data.")
-            return None
 
         # Detect walls
         boxes, _ = detect.precise_boxes(wall_img, caller='generator_wall')
-        if not boxes:
-            logger.error("No boxes detected for walls.")
-            return None
 
         # Detect contour
         contour, _ = detect.outer_contours(gray, caller='generator_wall')
-        if contour is None:
-            logger.error("No contours detected in the image.")
-            return None
 
         # Remove walls outside of contour
         boxes = calculate.remove_walls_not_in_contour(boxes, contour)
-        if not boxes:
-            logger.error("All detected boxes were removed by the contour filter.")
-            return None
 
         # Convert boxes to verts and faces, vertically
         self.verts, self.faces, wall_amount = transform.create_nx4_verts_and_faces(
@@ -291,12 +278,14 @@ class Wall(Generator):
 
         if info:
             print("Walls created: ", wall_amount)
-        if LOGGING_VERBOSE:
-            logger.debug(f'Walls created: {wall_amount}')
+            if LOGGING_VERBOSE:
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created: {wall_amount}')
 
         # Save data to file
-        IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts)
-        IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces)
+        IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces, info)
 
         # Convert boxes to verts and faces, horizontally
         self.verts, self.faces, wall_amount = transform.create_4xn_verts_and_faces(
@@ -309,99 +298,17 @@ class Wall(Generator):
 
         if info:
             print("Walls created: ", wall_amount)
-        if LOGGING_VERBOSE:
-            logger.debug(f'Walls created horizontally: {wall_amount}')
+            if LOGGING_VERBOSE:
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
-        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts)
-        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces)
+        # One solution to get data to blender is to write and read from file.
+        IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
 
-
-    def add_frames_for_gaps(self):
-        logger = configure_logging()
-
-        if LOGGING_VERBOSE:
-            logger.debug('Adding frames for gaps...')
-
-        doors = detect.doors(self.image_path, self.scale_factor)
-        windows = detect.windows(self.image_path, self.scale_factor)
-        gaps = doors + windows
-
-        frame_verts = []
-        frame_faces = []
-        current_index = len(self.verts)
-
-        for gap in gaps:
-            try:
-                flattened_gap = [point[0] for point in gap]  # Flatten the gap coordinates
-                if len(flattened_gap) != 4:
-                    logger.error(f"Flattened gap does not have exactly 4 points: {flattened_gap}")
-                    continue
-
-                new_verts = [
-                    [flattened_gap[0][0], flattened_gap[0][1], 0],
-                    [flattened_gap[0][0], flattened_gap[0][1], self.height],
-                    [flattened_gap[1][0], flattened_gap[1][1], 0],
-                    [flattened_gap[1][0], flattened_gap[1][1], self.height],
-                    [flattened_gap[2][0], flattened_gap[2][1], 0],
-                    [flattened_gap[2][0], flattened_gap[2][1], self.height],
-                    [flattened_gap[3][0], flattened_gap[3][1], 0],
-                    [flattened_gap[3][0], flattened_gap[3][1], self.height],
-                ]
-            except IndexError as e:
-                logger.error(f"Error processing gap: {gap}, error: {e}")
-                continue
-
-            is_valid, invalid_vert = self.validate_vertices(new_verts)
-            if not is_valid:
-                logger.error(f"Invalid vertex format detected: {invalid_vert}")
-                raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
-            
-            frame_verts.extend(new_verts)
-            idx = current_index + len(frame_verts) - 8
-            frame_faces.extend([
-                [idx, idx + 1, idx + 3, idx + 2],
-                [idx + 2, idx + 3, idx + 5, idx + 4],
-                [idx + 4, idx + 5, idx + 7, idx + 6],
-                [idx + 6, idx + 7, idx + 1, idx],
-            ])
-
-        # Add frame vertices and faces to the main lists
-        self.verts.extend(frame_verts)
-        self.faces.extend(frame_faces)
-
-        # Validate all vertices before saving
-        for vert in self.verts:
-            if not self.is_valid_vertex(vert):
-                logger.error(f"Invalid vertex format in final list: {vert}")
-                raise ValueError(f"Invalid vertex format in final list: {vert}")
-
-        # Save frame data to file
-        IO.save_to_file(self.path + "frame_verts", frame_verts)
-        IO.save_to_file(self.path + "frame_faces", frame_faces)
-
-    def validate_vertices(self, vertices):
-        """
-        Validate the format of vertices to ensure they are in [x, y, z] format.
-        @param vertices: List of vertices to validate.
-        @return: Tuple (is_valid, invalid_vertex).
-        """
-        for vert in vertices:
-            if not self.is_valid_vertex(vert):
-                return False, vert
-        return True, None
-
-    def is_valid_vertex(self, vert):
-        """
-        Check if a vertex is valid.
-        @param vert: Vertex to check.
-        @return: Boolean indicating if the vertex is valid.
-        """
-        return isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)
-
-
-
-
+        return self.get_shape(self.verts)
 
 
 class Room(Generator):
@@ -603,19 +510,13 @@ class Door(Generator):
         )
 
         # One solution to get data to blender is to write and read from file.
-
-        IO.save_to_file(self.path + "debug_door_horizontal_verts", self.verts, info)
-        IO.save_to_file(self.path + "debug_door_horizontal_faces", self.faces, info)
+        IO.save_to_file(self.path + "door_horizontal_verts", self.verts, info)
+        IO.save_to_file(self.path + "door_horizontal_faces", self.faces, info)
 
         # Add frames to doors
         frame_verts, frame_faces = self.add_frames(door_contours)
-
         IO.save_to_file(self.path + "door_frames_verts", frame_verts, info)
         IO.save_to_file(self.path + "door_frames_faces", frame_faces, info)
-
-        IO.save_to_file(self.path + "door_horizontal_verts", self.verts + frame_verts, info)
-        IO.save_to_file(self.path + "door_horizontal_faces", self.faces + frame_faces, info)
-
 
         return self.get_shape(self.verts)
 
@@ -670,16 +571,10 @@ class Window(Generator):
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)
 
-
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
-
-
         # Add frames to windows
         frame_verts, frame_faces = self.add_frames(windows)
         IO.save_to_file(self.path + "window_frames_verts", frame_verts, info)
         IO.save_to_file(self.path + "window_frames_faces", frame_faces, info)
-
 
         # Create verts for window, horizontal
         v, f, _ = transform.create_4xn_verts_and_faces(
@@ -705,8 +600,7 @@ class Window(Generator):
         self.faces.extend(f2)
 
         # One solution to get data to blender is to write and read from file.
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts + frame_verts, info)
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces + frame_faces, info)
-
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
 
         return self.get_shape(self.verts)
