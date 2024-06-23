@@ -518,14 +518,14 @@ class Window(Generator):
         print(f"Detected windows: {windows}")
 
         # Create verts for window, vertical
-        v, self.faces, window_amount1 = transform.create_nx4_verts_and_faces(
+        v, faces1, window_amount1 = transform.create_nx4_verts_and_faces(
             boxes=windows,
             height=const.WINDOW_MIN_MAX_GAP[0],
             scale=self.scale,
             pixelscale=self.pixelscale,
             ground=0,
         )  # Create low piece
-        v2, self.faces, window_amount2 = transform.create_nx4_verts_and_faces(
+        v2, faces2, window_amount2 = transform.create_nx4_verts_and_faces(
             boxes=windows,
             height=self.height,
             scale=self.scale,
@@ -533,8 +533,8 @@ class Window(Generator):
             ground=const.WINDOW_MIN_MAX_GAP[1],
         )  # Create higher piece
 
-        self.verts = v
-        self.verts.extend(v2)
+        self.verts = v + v2
+        self.faces = faces1 + faces2
         parts_per_window = 2
         window_amount = len(v) / parts_per_window
 
@@ -557,14 +557,16 @@ class Window(Generator):
         # Create verts and faces for window frames
         frame_verts = []
         frame_faces = []
+        current_index = len(self.verts)  # Starting index for new vertices
+
         for box in windows:
             for i in range(4):
                 frame_verts.extend([
                     [box[i][0][0], box[i][0][1], 0],
                     [box[i][0][0], box[i][0][1], 1],
                 ])
-                idx = len(frame_verts)
-                frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
+                idx = current_index + len(frame_verts) - 2
+                frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
 
         print(f"Frame Verts: {frame_verts}")
         print(f"Frame Faces: {frame_faces}")
@@ -573,8 +575,12 @@ class Window(Generator):
         # print(f"Saved vertical window verts to {self.path + const.WINDOW_VERTICAL_VERTS}: {self.verts}")
         # print(f"Saved vertical window faces to {self.path + const.WINDOW_VERTICAL_FACES}: {self.faces}")
 
+        # Adding frame vertices and faces to the original lists
+        self.verts.extend(frame_verts)
+        self.faces.extend(frame_faces)
+
         # Create verts for window, horizontal
-        v, f, _ = transform.create_4xn_verts_and_faces(
+        v, f1, _ = transform.create_4xn_verts_and_faces(
             boxes=windows,
             height=self.height,
             scale=self.scale,
@@ -591,10 +597,8 @@ class Window(Generator):
             ground_height=const.WINDOW_MIN_MAX_GAP[1],
         )
 
-        self.verts = v
-        self.verts.extend(v2)
-        self.faces = f
-        self.faces.extend(f2)
+        self.verts.extend(v + v2)
+        self.faces.extend(f1 + f2)
 
         print("Horizontal Window Verts: ", self.verts)
         print("Horizontal Window Faces: ", self.faces)
@@ -602,12 +606,20 @@ class Window(Generator):
         IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
 
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
 
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts + frame_verts, info)
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces + frame_faces, info)
 
         # Adding debug prints for horizontal frames
         # print(f"Saved horizontal window verts to {self.path + const.WINDOW_HORIZONTAL_VERTS}: {self.verts}")
         # print(f"Saved horizontal window faces to {self.path + const.WINDOW_HORIZONTAL_FACES}: {self.faces}")
+
+        # Adding frame vertices and faces to the original lists for horizontal windows
+        self.verts.extend(frame_verts)
+        self.faces.extend(frame_faces)
+
+        # Save final data with frames
+        IO.save_to_file(self.path + "window_horizontal_verts_with_frames", self.verts, info)
+        IO.save_to_file(self.path + "window_horizontal_faces_with_frames", self.faces, info)
 
         return self.get_shape(self.verts)
