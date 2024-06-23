@@ -335,18 +335,31 @@ class Wall(Generator):
         current_index = len(self.verts)  # Starting index for new vertices
 
         for gap in gaps:
-            for i in range(4):
-                new_verts = [
-                    [gap[i][0][0], gap[i][0][1], 0],
-                    [gap[i][0][0], gap[i][0][1], self.height],
-                ]
-                is_valid, invalid_vert = self.validate_vertices(new_verts)
-                if not is_valid:
+            new_verts = [
+                [gap[0][0], gap[0][1], 0],
+                [gap[0][0], gap[0][1], self.height],
+                [gap[1][0], gap[1][1], 0],
+                [gap[1][0], gap[1][1], self.height],
+                [gap[2][0], gap[2][1], 0],
+                [gap[2][0], gap[2][1], self.height],
+                [gap[3][0], gap[3][1], 0],
+                [gap[3][0], gap[3][1], self.height],
+            ]
+            
+            is_valid, invalid_vert = self.validate_vertices(new_verts)
+            if not is_valid:
+                if LOGGING_VERBOSE:
                     logger.error(f"Invalid vertex format detected: {invalid_vert}")
-                    raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
-                frame_verts.extend(new_verts)
-                idx = current_index + len(frame_verts) - 2
-                frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
+                raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
+            
+            frame_verts.extend(new_verts)
+            idx = current_index + len(frame_verts) - 8  # Adjust index correctly
+            frame_faces.extend([
+                [idx, idx + 1, idx + 3, idx + 2],
+                [idx + 2, idx + 3, idx + 5, idx + 4],
+                [idx + 4, idx + 5, idx + 7, idx + 6],
+                [idx + 6, idx + 7, idx + 1, idx],
+            ])
 
         # Add frame vertices and faces to the main lists
         self.verts.extend(frame_verts)
@@ -355,7 +368,8 @@ class Wall(Generator):
         # Validate all vertices before saving
         for vert in self.verts:
             if not self.is_valid_vertex(vert):
-                logger.error(f"Invalid vertex format in final list: {vert}")
+                if LOGGING_VERBOSE:
+                    logger.error(f"Invalid vertex format in final list: {vert}")
                 raise ValueError(f"Invalid vertex format in final list: {vert}")
 
         # Save frame data to file
