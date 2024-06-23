@@ -81,11 +81,19 @@ def save_debug_info(filename, data):
 
 def convert_to_lists(poslist):
     """
-    Convert all elements of poslist to lists.
+    Convert all elements of poslist to lists, including nested structures.
     @Param poslist: Input position list
     @Return: Converted position list
     """
-    return [list(pos) for pos in poslist]
+    def convert(element):
+        if isinstance(element, tuple):
+            return list(element)
+        elif isinstance(element, list):
+            return [convert(sub_element) for sub_element in element]
+        else:
+            return element
+
+    return [convert(pos) for pos in poslist]
 
 
 class Generator:
