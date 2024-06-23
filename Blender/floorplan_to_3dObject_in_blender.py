@@ -78,11 +78,12 @@ def get_mesh_center(verts):
     x, y, z = [], [], []
 
     for vert in verts:
-        if isinstance(vert, list) and len(vert) == 3:
+        if isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert):
             x.append(vert[0])
             y.append(vert[1])
             z.append(vert[2])
         else:
+            print(f"Invalid vertex format: {vert}")
             raise ValueError(f"Invalid vertex format: {vert}")
 
     center_x = sum(x) / len(x)
