@@ -110,8 +110,11 @@ class Generator:
         if len(verts) == 0:
             return [0, 0, 0]
 
-        # ensure all pos are lists
-        poslist = [list(pos) for pos in transform.verts_to_poslist(verts)]
+        poslist = transform.verts_to_poslist(verts)
+        
+        # Convert all positions to lists to avoid comparison issues
+        poslist = [list(pos) for pos in poslist]
+        
         high = [0, 0, 0]
         low = poslist[0]
 
@@ -139,7 +142,7 @@ class Generator:
             logger = configure_logging()
             if logger:
                 logger.debug('Calculated shape of verts.')
-        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
+        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape, 'poslist': poslist})
 
         return rescaled_shape
 
