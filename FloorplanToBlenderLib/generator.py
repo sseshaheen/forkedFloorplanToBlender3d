@@ -349,12 +349,12 @@ class Wall(Generator):
                 frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
 
         # Add frame vertices and faces to the main lists
-        self.verts.extend([v for v in frame_verts if isinstance(v, list) and len(v) == 3])
+        self.verts.extend(frame_verts)
         self.faces.extend(frame_faces)
 
         # Validate all vertices before saving
         for vert in self.verts:
-            if not isinstance(vert, list) or len(vert) != 3:
+            if not self.is_valid_vertex(vert):
                 logger.error(f"Invalid vertex format in final list: {vert}")
                 raise ValueError(f"Invalid vertex format in final list: {vert}")
 
@@ -369,9 +369,18 @@ class Wall(Generator):
         @return: Tuple (is_valid, invalid_vertex).
         """
         for vert in vertices:
-            if not isinstance(vert, list) or len(vert) != 3:
+            if not self.is_valid_vertex(vert):
                 return False, vert
         return True, None
+
+    def is_valid_vertex(self, vert):
+        """
+        Check if a vertex is valid.
+        @param vert: Vertex to check.
+        @return: Boolean indicating if the vertex is valid.
+        """
+        return isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)
+
 
 
 
