@@ -199,6 +199,11 @@ def validate_shape(old_shape, new_shape):
     @Param new_shape: The new shape of the object.
     @Return: Total shape combining old and new shapes.
     """
+    if old_shape is None:
+        old_shape = [0, 0, 0]
+    if new_shape is None:
+        new_shape = [0, 0, 0]
+
     shape = [0, 0, 0]
     shape[0] = max(old_shape[0], new_shape[0])
     shape[1] = max(old_shape[1], new_shape[1])
