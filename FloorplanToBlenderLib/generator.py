@@ -9,7 +9,7 @@ from . import IO
 from . import const
 from . import draw
 from . import calculate
-from .globalConf import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
+from .globalConf import DEBUG_MODE, LOGGING_VERBOSE, load_config_from_json, DEBUG_STORAGE_PATH
 import os
 
 """
