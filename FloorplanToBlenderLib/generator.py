@@ -249,9 +249,63 @@ class Wall(Generator):
         super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
-        # ... (rest of the method remains unchanged)
-        self.add_frames_for_gaps()
-        return self.get_shape(self.verts)
+        """
+        Generate wall data from grayscale image.
+        @Param gray: Grayscale image.
+        @Param info: Boolean indicating if information should be printed.
+        @Return: Shape of the walls.
+        """
+        # Create wall image (filter out small objects from image)
+        wall_img = detect.wall_filter(gray, caller='generator_wall')
+
+        # Detect walls
+        boxes, _ = detect.precise_boxes(wall_img, caller='generator_wall')
+
+        # Detect contour
+        contour, _ = detect.outer_contours(gray, caller='generator_wall')
+
+        # Remove walls outside of contour
+        boxes = calculate.remove_walls_not_in_contour(boxes, contour)
+
+        # Convert boxes to verts and faces, vertically
+        self.verts, self.faces, wall_amount = transform.create_nx4_verts_and_faces(
+            boxes=boxes,
+            height=self.height,
+            scale=self.scale,
+            pixelscale=self.pixelscale,
+        )
+
+        if info:
+            print("Walls created: ", wall_amount)
+            if LOGGING_VERBOSE:
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created: {wall_amount}')
+
+        # Save data to file
+        IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts)
+        IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces)
+
+        # Convert boxes to verts and faces, horizontally
+        self.verts, self.faces, wall_amount = transform.create_4xn_verts_and_faces(
+            boxes=boxes,
+            height=self.height,
+            scale=self.scale,
+            pixelscale=self.pixelscale,
+            ground=True,
+        )
+
+        if info:
+            print("Walls created: ", wall_amount)
+            if LOGGING_VERBOSE:
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created horizontally: {wall_amount}')
+
+        # Save data to file
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts)
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces)
+
 
     def add_frames_for_gaps(self):
         if LOGGING_VERBOSE:
@@ -544,8 +598,8 @@ class Door(Generator):
 
         # One solution to get data to blender is to write and read from file.
 
-        IO.save_to_file(self.path + "debug_door_vertical_verts", self.verts, info)
-        IO.save_to_file(self.path + "debug_door_vertical_faces", self.faces, info)
+        IO.save_to_file(self.path + "debug_door_horizontal_verts", self.verts, info)
+        IO.save_to_file(self.path + "debug_door_horizontal_faces", self.faces, info)
 
         # Add frames to doors
         frame_verts, frame_faces = self.add_frames(door_contours)
