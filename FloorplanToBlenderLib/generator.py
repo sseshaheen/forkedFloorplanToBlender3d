@@ -346,8 +346,8 @@ class Wall(Generator):
         self.faces.extend(frame_faces)
 
         # Save frame data to file
-        IO.save_to_file(self.path + "frame_verts", frame_verts, info=True)
-        IO.save_to_file(self.path + "frame_faces", frame_faces, info=True)
+        IO.save_to_file(self.path + "frame_verts", frame_verts)
+        IO.save_to_file(self.path + "frame_faces", frame_faces)
 
 
 
