@@ -100,6 +100,14 @@ class Generator:
         self.shape = self.generate(gray, info)
         self.scale = scale
 
+    def convert_to_lists(poslist):
+        """
+        Convert all elements of poslist to lists.
+        @Param poslist: Input position list
+        @Return: Converted position list
+        """
+        return [list(pos) for pos in poslist]
+
     def get_shape(self, verts):
         """
         Get shape
@@ -114,8 +122,8 @@ class Generator:
         print(f"Original poslist: {poslist}")  # Debug print to show original poslist
         print(f"Types in original poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
 
-        # Ensure all pos are lists
-        poslist = [list(pos) for pos in poslist]
+        # Use convert_to_lists to ensure all pos are lists
+        poslist = convert_to_lists(poslist)
         print(f"Converted poslist: {poslist}")  # Debug print to show converted poslist
         print(f"Types in converted poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
 
