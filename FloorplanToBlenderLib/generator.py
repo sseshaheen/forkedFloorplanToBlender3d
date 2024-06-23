@@ -86,9 +86,7 @@ def convert_to_lists(poslist):
     @Return: Converted position list
     """
     def convert(element):
-        if isinstance(element, tuple):
-            return list(element)
-        elif isinstance(element, list):
+        if isinstance(element, (tuple, list)):
             return [convert(sub_element) for sub_element in element]
         else:
             return element
