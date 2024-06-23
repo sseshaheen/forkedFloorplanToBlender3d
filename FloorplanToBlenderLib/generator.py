@@ -110,12 +110,12 @@ class Generator:
         if len(verts) == 0:
             return [0, 0, 0]
 
-        poslist = transform.verts_to_poslist(verts)
+        # ensure all pos are lists
+        poslist = [list(pos) for pos in transform.verts_to_poslist(verts)]
         high = [0, 0, 0]
-        low = list(poslist[0])
+        low = poslist[0]
 
         for pos in poslist:
-            pos = list(pos)  # ensure pos is a list for comparison
             if pos[0] > high[0]:
                 high[0] = pos[0]
             if pos[1] > high[1]:
