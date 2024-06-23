@@ -136,11 +136,11 @@ def generate_all_files(
         if floorplan.walls:
             logger.debug("Generating wall data...")
             if shape is not None:
-                new_shape = Wall(gray, path, floorplan.image_path, scale_factor, scale, info).shape
+                new_shape = Wall(gray, path, scale, info).shape
                 shape = validate_shape(shape, new_shape)
                 logger.debug(f"Validated shape (with walls): {shape}")
             else:
-                shape = Wall(gray, path, floorplan.image_path, scale_factor, scale, info).shape
+                shape = Wall(gray, path, scale, info).shape
                 logger.debug(f"Wall shape: {shape}")
 
         if floorplan.rooms:
@@ -192,6 +192,120 @@ def generate_all_files(
     return path, shape
 
 
+# def generate_all_files(
+#     floorplan,
+#     info,
+#     world_direction=None,
+#     world_scale=np.array([1, 1, 1]),
+#     world_position=np.array([0, 0, 0]),
+#     world_rotation=np.array([0, 0, 0]),
+# ):
+#     """
+#     Generate all data files
+#     @Param floorplan: The floorplan object containing details for generating files.
+#     @Param info: Boolean indicating if information should be printed.
+#     @Param world_direction: Direction for building (default is None, set to 1).
+#     @Param world_scale: Scale vector for the world.
+#     @Param world_position: Position vector  of float
+#     @Param world_rotation: Rotation vector  of float
+#     @Return: Path to the generated file, shape of the generated object.
+#     """
+#     logger = configure_logging()
+#     if world_direction is None:
+#         world_direction = 1
+
+#     scale = [
+#         floorplan.scale[0] * world_scale[0],
+#         floorplan.scale[1] * world_scale[1],
+#         floorplan.scale[2] * world_scale[2],
+#     ]
+
+#     if info:
+#         logger.info(
+#             " ----- Generate ",
+#             floorplan.image_path,
+#             " at pos ",
+#             transform.list_to_nparray(floorplan.position) + transform.list_to_nparray(world_position),
+#             " rot ",
+#             transform.list_to_nparray(floorplan.rotation) + transform.list_to_nparray(world_rotation),
+#             " scale ",
+#             scale,
+#             " -----",
+#         )
+
+#     # Get path to save data
+#     path = IO.create_new_floorplan_path(const.BASE_PATH)
+
+#     origin_path, shape = IO.find_reuseable_data(floorplan.image_path, const.BASE_PATH)
+
+#     if origin_path is None:
+#         origin_path = path
+
+#         _, gray, scale_factor = IO.read_image(floorplan.image_path, floorplan)
+
+#         if floorplan.floors:
+#             logger.debug("Generating floor data...")
+#             shape = Floor(gray, path, scale, info).shape
+#             logger.debug(f"Floor shape: {shape}")
+
+#         if floorplan.walls:
+#             logger.debug("Generating wall data...")
+#             if shape is not None:
+#                 new_shape = Wall(gray, path, floorplan.image_path, scale_factor, scale, info).shape
+#                 shape = validate_shape(shape, new_shape)
+#                 logger.debug(f"Validated shape (with walls): {shape}")
+#             else:
+#                 shape = Wall(gray, path, floorplan.image_path, scale_factor, scale, info).shape
+#                 logger.debug(f"Wall shape: {shape}")
+
+#         if floorplan.rooms:
+#             logger.debug("Generating room data...")
+#             if shape is not None:
+#                 new_shape = Room(gray, path, scale, info).shape
+#                 shape = validate_shape(shape, new_shape)
+#                 logger.debug(f"Validated shape (with rooms): {shape}")
+#             else:
+#                 shape = Room(gray, path, scale, info).shape
+#                 logger.debug(f"Room shape: {shape}")
+
+#         if floorplan.windows:
+#             logger.debug("Generating window data...")
+#             Window(gray, path, floorplan.image_path, scale_factor, scale, info)
+
+#         if floorplan.doors:
+#             logger.debug("Generating door data...")
+#             Door(gray, path, floorplan.image_path, scale_factor, scale, info)
+
+#     generate_transform_file(
+#         floorplan.image_path,
+#         path,
+#         info,
+#         floorplan.position,
+#         world_position,
+#         floorplan.rotation,
+#         world_rotation,
+#         scale,
+#         shape,
+#         path,
+#         origin_path,
+#     )
+
+#     if floorplan.position is not None:
+#         shape = [
+#             world_direction * shape[0] + floorplan.position[0] + world_position[0],
+#             world_direction * shape[1] + floorplan.position[1] + world_position[1],
+#             world_direction * shape[2] + floorplan.position[2] + world_position[2],
+#         ]
+
+#     if shape is None:
+#         shape = [0, 0, 0]
+
+#     if LOGGING_VERBOSE:
+#         logger.debug(f'Generated all files for floorplan: {floorplan.image_path}')
+#     save_debug_info('generate_all_files.txt', {'path': path, 'shape': shape})
+
+#     return path, shape
+
 def validate_shape(old_shape, new_shape):
     """
     Validate shape, use this to calculate an object's total shape.
@@ -199,11 +313,6 @@ def validate_shape(old_shape, new_shape):
     @Param new_shape: The new shape of the object.
     @Return: Total shape combining old and new shapes.
     """
-    if old_shape is None:
-        old_shape = [0, 0, 0]
-    if new_shape is None:
-        new_shape = [0, 0, 0]
-
     shape = [0, 0, 0]
     shape[0] = max(old_shape[0], new_shape[0])
     shape[1] = max(old_shape[1], new_shape[1])
