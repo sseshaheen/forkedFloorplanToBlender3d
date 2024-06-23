@@ -93,6 +93,22 @@ def convert_to_lists(poslist):
 
     return [convert(pos) for pos in poslist]
 
+def flatten(poslist):
+    """
+    Flatten nested position lists to ensure each element is a 3D coordinate.
+    @Param poslist: Input nested position list
+    @Return: Flattened position list with only 3D coordinates
+    """
+    flat_list = []
+    for pos in poslist:
+        if isinstance(pos, list) and len(pos) == 3 and all(isinstance(coord, (int, float)) for coord in pos):
+            flat_list.append(pos)
+        elif isinstance(pos, list):
+            flat_list.extend(flatten(pos))
+        else:
+            raise ValueError(f"Invalid position element: {pos}")
+    return flat_list
+
 
 class Generator:
     __metaclass__ = abc.ABCMeta
@@ -130,6 +146,7 @@ class Generator:
 
         # Use convert_to_lists to ensure all pos are lists
         poslist = convert_to_lists(poslist)
+        poslist = flatten(poslist)
         print(f"Converted poslist: {poslist}")  # Debug print to show converted poslist
         print(f"Types in converted poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
 
@@ -137,21 +154,18 @@ class Generator:
         low = [float('inf'), float('inf'), float('inf')]
 
         for pos in poslist:
-            if isinstance(pos, list) and len(pos) == 3 and all(isinstance(coord, (int, float)) for coord in pos):
-                if pos[0] > high[0]:
-                    high[0] = pos[0]
-                if pos[1] > high[1]:
-                    high[1] = pos[1]
-                if pos[2] > high[2]:
-                    high[2] = pos[2]
-                if pos[0] < low[0]:
-                    low[0] = pos[0]
-                if pos[1] < low[1]:
-                    low[1] = pos[1]
-                if pos[2] < low[2]:
-                    low[2] = pos[2]
-            else:
-                raise ValueError(f"Invalid position: {pos}")
+            if pos[0] > high[0]:
+                high[0] = pos[0]
+            if pos[1] > high[1]:
+                high[1] = pos[1]
+            if pos[2] > high[2]:
+                high[2] = pos[2]
+            if pos[0] < low[0]:
+                low[0] = pos[0]
+            if pos[1] < low[1]:
+                low[1] = pos[1]
+            if pos[2] < low[2]:
+                low[2] = pos[2]
 
         rescaled_shape = [
             (high[0] - low[0]) * self.scale[0],
