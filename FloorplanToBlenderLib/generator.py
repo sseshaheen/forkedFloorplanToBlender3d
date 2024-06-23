@@ -302,11 +302,51 @@ class Wall(Generator):
                     logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
-        # One solution to get data to blender is to write and read from file.
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces, info)
+
+        # Add frames for doors and windows
+        self.add_frames_for_gaps(gray)
+
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
 
+
         return self.get_shape(self.verts)
+
+    def add_frames_for_gaps(self, gray):
+        """
+        Add frames for doors and windows by extending walls and creating frames where there are gaps.
+        @Param gray: Grayscale image.
+        """
+        # Detect doors and windows
+        doors = detect.doors(self.image_path, self.scale_factor)
+        windows = detect.windows(self.image_path, self.scale_factor)
+
+        # Combine doors and windows for processing
+        gaps = doors + windows
+
+        frame_verts = []
+        frame_faces = []
+        current_index = len(self.verts)  # Starting index for new vertices
+
+        for gap in gaps:
+            for i in range(4):
+                frame_verts.extend([
+                    [gap[i][0][0], gap[i][0][1], 0],
+                    [gap[i][0][0], gap[i][0][1], self.height],
+                ])
+                idx = current_index + len(frame_verts) - 2
+                frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
+
+        # Add frame vertices and faces to the main lists
+        self.verts.extend(frame_verts)
+        self.faces.extend(frame_faces)
+
+        # Save frame data to file
+        IO.save_to_file(self.path + "frame_verts", frame_verts, info=True)
+        IO.save_to_file(self.path + "frame_faces", frame_faces, info=True)
+
 
 
 class Room(Generator):
