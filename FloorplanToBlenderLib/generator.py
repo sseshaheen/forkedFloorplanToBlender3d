@@ -610,6 +610,12 @@ class Window(Generator):
         print(f"Frame Verts: {frame_verts}")
         print(f"Frame Faces: {frame_faces}")
 
+        print("Horizontal Window Verts: ", self.verts)
+        print("Horizontal Window Faces: ", self.faces)
+
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
+        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
+
         # Adding debug prints for vertical frames
         # print(f"Saved vertical window verts to {self.path + const.WINDOW_VERTICAL_VERTS}: {self.verts}")
         # print(f"Saved vertical window faces to {self.path + const.WINDOW_VERTICAL_FACES}: {self.faces}")
@@ -638,12 +644,6 @@ class Window(Generator):
 
         self.verts.extend(v + v2)
         self.faces.extend(f1 + f2)
-
-        print("Horizontal Window Verts: ", self.verts)
-        print("Horizontal Window Faces: ", self.faces)
-
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
 
         IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
