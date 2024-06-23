@@ -308,7 +308,7 @@ class Wall(Generator):
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces, info)
 
         # Add frames for doors and windows
-        self.add_frames_for_gaps(gray, self.image_path, self.scale_factor)
+        self.add_frames_for_gaps()
 
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
@@ -316,7 +316,7 @@ class Wall(Generator):
 
         return self.get_shape(self.verts)
 
-    def add_frames_for_gaps(self, gray, image_path, scale_factor):
+    def add_frames_for_gaps(self):
         """
         Add frames for doors and windows by extending walls and creating frames where there are gaps.
         @Param gray: Grayscale image.
