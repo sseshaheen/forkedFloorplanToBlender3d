@@ -133,22 +133,25 @@ class Generator:
         print(f"Converted poslist: {poslist}")  # Debug print to show converted poslist
         print(f"Types in converted poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
 
-        high = [0, 0, 0]
-        low = poslist[0]
+        high = [float('-inf'), float('-inf'), float('-inf')]
+        low = [float('inf'), float('inf'), float('inf')]
 
         for pos in poslist:
-            if pos[0] > high[0]:
-                high[0] = pos[0]
-            if pos[1] > high[1]:
-                high[1] = pos[1]
-            if pos[2] > high[2]:
-                high[2] = pos[2]
-            if pos[0] < low[0]:
-                low[0] = pos[0]
-            if pos[1] < low[1]:
-                low[1] = pos[1]
-            if pos[2] < low[2]:
-                low[2] = pos[2]
+            if isinstance(pos, list) and len(pos) == 3 and all(isinstance(coord, (int, float)) for coord in pos):
+                if pos[0] > high[0]:
+                    high[0] = pos[0]
+                if pos[1] > high[1]:
+                    high[1] = pos[1]
+                if pos[2] > high[2]:
+                    high[2] = pos[2]
+                if pos[0] < low[0]:
+                    low[0] = pos[0]
+                if pos[1] < low[1]:
+                    low[1] = pos[1]
+                if pos[2] < low[2]:
+                    low[2] = pos[2]
+            else:
+                raise ValueError(f"Invalid position: {pos}")
 
         rescaled_shape = [
             (high[0] - low[0]) * self.scale[0],
