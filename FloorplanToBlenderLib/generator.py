@@ -9,7 +9,7 @@ from . import IO
 from . import const
 from . import draw
 from . import calculate
-from .globalConf import load_config_from_json, DEBUG_MODE, LOGGING_VERBOSE
+from .globalConf import DEBUG_MODE, LOGGING_VERBOSE, DEBUG_STORAGE_PATH
 import os
 
 """
@@ -59,6 +59,7 @@ def configure_logging():
 
 
 
+
 def save_debug_info(filename, data):
     """
     Save debug information to a file if DEBUG_MODE is enabled.
@@ -79,36 +80,35 @@ def save_debug_info(filename, data):
         #         logger.debug(f'Saved debug info: {filepath}')
 
 
-def convert_to_lists(poslist):
-    """
-    Convert all elements of poslist to lists, including nested structures.
-    @Param poslist: Input position list
-    @Return: Converted position list
-    """
-    def convert(element):
-        if isinstance(element, (tuple, list)):
-            return [convert(sub_element) for sub_element in element]
-        else:
-            return element
+# def convert_to_lists(poslist):
+#     """
+#     Convert all elements of poslist to lists, including nested structures.
+#     @Param poslist: Input position list
+#     @Return: Converted position list
+#     """
+#     def convert(element):
+#         if isinstance(element, (tuple, list)):
+#             return [convert(sub_element) for sub_element in element]
+#         else:
+#             return element
 
-    return [convert(pos) for pos in poslist]
+#     return [convert(pos) for pos in poslist]
 
-def flatten(poslist):
-    """
-    Flatten nested position lists to ensure each element is a 3D coordinate.
-    @Param poslist: Input nested position list
-    @Return: Flattened position list with only 3D coordinates
-    """
-    flat_list = []
-    for pos in poslist:
-        if isinstance(pos, list) and len(pos) == 3 and all(isinstance(coord, (int, float)) for coord in pos):
-            flat_list.append(pos)
-        elif isinstance(pos, list):
-            flat_list.extend(flatten(pos))
-        else:
-            raise ValueError(f"Invalid position element: {pos}")
-    return flat_list
-
+# def flatten(poslist):
+#     """
+#     Flatten nested position lists to ensure each element is a 3D coordinate.
+#     @Param poslist: Input nested position list
+#     @Return: Flattened position list with only 3D coordinates
+#     """
+#     flat_list = []
+#     for pos in poslist:
+#         if isinstance(pos, list) and len(pos) == 3 and all(isinstance(coord, (int, float)) for coord in pos):
+#             flat_list.append(pos)
+#         elif isinstance(pos, list):
+#             flat_list.extend(flatten(pos))
+#         else:
+#             raise ValueError(f"Invalid position element: {pos}")
+#     return flat_list
 
 class Generator:
     __metaclass__ = abc.ABCMeta
@@ -141,17 +141,8 @@ class Generator:
             return [0, 0, 0]
 
         poslist = transform.verts_to_poslist(verts)
-        print(f"Original poslist: {poslist}")  # Debug print to show original poslist
-        print(f"Types in original poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
-
-        # Use convert_to_lists to ensure all pos are lists
-        poslist = convert_to_lists(poslist)
-        poslist = flatten(poslist)
-        print(f"Converted poslist: {poslist}")  # Debug print to show converted poslist
-        print(f"Types in converted poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
-
-        high = [float('-inf'), float('-inf'), float('-inf')]
-        low = [float('inf'), float('inf'), float('inf')]
+        high = [0, 0, 0]
+        low = poslist[0]
 
         for pos in poslist:
             if pos[0] > high[0]:
@@ -177,7 +168,7 @@ class Generator:
             logger = configure_logging()
             if logger:
                 logger.debug('Calculated shape of verts.')
-        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape, 'poslist': poslist})
+        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
 
         return rescaled_shape
 
@@ -185,6 +176,30 @@ class Generator:
     def generate(self, gray, info=False):
         """Perform the generation"""
         pass
+
+    def add_frames(self, boxes, height=1):
+        """
+        Add frames to the boxes (windows or doors).
+        @Param boxes: List of boxes to add frames to.
+        @Param height: Height of the frames.
+        """
+        frame_verts = []
+        frame_faces = []
+        current_index = len(self.verts)  # Starting index for new vertices
+
+        for box in boxes:
+            for i in range(4):
+                frame_verts.extend([
+                    [box[i][0][0], box[i][0][1], 0],
+                    [box[i][0][0], box[i][0][1], height],
+                ])
+                idx = current_index + len(frame_verts) - 2
+                frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
+
+        self.verts.extend(frame_verts)
+        self.faces.extend(frame_faces)
+
+        return frame_verts, frame_faces
 
 
 class Floor(Generator):
@@ -363,9 +378,9 @@ class Door(Generator):
                     dist = distance
 
         if LOGGING_VERBOSE:
-            logger = configure_logging()
-            if logger:
-                logger.debug('Calculated point furthest away from doorway.')
+                logger = configure_logging()
+                if logger:
+                    logger.debug('Calculated point furthest away from doorway.')
         save_debug_info('get_point_the_furthest_away.txt', {'door_features': door_features, 'door_box': door_box, 'best_point': best_point})
 
         return best_point
@@ -399,9 +414,9 @@ class Door(Generator):
                     dist = distance
 
         if LOGGING_VERBOSE:
-            logger = configure_logging()
-            if logger:
-                logger.debug('Calculated closest box point to door point.')
+                logger = configure_logging()
+                if logger:
+                    logger.debug('Calculated closest box point to door point.')
         save_debug_info('get_closest_box_point_to_door_point.txt', {'wall_point': wall_point, 'box': box, 'best_point': best_point})
 
         return (int(best_point[0]), int(best_point[1]))
@@ -415,22 +430,20 @@ class Door(Generator):
         @Return: Shape of the doors.
         """
         doors = detect.doors(self.image_path, self.scale_factor)
-        print(f"Detected doors: {doors}")
 
         door_contours = []
         # Get best door shapes!
         for door in doors:
             door_features = door[0]
             door_box = door[1]
-            print(f"Door features: {door_features}, Door box: {door_box}")
 
             # Find door to space point
             space_point = self.get_point_the_furthest_away(door_features, door_box)
-            print(f"Space point: {space_point}")
 
             # Find best box corner to use as attachment
-            closest_box_point = self.get_closest_box_point_to_door_point(space_point, door_box)
-            print(f"Closest box point: {closest_box_point}")
+            closest_box_point = self.get_closest_box_point_to_door_point(
+                space_point, door_box
+            )
 
             # Calculate normal
             normal_line = [
@@ -440,7 +453,6 @@ class Door(Generator):
 
             # Normalize point
             normal_line = calculate.normalize_2d(normal_line)
-            print(f"Normal line: {normal_line}")
 
             # Create door contour
             x1 = closest_box_point[0] + normal_line[1] * const.DOOR_WIDTH
@@ -462,26 +474,12 @@ class Door(Generator):
 
             door_contour = np.array([[c1], [c2], [c3], [c4]], dtype=np.int32)
             door_contours.append(door_contour)
-            print(f"Door contour: {door_contour}")
 
         if const.DEBUG_DOOR:
             print("Showing DEBUG door. Press any key to continue...")
             img = draw.contoursOnImage(gray, door_contours)
             draw.image(img)
 
-        # Create verts and faces for door frames
-        frame_verts = []
-        frame_faces = []
-        for contour in door_contours:
-            for i in range(4):
-                frame_verts.extend([
-                    [contour[i][0][0], contour[i][0][1], 0],
-                    [contour[i][0][0], contour[i][0][1], 1],
-                ])
-                idx = len(frame_verts)
-                frame_faces.append([idx - 2, idx - 1, (idx + 1) % 8, (idx + 0) % 8])
-        print(f"Frame Verts: {frame_verts}")
-        print(f"Frame Faces: {frame_faces}")
 
         self.verts, self.faces, door_amount = transform.create_nx4_verts_and_faces(
             boxes=door_contours,
@@ -490,9 +488,6 @@ class Door(Generator):
             pixelscale=self.pixelscale,
         )
 
-        print("Vertical Door Verts: ", self.verts)
-        print("Vertical Door Faces: ", self.faces)
-
         if info:
             print("Doors created: ", int(door_amount / 4))
             if LOGGING_VERBOSE:
@@ -500,15 +495,8 @@ class Door(Generator):
                 if logger:
                     logger.debug(f'Doors created: {int(door_amount / 4)}')
 
-        IO.save_to_file(self.path + "debug_door_vertical_verts", self.verts, info)
-        IO.save_to_file(self.path + "debug_door_vertical_faces", self.faces, info)
-
-        IO.save_to_file(self.path + "door_vertical_verts", self.verts + frame_verts, info)
-        IO.save_to_file(self.path + "door_vertical_faces", self.faces + frame_faces, info)
-
-        # Adding debug prints for vertical frames
-        # print(f"Saved vertical door verts to {self.path + 'door_vertical_verts'}: {self.verts}")
-        # print(f"Saved vertical door faces to {self.path + 'door_vertical_faces'}: {self.faces}")
+        IO.save_to_file(self.path + "door_vertical_verts", self.verts, info)
+        IO.save_to_file(self.path + "door_vertical_faces", self.faces, info)
 
         self.verts, self.faces, door_amount = transform.create_4xn_verts_and_faces(
             boxes=door_contours,
@@ -519,19 +507,20 @@ class Door(Generator):
             ground_height=const.WALL_GROUND,
         )
 
-        print("Horizontal Door Verts: ", self.verts)
-        print("Horizontal Door Faces: ", self.faces)
+        # One solution to get data to blender is to write and read from file.
 
-        IO.save_to_file(self.path + "debug_door_horizontal_verts", self.verts, info)
-        IO.save_to_file(self.path + "debug_door_horizontal_faces", self.faces, info)
+        IO.save_to_file(self.path + "debug_door_vertical_verts", self.verts, info)
+        IO.save_to_file(self.path + "debug_door_vertical_faces", self.faces, info)
 
+        # Add frames to doors
+        frame_verts, frame_faces = self.add_frames(door_contours)
+
+        IO.save_to_file(self.path + "door_frames_verts", frame_verts, info)
+        IO.save_to_file(self.path + "door_frames_faces", frame_faces, info)
 
         IO.save_to_file(self.path + "door_horizontal_verts", self.verts + frame_verts, info)
         IO.save_to_file(self.path + "door_horizontal_faces", self.faces + frame_faces, info)
 
-        # Adding debug prints for horizontal frames
-        # print(f"Saved horizontal door verts to {self.path + 'door_horizontal_verts'}: {self.verts}")
-        # print(f"Saved horizontal door faces to {self.path + 'door_horizontal_faces'}: {self.faces}")
 
         return self.get_shape(self.verts)
 
@@ -554,17 +543,16 @@ class Window(Generator):
         @Return: Shape of the windows.
         """
         windows = detect.windows(self.image_path, self.scale_factor)
-        print(f"Detected windows: {windows}")
 
         # Create verts for window, vertical
-        v, faces1, window_amount1 = transform.create_nx4_verts_and_faces(
+        v, self.faces, window_amount1 = transform.create_nx4_verts_and_faces(
             boxes=windows,
             height=const.WINDOW_MIN_MAX_GAP[0],
             scale=self.scale,
             pixelscale=self.pixelscale,
             ground=0,
         )  # Create low piece
-        v2, faces2, window_amount2 = transform.create_nx4_verts_and_faces(
+        v2, self.faces, window_amount2 = transform.create_nx4_verts_and_faces(
             boxes=windows,
             height=self.height,
             scale=self.scale,
@@ -572,13 +560,10 @@ class Window(Generator):
             ground=const.WINDOW_MIN_MAX_GAP[1],
         )  # Create higher piece
 
-        self.verts = v + v2
-        self.faces = faces1 + faces2
+        self.verts = v
+        self.verts.extend(v2)
         parts_per_window = 2
         window_amount = len(v) / parts_per_window
-
-        print("Vertical Window Verts: ", self.verts)
-        print("Vertical Window Faces: ", self.faces)
 
         if info:
             print("Windows created: ", int(window_amount))
@@ -587,45 +572,22 @@ class Window(Generator):
                 if logger:
                     logger.debug(f'Windows created: {int(window_amount)}')
 
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_VERTICAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + "debug_" + const.WINDOW_VERTICAL_FACES, self.faces, info)
-
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WINDOW_VERTICAL_FACES, self.faces, info)
 
-        # Create verts and faces for window frames
-        frame_verts = []
-        frame_faces = []
-        current_index = len(self.verts)  # Starting index for new vertices
-
-        for box in windows:
-            for i in range(4):
-                frame_verts.extend([
-                    [box[i][0][0], box[i][0][1], 0],
-                    [box[i][0][0], box[i][0][1], 1],
-                ])
-                idx = current_index + len(frame_verts) - 2
-                frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
-
-        print(f"Frame Verts: {frame_verts}")
-        print(f"Frame Faces: {frame_faces}")
-
-        print("Horizontal Window Verts: ", self.verts)
-        print("Horizontal Window Faces: ", self.faces)
 
         IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + "debug_" + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
 
-        # Adding debug prints for vertical frames
-        # print(f"Saved vertical window verts to {self.path + const.WINDOW_VERTICAL_VERTS}: {self.verts}")
-        # print(f"Saved vertical window faces to {self.path + const.WINDOW_VERTICAL_FACES}: {self.faces}")
 
-        # Adding frame vertices and faces to the original lists
-        self.verts.extend(frame_verts)
-        self.faces.extend(frame_faces)
+        # Add frames to windows
+        frame_verts, frame_faces = self.add_frames(windows)
+        IO.save_to_file(self.path + "window_frames_verts", frame_verts, info)
+        IO.save_to_file(self.path + "window_frames_faces", frame_faces, info)
+
 
         # Create verts for window, horizontal
-        v, f1, _ = transform.create_4xn_verts_and_faces(
+        v, f, _ = transform.create_4xn_verts_and_faces(
             boxes=windows,
             height=self.height,
             scale=self.scale,
@@ -642,19 +604,14 @@ class Window(Generator):
             ground_height=const.WINDOW_MIN_MAX_GAP[1],
         )
 
-        self.verts.extend(v + v2)
-        self.faces.extend(f1 + f2)
+        self.verts = v
+        self.verts.extend(v2)
+        self.faces = f
+        self.faces.extend(f2)
 
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces, info)
+        # One solution to get data to blender is to write and read from file.
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_VERTS, self.verts + frame_verts, info)
+        IO.save_to_file(self.path + const.WINDOW_HORIZONTAL_FACES, self.faces + frame_faces, info)
 
-
-        # Adding debug prints for horizontal frames
-        # print(f"Saved horizontal window verts to {self.path + const.WINDOW_HORIZONTAL_VERTS}: {self.verts}")
-        # print(f"Saved horizontal window faces to {self.path + const.WINDOW_HORIZONTAL_FACES}: {self.faces}")
-
-        # Save final data with frames
-        IO.save_to_file(self.path + "window_horizontal_verts_with_frames", self.verts, info)
-        IO.save_to_file(self.path + "window_horizontal_faces_with_frames", self.faces, info)
 
         return self.get_shape(self.verts)
