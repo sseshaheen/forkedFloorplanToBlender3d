@@ -79,18 +79,6 @@ def save_debug_info(filename, data):
         #     if logger:
         #         logger.debug(f'Saved debug info: {filepath}')
 
-def validate_vertices(verts):
-    """
-    Validate that all vertices are in the correct format.
-    @Param verts: List of vertices.
-    @Return: Boolean indicating if all vertices are valid.
-    """
-    for vert in verts:
-        if not (isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)):
-            return False, vert
-    return True, None
-
-
 # def convert_to_lists(poslist):
 #     """
 #     Convert all elements of poslist to lists, including nested structures.
@@ -267,6 +255,10 @@ class Wall(Generator):
         @Param info: Boolean indicating if information should be printed.
         @Return: Shape of the walls.
         """
+        logger = configure_logging()
+        if LOGGING_VERBOSE:
+            logger.debug('Generating wall data...')
+            
         # Create wall image (filter out small objects from image)
         wall_img = detect.wall_filter(gray, caller='generator_wall')
 
@@ -290,9 +282,7 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger = configure_logging()
-                if logger:
-                    logger.debug(f'Walls created: {wall_amount}')
+                logger.debug(f'Walls created: {wall_amount}')
 
         # Save data to file
         IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts, info)
@@ -310,9 +300,7 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger = configure_logging()
-                if logger:
-                    logger.debug(f'Walls created horizontally: {wall_amount}')
+                logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts, info)
@@ -321,9 +309,9 @@ class Wall(Generator):
         # Add frames for doors and windows
         self.add_frames_for_gaps()
 
+        # Save the final wall data including frames
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
-
 
         return self.get_shape(self.verts)
 
@@ -331,10 +319,10 @@ class Wall(Generator):
         """
         Add frames for doors and windows by extending walls and creating frames where there are gaps.
         """
+        logger = configure_logging()
         if LOGGING_VERBOSE:
-            logger = configure_logging()
-            if logger:
-                logger.debug('Adding frames for gaps...')
+            logger.debug('Adding frames for gaps...')
+            
         # Detect doors and windows
         doors = detect.doors(self.image_path, self.scale_factor)
         windows = detect.windows(self.image_path, self.scale_factor)
@@ -352,7 +340,7 @@ class Wall(Generator):
                     [gap[i][0][0], gap[i][0][1], 0],
                     [gap[i][0][0], gap[i][0][1], self.height],
                 ]
-                is_valid, invalid_vert = validate_vertices(new_verts)
+                is_valid, invalid_vert = self.validate_vertices(new_verts)
                 if not is_valid:
                     logger.error(f"Invalid vertex format detected: {invalid_vert}")
                     raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
@@ -367,6 +355,18 @@ class Wall(Generator):
         # Save frame data to file
         IO.save_to_file(self.path + "frame_verts", frame_verts)
         IO.save_to_file(self.path + "frame_faces", frame_faces)
+
+    def validate_vertices(self, verts):
+        """
+        Validate the format of vertices.
+        @Param verts: List of vertices to validate.
+        @Return: Tuple (is_valid, invalid_vertex)
+        """
+        for vert in verts:
+            if not (isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)):
+                return False, vert
+        return True, None
+
 
 
 
