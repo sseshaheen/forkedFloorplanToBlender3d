@@ -335,6 +335,11 @@ class Wall(Generator):
         current_index = len(self.verts)  # Starting index for new vertices
 
         for gap in gaps:
+            if len(gap) < 4:
+                if LOGGING_VERBOSE:
+                    logger.error(f"Gap does not have enough points: {gap}")
+                continue  # Skip gaps that do not have enough points
+            
             new_verts = [
                 [gap[0][0], gap[0][1], 0],
                 [gap[0][0], gap[0][1], self.height],
