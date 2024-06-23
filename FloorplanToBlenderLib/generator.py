@@ -79,6 +79,14 @@ def save_debug_info(filename, data):
         #         logger.debug(f'Saved debug info: {filepath}')
 
 
+def convert_to_lists(poslist):
+    """
+    Convert all elements of poslist to lists.
+    @Param poslist: Input position list
+    @Return: Converted position list
+    """
+    return [list(pos) for pos in poslist]
+
 
 class Generator:
     __metaclass__ = abc.ABCMeta
@@ -99,14 +107,6 @@ class Generator:
         self.path = path
         self.shape = self.generate(gray, info)
         self.scale = scale
-
-    def convert_to_lists(poslist):
-        """
-        Convert all elements of poslist to lists.
-        @Param poslist: Input position list
-        @Return: Converted position list
-        """
-        return [list(pos) for pos in poslist]
 
     def get_shape(self, verts):
         """
