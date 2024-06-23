@@ -79,6 +79,17 @@ def save_debug_info(filename, data):
         #     if logger:
         #         logger.debug(f'Saved debug info: {filepath}')
 
+def validate_vertices(verts):
+    """
+    Validate that all vertices are in the correct format.
+    @Param verts: List of vertices.
+    @Return: Boolean indicating if all vertices are valid.
+    """
+    for vert in verts:
+        if not (isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)):
+            return False, vert
+    return True, None
+
 
 # def convert_to_lists(poslist):
 #     """
@@ -319,8 +330,11 @@ class Wall(Generator):
     def add_frames_for_gaps(self):
         """
         Add frames for doors and windows by extending walls and creating frames where there are gaps.
-        @Param gray: Grayscale image.
         """
+        if LOGGING_VERBOSE:
+            logger = configure_logging()
+            if logger:
+                logger.debug('Adding frames for gaps...')
         # Detect doors and windows
         doors = detect.doors(self.image_path, self.scale_factor)
         windows = detect.windows(self.image_path, self.scale_factor)
@@ -334,10 +348,15 @@ class Wall(Generator):
 
         for gap in gaps:
             for i in range(4):
-                frame_verts.extend([
+                new_verts = [
                     [gap[i][0][0], gap[i][0][1], 0],
                     [gap[i][0][0], gap[i][0][1], self.height],
-                ])
+                ]
+                is_valid, invalid_vert = validate_vertices(new_verts)
+                if not is_valid:
+                    logger.error(f"Invalid vertex format detected: {invalid_vert}")
+                    raise ValueError(f"Invalid vertex format detected: {invalid_vert}")
+                frame_verts.extend(new_verts)
                 idx = current_index + len(frame_verts) - 2
                 frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
 
