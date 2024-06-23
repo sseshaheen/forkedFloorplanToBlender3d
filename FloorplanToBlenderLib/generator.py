@@ -349,7 +349,7 @@ class Wall(Generator):
                 frame_faces.append([idx, idx + 1, (idx + 3) % 8, (idx + 2) % 8])
 
         # Add frame vertices and faces to the main lists
-        self.verts.extend(frame_verts)
+        self.verts.extend([v for v in frame_verts if isinstance(v, list) and len(v) == 3])
         self.faces.extend(frame_faces)
 
         # Validate all vertices before saving
