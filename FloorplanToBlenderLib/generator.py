@@ -244,8 +244,9 @@ class Floor(Generator):
 
 
 class Wall(Generator):
-    def __init__(self, gray, path, scale, info=False):
-        super().__init__(gray, path, scale, info)
+    def __init__(self, gray, path, scale, image_path, scale_factor, info=False):
+        self.image_path = image_path
+        self.scale_factor = scale_factor
 
     def generate(self, gray, info=False):
         """
@@ -306,7 +307,7 @@ class Wall(Generator):
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces, info)
 
         # Add frames for doors and windows
-        self.add_frames_for_gaps(gray)
+        self.add_frames_for_gaps(gray, self.image_path, self.scale_factor)
 
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
         IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
@@ -314,14 +315,14 @@ class Wall(Generator):
 
         return self.get_shape(self.verts)
 
-    def add_frames_for_gaps(self, gray):
+    def add_frames_for_gaps(self, gray, image_path, scale_factor):
         """
         Add frames for doors and windows by extending walls and creating frames where there are gaps.
         @Param gray: Grayscale image.
         """
         # Detect doors and windows
-        doors = detect.doors(self.image_path, self.scale_factor)
-        windows = detect.windows(self.image_path, self.scale_factor)
+        doors = detect.doors(image_path, scale_factor)
+        windows = detect.windows(image_path, scale_factor)
 
         # Combine doors and windows for processing
         gaps = doors + windows
