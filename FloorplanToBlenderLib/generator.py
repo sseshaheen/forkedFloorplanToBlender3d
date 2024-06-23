@@ -305,6 +305,9 @@ class Wall(Generator):
         # Save data to file
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts)
         IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces)
+        
+        self.add_frames_for_gaps()
+        return self.get_shape(self.verts)
 
 
     def add_frames_for_gaps(self):
