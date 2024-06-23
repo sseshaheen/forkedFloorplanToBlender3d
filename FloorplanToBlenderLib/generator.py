@@ -244,9 +244,10 @@ class Floor(Generator):
 
 
 class Wall(Generator):
-    def __init__(self, gray, path, scale, image_path, scale_factor, info=False):
+    def __init__(self, gray, path, image_path, scale_factor, scale, info=False):
         self.image_path = image_path
         self.scale_factor = scale_factor
+        super().__init__(gray, path, scale, info)
 
     def generate(self, gray, info=False):
         """
@@ -321,8 +322,8 @@ class Wall(Generator):
         @Param gray: Grayscale image.
         """
         # Detect doors and windows
-        doors = detect.doors(image_path, scale_factor)
-        windows = detect.windows(image_path, scale_factor)
+        doors = detect.doors(self.image_path, self.scale_factor)
+        windows = detect.windows(self.image_path, self.scale_factor)
 
         # Combine doors and windows for processing
         gaps = doors + windows
