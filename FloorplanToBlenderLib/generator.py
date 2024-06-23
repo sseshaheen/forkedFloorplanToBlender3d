@@ -255,10 +255,6 @@ class Wall(Generator):
         @Param info: Boolean indicating if information should be printed.
         @Return: Shape of the walls.
         """
-        logger = configure_logging()
-        if LOGGING_VERBOSE:
-            logger.debug('Generating wall data...')
-            
         # Create wall image (filter out small objects from image)
         wall_img = detect.wall_filter(gray, caller='generator_wall')
 
@@ -282,11 +278,13 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger.debug(f'Walls created: {wall_amount}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created: {wall_amount}')
 
         # Save data to file
-        IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces, info)
+        IO.save_to_file(self.path + const.WALL_VERTICAL_VERTS, self.verts)
+        IO.save_to_file(self.path + const.WALL_VERTICAL_FACES, self.faces)
 
         # Convert boxes to verts and faces, horizontally
         self.verts, self.faces, wall_amount = transform.create_4xn_verts_and_faces(
@@ -300,18 +298,19 @@ class Wall(Generator):
         if info:
             print("Walls created: ", wall_amount)
             if LOGGING_VERBOSE:
-                logger.debug(f'Walls created horizontally: {wall_amount}')
+                logger = configure_logging()
+                if logger:
+                    logger.debug(f'Walls created horizontally: {wall_amount}')
 
         # Save data to file
-        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces, info)
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_VERTS, self.verts)
+        IO.save_to_file(self.path + "debug_" + const.WALL_HORIZONTAL_FACES, self.faces)
 
         # Add frames for doors and windows
         self.add_frames_for_gaps()
 
-        # Save the final wall data including frames
-        IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts, info)
-        IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces, info)
+        IO.save_to_file(self.path + const.WALL_HORIZONTAL_VERTS, self.verts)
+        IO.save_to_file(self.path + const.WALL_HORIZONTAL_FACES, self.faces)
 
         return self.get_shape(self.verts)
 
@@ -319,10 +318,11 @@ class Wall(Generator):
         """
         Add frames for doors and windows by extending walls and creating frames where there are gaps.
         """
-        logger = configure_logging()
         if LOGGING_VERBOSE:
-            logger.debug('Adding frames for gaps...')
-            
+            logger = configure_logging()
+            if logger:
+                logger.debug('Adding frames for gaps...')
+
         # Detect doors and windows
         doors = detect.doors(self.image_path, self.scale_factor)
         windows = detect.windows(self.image_path, self.scale_factor)
@@ -352,20 +352,27 @@ class Wall(Generator):
         self.verts.extend(frame_verts)
         self.faces.extend(frame_faces)
 
+        # Validate all vertices before saving
+        for vert in self.verts:
+            if not isinstance(vert, list) or len(vert) != 3:
+                logger.error(f"Invalid vertex format in final list: {vert}")
+                raise ValueError(f"Invalid vertex format in final list: {vert}")
+
         # Save frame data to file
         IO.save_to_file(self.path + "frame_verts", frame_verts)
         IO.save_to_file(self.path + "frame_faces", frame_faces)
 
-    def validate_vertices(self, verts):
+    def validate_vertices(self, vertices):
         """
-        Validate the format of vertices.
-        @Param verts: List of vertices to validate.
-        @Return: Tuple (is_valid, invalid_vertex)
+        Validate the format of vertices to ensure they are in [x, y, z] format.
+        @param vertices: List of vertices to validate.
+        @return: Tuple (is_valid, invalid_vertex).
         """
-        for vert in verts:
-            if not (isinstance(vert, list) and len(vert) == 3 and all(isinstance(coord, (int, float)) for coord in vert)):
+        for vert in vertices:
+            if not isinstance(vert, list) or len(vert) != 3:
                 return False, vert
         return True, None
+
 
 
 
