@@ -111,10 +111,14 @@ class Generator:
             return [0, 0, 0]
 
         poslist = transform.verts_to_poslist(verts)
-        
-        # Convert all positions to lists to avoid comparison issues
+        print(f"Original poslist: {poslist}")  # Debug print to show original poslist
+        print(f"Types in original poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
+
+        # Ensure all pos are lists
         poslist = [list(pos) for pos in poslist]
-        
+        print(f"Converted poslist: {poslist}")  # Debug print to show converted poslist
+        print(f"Types in converted poslist: {[type(pos) for pos in poslist]}")  # Show types of elements
+
         high = [0, 0, 0]
         low = poslist[0]
 
