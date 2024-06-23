@@ -100,48 +100,48 @@ class Generator:
         self.shape = self.generate(gray, info)
         self.scale = scale
 
-def get_shape(self, verts):
-    """
-    Get shape
-    Rescale boxes to specified scale
-    @Param verts: Input boxes
-    @Return: Rescaled boxes
-    """
-    if len(verts) == 0:
-        return [0, 0, 0]
+    def get_shape(self, verts):
+        """
+        Get shape
+        Rescale boxes to specified scale
+        @Param verts: Input boxes
+        @Return: Rescaled boxes
+        """
+        if len(verts) == 0:
+            return [0, 0, 0]
 
-    poslist = transform.verts_to_poslist(verts)
-    high = [0, 0, 0]
-    low = list(poslist[0])
+        poslist = transform.verts_to_poslist(verts)
+        high = [0, 0, 0]
+        low = list(poslist[0])
 
-    for pos in poslist:
-        pos = list(pos)  # ensure pos is a list for comparison
-        if pos[0] > high[0]:
-            high[0] = pos[0]
-        if pos[1] > high[1]:
-            high[1] = pos[1]
-        if pos[2] > high[2]:
-            high[2] = pos[2]
-        if pos[0] < low[0]:
-            low[0] = pos[0]
-        if pos[1] < low[1]:
-            low[1] = pos[1]
-        if pos[2] < low[2]:
-            low[2] = pos[2]
+        for pos in poslist:
+            pos = list(pos)  # ensure pos is a list for comparison
+            if pos[0] > high[0]:
+                high[0] = pos[0]
+            if pos[1] > high[1]:
+                high[1] = pos[1]
+            if pos[2] > high[2]:
+                high[2] = pos[2]
+            if pos[0] < low[0]:
+                low[0] = pos[0]
+            if pos[1] < low[1]:
+                low[1] = pos[1]
+            if pos[2] < low[2]:
+                low[2] = pos[2]
 
-    rescaled_shape = [
-        (high[0] - low[0]) * self.scale[0],
-        (high[1] - low[1]) * self.scale[1],
-        (high[2] - low[2]) * self.scale[2],
-    ]
+        rescaled_shape = [
+            (high[0] - low[0]) * self.scale[0],
+            (high[1] - low[1]) * self.scale[1],
+            (high[2] - low[2]) * self.scale[2],
+        ]
 
-    if LOGGING_VERBOSE:
-        logger = configure_logging()
-        if logger:
-            logger.debug('Calculated shape of verts.')
-    save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
+        if LOGGING_VERBOSE:
+            logger = configure_logging()
+            if logger:
+                logger.debug('Calculated shape of verts.')
+        save_debug_info('get_shape.txt', {'verts': verts, 'rescaled_shape': rescaled_shape})
 
-    return rescaled_shape
+        return rescaled_shape
 
     @abc.abstractmethod
     def generate(self, gray, info=False):
