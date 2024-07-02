@@ -133,15 +133,15 @@ def generate_all_files(
             shape = Floor(gray, path, scale, info).shape
             logger.debug(f"Floor shape: {shape}")
 
-        # if floorplan.walls:
-        #     logger.debug("Generating wall data...")
-        #     if shape is not None:
-        #         new_shape = Wall(gray, path, scale, info).shape
-        #         shape = validate_shape(shape, new_shape)
-        #         logger.debug(f"Validated shape (with walls): {shape}")
-        #     else:
-        #         shape = Wall(gray, path, scale, info).shape
-        #         logger.debug(f"Wall shape: {shape}")
+        if floorplan.walls:
+            logger.debug("Generating wall data...")
+            if shape is not None:
+                new_shape = Wall(gray, path, scale, info).shape
+                shape = validate_shape(shape, new_shape)
+                logger.debug(f"Validated shape (with walls): {shape}")
+            else:
+                shape = Wall(gray, path, scale, info).shape
+                logger.debug(f"Wall shape: {shape}")
 
         if floorplan.rooms:
             logger.debug("Generating room data...")
