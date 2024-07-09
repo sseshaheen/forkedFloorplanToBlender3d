@@ -172,6 +172,18 @@ class Put(Api):
                 "url": ""  #initialize it empty 
             }
 
+            # Create a new dictionary for the merged records
+            image_and_obj_record = {}
+
+            # Add prefixed image_record attributes to the merged dictionary
+            for key, value in image_record.items():
+                image_and_obj_record[f"image_{key}"] = value
+
+            # Add prefixed obj_record attributes to the merged dictionary
+            for key, value in obj_record.items():
+                image_and_obj_record[f"obj_{key}"] = value
+
+
             # Create pending job folder and job.json
             pending_job_folder = f"/home/apps/firebase_upload_cron/pending_jobs/{id}"
             os.makedirs(pending_job_folder, exist_ok=True)
@@ -183,7 +195,8 @@ class Put(Api):
                 "userId": userId,
                 "status": "pending",
                 "image_record": image_record,
-                "obj_record": obj_record
+                "obj_record": obj_record,
+                "image_and_obj_record": image_and_obj_record
             }
 
             with open(os.path.join(pending_job_folder, "job.json"), "w") as job_file:
