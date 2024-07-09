@@ -48,6 +48,7 @@ def process_pending_jobs_to_firebase():
                 try:
                     # Upload the .obj file to Firebase
                     obj_url = upload_file_to_firebase(obj_file_path, job_data["obj_record"]["path"])
+                    obj_url = upload_file_to_firebase(obj_file_path, job_data["image_and_obj_record"]["obj_path"])
                     
                     # Update the job.json with the URL
                     job_data["obj_record"]["url"] = obj_url
