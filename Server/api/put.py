@@ -207,6 +207,7 @@ class Put(Api):
             # Update the user document
             user_ref.update({
                 "images": firestore.ArrayUnion([image_record]),
+                "image_and_obj_record": firestore.ArrayUnion([image_and_obj_record]),
                 # "objects": firestore.ArrayUnion([obj_record])
             })
             # user_ref.update({

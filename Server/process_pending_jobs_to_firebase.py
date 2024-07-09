@@ -62,7 +62,7 @@ def process_pending_jobs_to_firebase():
                         "objects": firestore.ArrayUnion([job_data["obj_record"]])
                     })
                     user_ref.update({
-                        "image_and_obj_record": firestore.ArrayUnion([job_data["obj_record"]])
+                        "image_and_obj_record": firestore.ArrayUnion([job_data["image_and_obj_record"]])
                     })
 
                     # Move the folder to done_jobs
