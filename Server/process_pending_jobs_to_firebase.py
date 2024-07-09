@@ -48,10 +48,10 @@ def process_pending_jobs_to_firebase():
                 try:
                     # Upload the .obj file to Firebase
                     obj_url = upload_file_to_firebase(obj_file_path, job_data["obj_record"]["path"])
-                    obj_url = upload_file_to_firebase(obj_file_path, job_data["image_and_obj_record"]["obj_path"])
                     
                     # Update the job.json with the URL
                     job_data["obj_record"]["url"] = obj_url
+                    job_data["image_and_obj_record"]["url"] = obj_url
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
@@ -60,6 +60,9 @@ def process_pending_jobs_to_firebase():
                     user_ref = db.collection("user_floorplans").document(job_data["userId"])
                     user_ref.update({
                         "objects": firestore.ArrayUnion([job_data["obj_record"]])
+                    })
+                    user_ref.update({
+                        "image_and_obj_record": firestore.ArrayUnion([job_data["obj_record"]])
                     })
 
                     # Move the folder to done_jobs
