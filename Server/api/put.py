@@ -148,9 +148,10 @@ class Put(Api):
 
             # Define the new records
             image_record = {
+                "id": id,
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": image_firebase_path,
-                "successConversionTo3d": "",
+                # "successConversionTo3d": "",
                 "url": image_url
             }
 
@@ -166,6 +167,7 @@ class Put(Api):
 
             # message += f"\nOBJ uploaded to: {obj_url}"
             obj_record = {
+                "id": id,
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": obj_firebase_path,
                 "type": oformat,
