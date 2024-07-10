@@ -52,6 +52,7 @@ def process_pending_jobs_to_firebase():
                     # Update the job.json with the URL
                     job_data["obj_record"]["url"] = obj_url
                     job_data["image_and_obj_record"]["obj_url"] = obj_url
+                    job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
