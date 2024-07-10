@@ -52,7 +52,6 @@ def process_pending_jobs_to_firebase():
                     # Update the job.json with the URL
                     job_data["obj_record"]["url"] = obj_url
                     job_data["image_and_obj_record"]["obj_url"] = obj_url
-                    job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
@@ -66,6 +65,8 @@ def process_pending_jobs_to_firebase():
                     user_ref.update({
                         "image_and_obj": firestore.ArrayRemove([job_data["image_and_obj_record"]])
                     })
+                    # set image_successConversionTo3d to true. Gotta do it after the remove otherwise remove will not work
+                    job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
                     # Add the updated record
                     user_ref.update({
                         "objects": firestore.ArrayUnion([job_data["obj_record"]])
