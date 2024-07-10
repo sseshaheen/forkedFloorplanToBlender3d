@@ -151,7 +151,7 @@ class Put(Api):
                 "id": id,
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": image_firebase_path,
-                # "successConversionTo3d": "",
+                "successConversionTo3d": "",
                 "url": image_url
             }
 
