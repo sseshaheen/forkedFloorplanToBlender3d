@@ -59,6 +59,14 @@ def process_pending_jobs_to_firebase():
 
                     # Update Firestore
                     user_ref = db.collection("user_floorplans").document(job_data["userId"])
+                    # Remove the old record if it exists
+                    user_ref.update({
+                        "objects": firestore.ArrayRemove([job_data["obj_record"]])
+                    })
+                    user_ref.update({
+                        "image_and_obj": firestore.ArrayRemove([job_data["image_and_obj_record"]])
+                    })
+                    # Add the updated record
                     user_ref.update({
                         "objects": firestore.ArrayUnion([job_data["obj_record"]])
                     })
