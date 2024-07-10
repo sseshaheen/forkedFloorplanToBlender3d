@@ -173,7 +173,7 @@ class Put(Api):
             }
 
             # Create a new dictionary for the merged records
-            image_and_obj_record = {id: id}
+            image_and_obj_record = {"id": id}
 
             # Add prefixed image_record attributes to the merged dictionary
             for key, value in image_record.items():
