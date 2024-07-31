@@ -135,7 +135,7 @@ def create_mat(rgb_color):
 
 def main():
     program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/"
+    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/" + job_id
 
     # create_floorplan(base_path, program_path)
     create_walls(base_path, program_path)
@@ -480,7 +480,7 @@ if __name__ == "__main__":
             with open(job_file_path, "r") as job_file:
                 job_data = json.load(job_file)
 
-            obj_file_path = os.path.join(storage_path, f"{job_id}-regenerated.obj")
+            # obj_file_path = os.path.join(storage_path, f"{job_id}-regenerated.obj")
             obj_file_path = os.path.join(storage_path, f"{job_id}.obj")
 
             if os.path.exists(obj_file_path):
