@@ -16,7 +16,7 @@ def init_object(name):
     return myobject, mymesh
 
 def get_mesh_center(verts):
-    print(f"Calculating mesh center for verts: {verts}")
+    # print(f"Calculating mesh center for verts: {verts}")
     if not verts:
         return [0, 0, 0]
 
@@ -40,7 +40,7 @@ def get_mesh_center(verts):
     return [center_x, center_y, center_z]
 
 def subtract_center_verts(verts1, verts2):
-    print(f"Subtracting center {verts1} from verts {verts2}")
+    # print(f"Subtracting center {verts1} from verts {verts2}")
     for i in range(0, len(verts2)):
         verts2[i][0] -= verts1[0]
         verts2[i][1] -= verts1[1]
@@ -48,7 +48,7 @@ def subtract_center_verts(verts1, verts2):
     return verts2
 
 def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
-    print(f"Creating mesh for {objname} with verts: {verts} and faces: {faces}")
+    # print(f"Creating mesh for {objname} with verts: {verts} and faces: {faces}")
 
     # # Ensure verts is a list of lists
     # if isinstance(verts[0], float):
@@ -81,7 +81,7 @@ def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     return myobject
 
 def create_mat(rgb_color):
-    print(f"Creating material with color: {rgb_color}")
+    # print(f"Creating material with color: {rgb_color}")
     mat = bpy.data.materials.new(name="MaterialName")
     mat.diffuse_color = rgb_color
     return mat
@@ -197,6 +197,9 @@ def create_floorplan(base_path, program_path):
         traceback.print_exc()
 
 
+def export_to_obj(filepath):
+    bpy.ops.export_scene.obj(filepath=filepath, use_selection=False)
+
 def main():
     try:
         program_path = bpy.path.abspath("//")
@@ -208,7 +211,15 @@ def main():
 
         create_floorplan(base_path, program_path)
 
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
+        blend_filepath = os.path.join(base_path, "floorplan-adjusted.blend")
+        obj_filepath = os.path.join(base_path, "floorplan-adjusted.obj")
+
+        # Save the Blender file
+        bpy.ops.wm.save_as_mainfile(filepath=blend_filepath)
+
+        # Export the Blender file to OBJ format
+        export_to_obj(obj_filepath)
+
 
     except Exception as e:
         print(f"Error in main function: {e}")
