@@ -90,7 +90,7 @@ def main():
     create_walls(base_path, program_path)
     create_doors(base_path, program_path)
     create_windows(base_path, program_path)
-    create_others(base_path, program_path)
+    # create_others(base_path, program_path)
 
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
 
