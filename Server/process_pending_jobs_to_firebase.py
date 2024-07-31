@@ -467,6 +467,7 @@ if __name__ == "__main__":
     main()
 
         """
+        print("Running Blender script...")
         run_blender_script(blender_path, script_content)
         
 
@@ -480,6 +481,7 @@ if __name__ == "__main__":
                 job_data = json.load(job_file)
 
             obj_file_path = os.path.join(storage_path, f"{job_id}-regenerated.obj")
+            obj_file_path = os.path.join(storage_path, f"{job_id}.obj")
 
             if os.path.exists(obj_file_path):
                 try:
