@@ -475,7 +475,7 @@ if __name__ == "__main__":
 
 
         if os.path.isdir(job_folder) and os.path.exists(job_file_path):
-            logging.info(f"Processing job: {job_id}")
+            # logging.info(f"Processing job: {job_id}")
             with open(job_file_path, "r") as job_file:
                 job_data = json.load(job_file)
 
