@@ -47,6 +47,10 @@ def subtract_center_verts(verts1, verts2):
 def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     print(f"Creating mesh for {objname} with verts: {verts} and faces: {faces}")
 
+    # Ensure verts is a list of lists
+    if isinstance(verts[0], float):
+        verts = [verts]
+
     myobject, mymesh = init_object(objname)
 
     center = get_mesh_center(verts)
