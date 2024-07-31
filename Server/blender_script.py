@@ -85,15 +85,16 @@ def create_mat(rgb_color):
     mat = bpy.data.materials.new(name="MaterialName")
     mat.diffuse_color = rgb_color
     return mat
-def create_walls(base_path, program_path):
-    print("Creating walls")
-    parent, _ = init_object("Floorplan")
 
-    transform_file = os.path.join(program_path, base_path, "0transform.txt")
-    transform = read_from_file(transform_file)
-    cen = transform["shape"]
+def create_floorplan(base_path, program_path):
+    try:
+        parent, _ = init_object("Floorplan")
 
-    components = {
+        transform_file = os.path.join(program_path, base_path, "0transform.txt")
+        transform = read_from_file(transform_file)
+        cen = transform["shape"]
+
+        components = {
         "walls": {
             "vertical": {
                 "verts": "0wall_vertical_verts.txt",
@@ -103,163 +104,7 @@ def create_walls(base_path, program_path):
                 "verts": "0wall_horizontal_verts.txt",
                 "faces": "0wall_horizontal_faces.txt"
             }
-        }
-    }
-
-    for component, orientations in components.items():
-        for orientation, files in orientations.items():
-            verts_file = os.path.join(program_path, base_path, files["verts"])
-            faces_file = os.path.join(program_path, base_path, files["faces"])
-
-            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
-
-            if os.path.isfile(verts_file) and os.path.isfile(faces_file):
-                verts = read_from_file(verts_file)
-                faces = read_from_file(faces_file)
-
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
-
-                if isinstance(verts[0], list) and isinstance(verts[0][0], list):
-                    for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
-                        for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
-                            obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
-                                wall,
-                                faces,
-                                cen=cen,
-                                mat=create_mat((0.5, 0.5, 0.5, 1))
-                            )
-                            obj.parent = component_parent
-                else:
-                    for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
-                        obj = create_custom_mesh(
-                            roomname,
-                            verts[i],
-                            [faces[i]],
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1))
-                        )
-                        obj.parent = component_parent
-
-                component_parent.parent = parent
-
-    rot = transform["rotation"]
-    pos = transform["position"]
-    scale = transform["scale"]
-
-    if rot is not None:
-        parent.rotation_euler = [
-            math.radians(rot[0]) + math.pi,
-            math.radians(rot[1]),
-            math.radians(rot[2])
-        ]
-
-    if pos is not None:
-        parent.location.x += pos[0]
-        parent.location.y += pos[1]
-        parent.location.z += pos[2]
-
-    if scale is not None:
-        parent.scale.x = scale[0]
-        parent.scale.y = scale[1]
-        parent.scale.z = scale[2]
-
-
-def create_doors(base_path, program_path):
-    print("Creating doors")
-    parent, _ = init_object("Floorplan")
-
-    transform_file = os.path.join(program_path, base_path, "0transform.txt")
-    transform = read_from_file(transform_file)
-    cen = transform["shape"]
-
-    components = {
-        "doors": {
-            "vertical": {
-                "verts": "0door_vertical_verts.txt",
-                "faces": "0door_vertical_faces.txt"
-            },
-            "horizontal": {
-                "verts": "0door_horizontal_verts.txt",
-                "faces": "0door_horizontal_faces.txt"
-            }
-        }
-    }
-
-    for component, orientations in components.items():
-        for orientation, files in orientations.items():
-            verts_file = os.path.join(program_path, base_path, files["verts"])
-            faces_file = os.path.join(program_path, base_path, files["faces"])
-
-            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
-
-            if os.path.isfile(verts_file) and os.path.isfile(faces_file):
-                verts = read_from_file(verts_file)
-                faces = read_from_file(faces_file)
-
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
-
-                if isinstance(verts[0], list) and isinstance(verts[0][0], list):
-                    for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
-                        for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
-                            obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
-                                wall,
-                                faces,
-                                cen=cen,
-                                mat=create_mat((0.5, 0.5, 0.5, 1))
-                            )
-                            obj.parent = component_parent
-                else:
-                    for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
-                        obj = create_custom_mesh(
-                            roomname,
-                            verts[i],
-                            [faces[i]],
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1))
-                        )
-                        obj.parent = component_parent
-
-                component_parent.parent = parent
-
-    rot = transform["rotation"]
-    pos = transform["position"]
-    scale = transform["scale"]
-
-    if rot is not None:
-        parent.rotation_euler = [
-            math.radians(rot[0]) + math.pi,
-            math.radians(rot[1]),
-            math.radians(rot[2])
-        ]
-
-    if pos is not None:
-        parent.location.x += pos[0]
-        parent.location.y += pos[1]
-        parent.location.z += pos[2]
-
-    if scale is not None:
-        parent.scale.x = scale[0]
-        parent.scale.y = scale[1]
-        parent.scale.z = scale[2]
-
-
-def create_windows(base_path, program_path):
-    print("Creating windows")
-    parent, _ = init_object("Floorplan")
-
-    transform_file = os.path.join(program_path, base_path, "0transform.txt")
-    transform = read_from_file(transform_file)
-    cen = transform["shape"]
-
-    components = {
+        },
         "windows": {
             "vertical": {
                 "verts": "0window_vertical_verts.txt",
@@ -269,80 +114,17 @@ def create_windows(base_path, program_path):
                 "verts": "0window_horizontal_verts.txt",
                 "faces": "0window_horizontal_faces.txt"
             }
-        }
-    }
-
-    for component, orientations in components.items():
-        for orientation, files in orientations.items():
-            verts_file = os.path.join(program_path, base_path, files["verts"])
-            faces_file = os.path.join(program_path, base_path, files["faces"])
-
-            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
-
-            if os.path.isfile(verts_file) and os.path.isfile(faces_file):
-                verts = read_from_file(verts_file)
-                faces = read_from_file(faces_file)
-
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
-
-                if isinstance(verts[0], list) and isinstance(verts[0][0], list):
-                    for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
-                        for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
-                            obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
-                                wall,
-                                faces,
-                                cen=cen,
-                                mat=create_mat((0.5, 0.5, 0.5, 1))
-                            )
-                            obj.parent = component_parent
-                else:
-                    for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
-                        obj = create_custom_mesh(
-                            roomname,
-                            verts[i],
-                            [faces[i]],
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1))
-                        )
-                        obj.parent = component_parent
-
-                component_parent.parent = parent
-
-    rot = transform["rotation"]
-    pos = transform["position"]
-    scale = transform["scale"]
-
-    if rot is not None:
-        parent.rotation_euler = [
-            math.radians(rot[0]) + math.pi,
-            math.radians(rot[1]),
-            math.radians(rot[2])
-        ]
-
-    if pos is not None:
-        parent.location.x += pos[0]
-        parent.location.y += pos[1]
-        parent.location.z += pos[2]
-
-    if scale is not None:
-        parent.scale.x = scale[0]
-        parent.scale.y = scale[1]
-        parent.scale.z = scale[2]
-
-
-
-def create_others(base_path, program_path):
-    parent, _ = init_object("Floorplan")
-
-    transform_file = os.path.join(program_path, base_path, "0transform.txt")
-    transform = read_from_file(transform_file)
-    cen = transform["shape"]
-
-    components = {
+        },
+        "doors": {
+            "vertical": {
+                "verts": "0door_vertical_verts.txt",
+                "faces": "0door_vertical_faces.txt"
+            },
+            "horizontal": {
+                "verts": "0door_horizontal_verts.txt",
+                "faces": "0door_horizontal_faces.txt"
+            }
+        },
         "floors": {
             "verts": "0floor_verts.txt",
             "faces": "0floor_faces.txt"
@@ -352,82 +134,86 @@ def create_others(base_path, program_path):
             "faces": "0room_faces.txt"
         }
     }
+        for component, orientations in components.items():
+            for orientation, files in orientations.items():
+                try:
+                    verts_file = os.path.join(program_path, base_path, files["verts"])
+                    faces_file = os.path.join(program_path, base_path, files["faces"])
 
-    for component, orientations in components.items():
-        for orientation, files in orientations.items():
-            verts_file = os.path.join(program_path, base_path, files["verts"])
-            faces_file = os.path.join(program_path, base_path, files["faces"])
+                    if os.path.isfile(verts_file) and os.path.isfile(faces_file):
+                        verts = read_from_file(verts_file)
+                        faces = read_from_file(faces_file)
 
-            if os.path.isfile(verts_file) and os.path.isfile(faces_file):
-                verts = read_from_file(verts_file)
-                faces = read_from_file(faces_file)
+                        component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
 
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
+                        if isinstance(verts[0], list) and isinstance(verts[0][0], list):
+                            for i, walls in enumerate(verts):
+                                for j, wall in enumerate(walls):
+                                    try:
+                                        boxname = f"{component.capitalize()}Box{i}"
+                                        wallname = f"{component.capitalize()}Wall{j}"
+                                        obj = create_custom_mesh(
+                                            f"{boxname}{wallname}",
+                                            wall,
+                                            faces,
+                                            cen=cen,
+                                            mat=create_mat((0.5, 0.5, 0.5, 1))
+                                        )
+                                        if obj:
+                                            obj.parent = component_parent
+                                    except Exception as e:
+                                        print(f"Error creating mesh for {boxname}{wallname}: {e}")
+                        else:
+                            for i in range(len(verts)):
+                                try:
+                                    roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
+                                    obj = create_custom_mesh(
+                                        roomname,
+                                        verts[i],
+                                        [faces[i]],
+                                        cen=cen,
+                                        mat=create_mat((0.5, 0.5, 0.5, 1))
+                                    )
+                                    if obj:
+                                        obj.parent = component_parent
+                                except Exception as e:
+                                    print(f"Error creating mesh for {roomname}: {e}")
 
-                if isinstance(verts[0], list) and isinstance(verts[0][0], list):
-                    for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
-                        for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
-                            obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
-                                wall,
-                                faces,
-                                cen=cen,
-                                mat=create_mat((0.5, 0.5, 0.5, 1))
-                            )
-                            obj.parent = component_parent
-                else:
-                    for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
-                        obj = create_custom_mesh(
-                            roomname,
-                            verts[i],
-                            [faces[i]],
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1))
-                        )
-                        obj.parent = component_parent
+                        component_parent.parent = parent
+                except Exception as e:
+                    print(f"Error processing {component} {orientation}: {e}")
 
-                component_parent.parent = parent
+        # Apply transform
+        if "rotation" in transform:
+            parent.rotation_euler = [math.radians(r) + (math.pi if i == 0 else 0) for i, r in enumerate(transform["rotation"])]
+        if "position" in transform:
+            parent.location = transform["position"]
+        if "scale" in transform:
+            parent.scale = transform["scale"]
 
-    rot = transform["rotation"]
-    pos = transform["position"]
-    scale = transform["scale"]
-
-    if rot is not None:
-        parent.rotation_euler = [
-            math.radians(rot[0]) + math.pi,
-            math.radians(rot[1]),
-            math.radians(rot[2])
-        ]
-
-    if pos is not None:
-        parent.location.x += pos[0]
-        parent.location.y += pos[1]
-        parent.location.z += pos[2]
-
-    if scale is not None:
-        parent.scale.x = scale[0]
-        parent.scale.y = scale[1]
-        parent.scale.z = scale[2]
+    except Exception as e:
+        print(f"Error in create_floorplan: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def main():
-    print("Starting main function")
-    program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
+    try:
+        program_path = bpy.path.abspath("//")
+        base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
 
 
-    # Ensure the scene is clean before adding new objects
-    bpy.ops.wm.read_factory_settings(use_empty=True)
+        # Ensure the scene is clean before adding new objects
+        bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    create_walls(base_path, program_path)
-    # create_doors(base_path, program_path)
-    # create_windows(base_path, program_path)
-    # create_others(base_path, program_path)
+        create_floorplan(base_path, program_path)
 
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
+
+    except Exception as e:
+        print(f"Error in main function: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
