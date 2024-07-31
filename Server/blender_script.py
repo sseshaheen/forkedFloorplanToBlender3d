@@ -18,6 +18,10 @@ def get_mesh_center(verts):
     if not verts:
         return [0, 0, 0]
 
+    # Ensure verts is a list of lists
+    if not all(isinstance(v, list) and len(v) == 3 for v in verts):
+        raise ValueError(f"Invalid verts format: {verts}")
+
     try:
         x, y, z = zip(*verts)
     except TypeError as e:
