@@ -9,7 +9,7 @@ def read_from_file(file_path):
     return data
 
 def init_object(name):
-    print(f"Initializing object: {name}")
+    # print(f"Initializing object: {name}")
     mymesh = bpy.data.meshes.new(name)
     myobject = bpy.data.objects.new(name, mymesh)
     bpy.context.collection.objects.link(myobject)
