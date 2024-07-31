@@ -143,7 +143,7 @@ def main():
     create_windows(base_path, program_path)
     create_others(base_path, program_path)
 
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, job_id, "floorplan.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
 
 def create_walls(base_path, program_path):
     parent, _ = init_object("Floorplan")
