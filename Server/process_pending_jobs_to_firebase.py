@@ -77,7 +77,8 @@ def process_pending_jobs_to_firebase():
         job_file_path = os.path.join(job_folder, "job.json")
 
         # Path to the Blender executable
-        blender_path = "/usr/local/bin/blender"
+        # blender_path = "/usr/local/bin/blender"
+        blender_path = "/home/blender-4.2.0-linux-x64/blender"
 
         # Read the Blender script template
         with open(blender_script_template_path, "r") as file:
