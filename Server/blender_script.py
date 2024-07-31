@@ -51,6 +51,10 @@ def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     if isinstance(verts[0], float):
         verts = [verts]
 
+    # Ensure faces is a list of lists of integers
+    if isinstance(faces[0], list) and isinstance(faces[0][0], list):
+        faces = [f[0] for f in faces]
+
     myobject, mymesh = init_object(objname)
 
     center = get_mesh_center(verts)
