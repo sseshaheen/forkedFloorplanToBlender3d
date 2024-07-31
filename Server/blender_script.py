@@ -19,6 +19,9 @@ def get_mesh_center(verts):
         return [0, 0, 0]
 
     # Ensure verts is a list of lists
+    if not isinstance(verts[0], list):
+        verts = [verts]
+
     if not all(isinstance(v, list) and len(v) == 3 for v in verts):
         raise ValueError(f"Invalid verts format: {verts}")
 
