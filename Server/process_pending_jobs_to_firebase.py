@@ -63,7 +63,7 @@ def process_pending_jobs_to_firebase():
         blender_path = "/usr/local/bin/blender"
 
             # Blender script content
-        script_content = f"""
+        script_content = """
 import bpy
 import json
 import math
@@ -135,7 +135,7 @@ def create_mat(rgb_color):
 
 def main():
     program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{{job_id}}"
+    base_path = f"/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{{job_id}}"
 
     # create_floorplan(base_path, program_path)
     create_walls(base_path, program_path)
