@@ -69,7 +69,8 @@ def process_pending_jobs_to_firebase():
     pending_jobs_path = "/home/apps/firebase_upload_cron/pending_jobs"
     done_jobs_path = "/home/apps/firebase_upload_cron/done_jobs"
     storage_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/objects"
-    blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script.py"
+    # blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script.py"
+    blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script_for_testing.py"
 
 
     for job_id in os.listdir(pending_jobs_path):
