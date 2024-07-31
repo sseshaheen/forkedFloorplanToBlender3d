@@ -26,22 +26,29 @@ firebase_admin.initialize_app(cred, {
 db = firestore.client()
 
 def run_blender_script(blender_path, script_content):
-    # Create a temporary file to hold the Blender script
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as temp_script:
-        temp_script.write(script_content)
-        temp_script_path = temp_script.name
-    
     try:
-        # Run Blender with the temporary script
-        subprocess.run([blender_path, "--background", "--python", temp_script_path], check=True)
-        print("Blender script executed successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error running Blender script: {e}")
-        sys.exit(1)
-    finally:
-        # Clean up the temporary file
-        os.remove(temp_script_path)
+        # Run Blender with the script content passed via stdin
+        result = subprocess.run(
+            [blender_path, "--background", "--python", "-"],
+            input=script_content,
+            text=True,
+            capture_output=True,
+            check=True
+        )
+        
+        # Log standard output and standard error from Blender
+        logging.info("Blender script executed successfully.")
+        logging.info(f"Blender stdout: {result.stdout}")
+        logging.info(f"Blender stderr: {result.stderr}")
 
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error running Blender script: {e}")
+        logging.error(f"Blender stdout: {e.stdout}")
+        logging.error(f"Blender stderr: {e.stderr}")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 def upload_file_to_firebase(local_path: str, firebase_path: str) -> str:
     bucket = storage.bucket()
