@@ -192,6 +192,7 @@ def main(argv):
 
 
 def create_floorplan(base_path, program_path, name=None):
+
     if name is None:
         name = 0
 
@@ -270,357 +271,358 @@ def create_floorplan(base_path, program_path, name=None):
     """
     Create Walls
     """
-    try:
-        if (
-            os.path.isfile(path_to_wall_vertical_verts_file + ".txt")
-            and os.path.isfile(path_to_wall_vertical_faces_file + ".txt")
-            and os.path.isfile(path_to_wall_horizontal_verts_file + ".txt")
-            and os.path.isfile(path_to_wall_horizontal_faces_file + ".txt")
-        ):
-            # get image wall data
-            verts = read_from_file(path_to_wall_vertical_verts_file)
-            faces = read_from_file(path_to_wall_vertical_faces_file)
 
-            # Create mesh from data
-            boxcount = 0
-            wallcount = 0
+    if (
+        os.path.isfile(path_to_wall_vertical_verts_file + ".txt")
+        and os.path.isfile(path_to_wall_vertical_faces_file + ".txt")
+        and os.path.isfile(path_to_wall_horizontal_verts_file + ".txt")
+        and os.path.isfile(path_to_wall_horizontal_faces_file + ".txt")
+    ):
+        # get image wall data
+        verts = read_from_file(path_to_wall_vertical_verts_file)
+        faces = read_from_file(path_to_wall_vertical_faces_file)
 
-            # Create parent
-            wall_parent, _ = init_object("Walls")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
 
-            for walls in verts:
-                boxname = "Box" + str(boxcount)
-                for wall in walls:
-                    try:
-                        wallname = "Wall" + str(wallcount)
+        # Create parent
+        wall_parent, _ = init_object("Walls")
 
-                        obj = create_custom_mesh(
-                            boxname + wallname,
-                            wall,
-                            faces,
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1)),
-                        )
-                        obj.parent = wall_parent
+        for walls in verts:
+            boxname = "Box" + str(boxcount)
+            for wall in walls:
+                wallname = "Wall" + str(wallcount)
 
-                        wallcount += 1
-                    except Exception as e:
-                        print(f"Error creating wall {boxname}{wallname}: {e}")
-                boxcount += 1
+                obj = create_custom_mesh(
+                    boxname + wallname,
+                    wall,
+                    faces,
+                    cen=cen,
+                    mat=create_mat((0.5, 0.5, 0.5, 1)),
+                )
+                obj.parent = wall_parent
 
-            # get image top wall data
-            verts = read_from_file(path_to_wall_horizontal_verts_file)
-            faces = read_from_file(path_to_wall_horizontal_faces_file)
+                wallcount += 1
+            boxcount += 1
 
-            # Create mesh from data
-            for i in range(0, len(verts)):
-                try:
-                    roomname = "VertWalls" + str(i)
-                    obj = create_custom_mesh(
-                        roomname,
-                        verts[i],
-                        faces[i],
-                        cen=cen,
-                        mat=create_mat((0.5, 0.5, 0.5, 1)),
-                    )
-                    obj.parent = wall_parent
-                except Exception as e:
-                    print(f"Error creating vertical wall {roomname}: {e}")
+        # get image top wall data
+        verts = read_from_file(path_to_wall_horizontal_verts_file)
+        faces = read_from_file(path_to_wall_horizontal_faces_file)
 
-            wall_parent.parent = parent
-    except Exception as e:
-        print(f"Error creating walls: {e}")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
+
+        for i in range(0, len(verts)):
+            roomname = "VertWalls" + str(i)
+            obj = create_custom_mesh(
+                roomname,
+                verts[i],
+                faces[i],
+                cen=cen,
+                mat=create_mat((0.5, 0.5, 0.5, 1)),
+            )
+            obj.parent = wall_parent
+
+        wall_parent.parent = parent
 
     """
     Create Windows
     """
-    try:
-        if (
-            os.path.isfile(path_to_windows_vertical_verts_file + ".txt")
-            and os.path.isfile(path_to_windows_vertical_faces_file + ".txt")
-            and os.path.isfile(path_to_windows_horizontal_verts_file + ".txt")
-            and os.path.isfile(path_to_windows_horizontal_faces_file + ".txt")
-        ):
-            print("Creating Windows...")
+    if (
+        os.path.isfile(path_to_windows_vertical_verts_file + ".txt")
+        and os.path.isfile(path_to_windows_vertical_faces_file + ".txt")
+        and os.path.isfile(path_to_windows_horizontal_verts_file + ".txt")
+        and os.path.isfile(path_to_windows_horizontal_faces_file + ".txt")
+    ):
+        print("Creating Windows...")
 
-            # get image wall data
-            verts = read_from_file(path_to_windows_vertical_verts_file)
-            faces = read_from_file(path_to_windows_vertical_faces_file)
+        # get image wall data
+        verts = read_from_file(path_to_windows_vertical_verts_file)
+        faces = read_from_file(path_to_windows_vertical_faces_file)
 
-            # Create mesh from data
-            boxcount = 0
-            wallcount = 0
+        print(f"Window vertical verts: {verts}")
+        print(f"Window vertical faces: {faces}")
 
-            # Create parent
-            wall_parent, _ = init_object("Windows")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
 
-            for walls in verts:
-                boxname = "Box" + str(boxcount)
-                for wall in walls:
-                    try:
-                        wallname = "Wall" + str(wallcount)
+        # Create parent
+        wall_parent, _ = init_object("Windows")
 
-                        # Create frame around window
-                        frame_verts = [
-                            [wall[0][0], wall[0][1], wall[0][2]],
-                            [wall[1][0], wall[1][1], wall[1][2]],
-                            [wall[2][0], wall[2][1], wall[2][2]],
-                            [wall[3][0], wall[3][1], wall[3][2]],
-                            [wall[0][0], wall[0][1], wall[0][2] - 0.1],
-                            [wall[1][0], wall[1][1], wall[1][2] - 0.1],
-                            [wall[2][0], wall[2][1], wall[2][2] - 0.1],
-                            [wall[3][0], wall[3][1], wall[3][2] - 0.1]
-                        ]
-                        frame_faces = [
-                            [0, 1, 5, 4],  # Front face
-                            [1, 2, 6, 5],  # Right face
-                            [2, 3, 7, 6],  # Back face
-                            [3, 0, 4, 7],  # Left face
-                            [4, 5, 6, 7],  # Bottom face
-                            [0, 1, 2, 3]   # Top face
-                        ]
-                        frame_obj = create_custom_mesh(
-                            boxname + wallname + "Frame",
-                            frame_verts,
-                            frame_faces,
-                            cen=cen,
-                            mat=create_mat((0.3, 0.3, 0.3, 1)),
-                        )
-                        frame_obj.parent = wall_parent
+        for walls in verts:
+            boxname = "Box" + str(boxcount)
+            print(f"Creating box: {boxname}")
+            for wall in walls:
+                wallname = "Wall" + str(wallcount)
+                print(f"Creating wall: {wallname}")
 
-                        obj = create_custom_mesh(
-                            boxname + wallname,
-                            wall,
-                            faces,
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1)),
-                        )
-                        obj.parent = wall_parent
+                # Create frame around window
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
+                ]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
+                frame_obj = create_custom_mesh(
+                    boxname + wallname + "Frame",
+                    frame_verts,
+                    frame_faces,
+                    cen=cen,
+                    mat=create_mat((0.3, 0.3, 0.3, 1)),
+                )
+                frame_obj.parent = wall_parent
 
-                        wallcount += 1
-                    except Exception as e:
-                        print(f"Error creating window {boxname}{wallname}: {e}")
-                boxcount += 1
+                obj = create_custom_mesh(
+                    boxname + wallname,
+                    wall,
+                    faces,
+                    cen=cen,
+                    mat=create_mat((0.5, 0.5, 0.5, 1)),
+                )
+                obj.parent = wall_parent
 
-            # get windows
-            verts = read_from_file(path_to_windows_horizontal_verts_file)
-            faces = read_from_file(path_to_windows_horizontal_faces_file)
+                wallcount += 1
+            boxcount += 1
 
-            # Create mesh from data
-            for i in range(0, len(verts)):
-                try:
-                    roomname = "VertWindow" + str(i)
+        # get windows
+        verts = read_from_file(path_to_windows_horizontal_verts_file)
+        faces = read_from_file(path_to_windows_horizontal_faces_file)
 
-                    # Create frame around window
-                    frame_verts = [
-                        [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
-                        [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
-                        [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
-                        [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
-                        [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
-                        [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
-                        [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
-                        [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
-                    ]
-                    frame_faces = [
-                        [0, 1, 5, 4],  # Front face
-                        [1, 2, 6, 5],  # Right face
-                        [2, 3, 7, 6],  # Back face
-                        [3, 0, 4, 7],  # Left face
-                        [4, 5, 6, 7],  # Bottom face
-                        [0, 1, 2, 3]   # Top face
-                    ]
-                    frame_obj = create_custom_mesh(
-                        roomname + "Frame",
-                        frame_verts,
-                        frame_faces,
-                        cen=cen,
-                        mat=create_mat((0.3, 0.3, 0.3, 1)),
-                    )
-                    frame_obj.parent = wall_parent
+        print(f"Window horizontal verts: {verts}")
+        print(f"Window horizontal faces: {faces}")
 
-                    obj = create_custom_mesh(
-                        roomname,
-                        verts[i],
-                        faces[i],
-                        cen=cen,
-                        mat=create_mat((0.5, 0.5, 0.5, 1)),
-                    )
-                    obj.parent = wall_parent
-                except Exception as e:
-                    print(f"Error creating horizontal window {roomname}: {e}")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
 
-            wall_parent.parent = parent
-            print("Finished creating windows.")
-    except Exception as e:
-        print(f"Error creating windows: {e}")
+        for i in range(0, len(verts)):
+            roomname = "VertWindow" + str(i)
+            print(f"Creating window: {roomname}")
+
+            # Create frame around window
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
+            ]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
+            frame_obj = create_custom_mesh(
+                roomname + "Frame",
+                frame_verts,
+                frame_faces,
+                cen=cen,
+                mat=create_mat((0.3, 0.3, 0.3, 1)),
+            )
+            frame_obj.parent = wall_parent
+
+            obj = create_custom_mesh(
+                roomname,
+                verts[i],
+                faces[i],
+                cen=cen,
+                mat=create_mat((0.5, 0.5, 0.5, 1)),
+            )
+            obj.parent = wall_parent
+
+        wall_parent.parent = parent
+        print("Finished creating windows.")
 
     """
     Create Doors
     """
-    try:
-        if (
-            os.path.isfile(path_to_doors_vertical_verts_file + ".txt")
-            and os.path.isfile(path_to_doors_vertical_faces_file + ".txt")
-            and os.path.isfile(path_to_doors_horizontal_verts_file + ".txt")
-            and os.path.isfile(path_to_doors_horizontal_faces_file + ".txt")
-        ):
-            print("Creating Doors...")
+    if (
+        os.path.isfile(path_to_doors_vertical_verts_file + ".txt")
+        and os.path.isfile(path_to_doors_vertical_faces_file + ".txt")
+        and os.path.isfile(path_to_doors_horizontal_verts_file + ".txt")
+        and os.path.isfile(path_to_doors_horizontal_faces_file + ".txt")
+    ):
+        print("Creating Doors...")
 
-            # get image wall data
-            verts = read_from_file(path_to_doors_vertical_verts_file)
-            faces = read_from_file(path_to_doors_vertical_faces_file)
+        # get image wall data
+        verts = read_from_file(path_to_doors_vertical_verts_file)
+        faces = read_from_file(path_to_doors_vertical_faces_file)
 
-            # Create mesh from data
-            boxcount = 0
-            wallcount = 0
+        print(f"Door vertical verts: {verts}")
+        print(f"Door vertical faces: {faces}")
 
-            # Create parent
-            wall_parent, _ = init_object("Doors")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
 
-            for walls in verts:
-                boxname = "Box" + str(boxcount)
-                for wall in walls:
-                    try:
-                        wallname = "Wall" + str(wallcount)
+        # Create parent
+        wall_parent, _ = init_object("Doors")
 
-                        # Create frame around door
-                        frame_verts = [
-                            [wall[0][0], wall[0][1], wall[0][2]],
-                            [wall[1][0], wall[1][1], wall[1][2]],
-                            [wall[2][0], wall[2][1], wall[2][2]],
-                            [wall[3][0], wall[3][1], wall[3][2]],
-                            [wall[0][0], wall[0][1], wall[0][2] - 0.1],
-                            [wall[1][0], wall[1][1], wall[1][2] - 0.1],
-                            [wall[2][0], wall[2][1], wall[2][2] - 0.1],
-                            [wall[3][0], wall[3][1], wall[3][2] - 0.1]
-                        ]
-                        frame_faces = [
-                            [0, 1, 5, 4],  # Front face
-                            [1, 2, 6, 5],  # Right face
-                            [2, 3, 7, 6],  # Back face
-                            [3, 0, 4, 7],  # Left face
-                            [4, 5, 6, 7],  # Bottom face
-                            [0, 1, 2, 3]   # Top face
-                        ]
-                        frame_obj = create_custom_mesh(
-                            boxname + wallname + "Frame",
-                            frame_verts,
-                            frame_faces,
-                            cen=cen,
-                            mat=create_mat((0.3, 0.3, 0.3, 1)),
-                        )
-                        frame_obj.parent = wall_parent
+        for walls in verts:
+            boxname = "Box" + str(boxcount)
+            print(f"Creating box: {boxname}")
+            for wall in walls:
+                wallname = "Wall" + str(wallcount)
+                print(f"Creating wall: {wallname}")
 
-                        obj = create_custom_mesh(
-                            boxname + wallname,
-                            wall,
-                            faces,
-                            cen=cen,
-                            mat=create_mat((0.5, 0.5, 0.5, 1)),
-                        )
-                        obj.parent = wall_parent
+                # Create frame around door
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
+                ]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
+                frame_obj = create_custom_mesh(
+                    boxname + wallname + "Frame",
+                    frame_verts,
+                    frame_faces,
+                    cen=cen,
+                    mat=create_mat((0.3, 0.3, 0.3, 1)),
+                )
+                frame_obj.parent = wall_parent
 
-                        wallcount += 1
-                    except Exception as e:
-                        print(f"Error creating door {boxname}{wallname}: {e}")
-                boxcount += 1
+                obj = create_custom_mesh(
+                    boxname + wallname,
+                    wall,
+                    faces,
+                    cen=cen,
+                    mat=create_mat((0.5, 0.5, 0.5, 1)),
+                )
+                obj.parent = wall_parent
 
-            # get doors
-            verts = read_from_file(path_to_doors_horizontal_verts_file)
-            faces = read_from_file(path_to_doors_horizontal_faces_file)
+                wallcount += 1
+            boxcount += 1
 
-            # Create mesh from data
-            for i in range(0, len(verts)):
-                try:
-                    roomname = "VertDoor" + str(i)
+        # get doors
+        verts = read_from_file(path_to_doors_horizontal_verts_file)
+        faces = read_from_file(path_to_doors_horizontal_faces_file)
 
-                    # Create frame around door
-                    frame_verts = [
-                        [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
-                        [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
-                        [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
-                        [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
-                        [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
-                        [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
-                        [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
-                        [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
-                    ]
-                    frame_faces = [
-                        [0, 1, 5, 4],  # Front face
-                        [1, 2, 6, 5],  # Right face
-                        [2, 3, 7, 6],  # Back face
-                        [3, 0, 4, 7],  # Left face
-                        [4, 5, 6, 7],  # Bottom face
-                        [0, 1, 2, 3]   # Top face
-                    ]
-                    frame_obj = create_custom_mesh(
-                        roomname + "Frame",
-                        frame_verts,
-                        frame_faces,
-                        cen=cen,
-                        mat=create_mat((0.3, 0.3, 0.3, 1)),
-                    )
-                    frame_obj.parent = wall_parent
+        print(f"Door horizontal verts: {verts}")
+        print(f"Door horizontal faces: {faces}")
 
-                    obj = create_custom_mesh(
-                        roomname,
-                        verts[i],
-                        faces[i],
-                        cen=cen,
-                        mat=create_mat((0.5, 0.5, 0.5, 1)),
-                    )
-                    obj.parent = wall_parent
-                except Exception as e:
-                    print(f"Error creating horizontal door {roomname}: {e}")
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
 
-            wall_parent.parent = parent
-            print("Finished creating doors.")
-    except Exception as e:
-        print(f"Error creating doors: {e}")
+        for i in range(0, len(verts)):
+            roomname = "VertDoor" + str(i)
+            print(f"Creating door: {roomname}")
 
+            # Create frame around door
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
+            ]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
+            frame_obj = create_custom_mesh(
+                roomname + "Frame",
+                frame_verts,
+                frame_faces,
+                cen=cen,
+                mat=create_mat((0.3, 0.3, 0.3, 1)),
+            )
+            frame_obj.parent = wall_parent
+
+            obj = create_custom_mesh(
+                roomname,
+                verts[i],
+                faces[i],
+                cen=cen,
+                mat=create_mat((0.5, 0.5, 0.5, 1)),
+            )
+            obj.parent = wall_parent
+
+        wall_parent.parent = parent
+        print("Finished creating doors.")
 
     """
     Create Floor
     """
-    try:
-        if os.path.isfile(path_to_floor_verts_file + ".txt") and os.path.isfile(
-            path_to_floor_faces_file + ".txt"
-        ):
+    if os.path.isfile(path_to_floor_verts_file + ".txt") and os.path.isfile(
+        path_to_floor_faces_file + ".txt"
+    ):
 
-            # get image wall data
-            verts = read_from_file(path_to_floor_verts_file)
-            faces = read_from_file(path_to_floor_faces_file)
+        # get image wall data
+        verts = read_from_file(path_to_floor_verts_file)
+        faces = read_from_file(path_to_floor_faces_file)
 
-            # Create mesh from data
-            cornername = "Floor"
-            obj = create_custom_mesh(
-                cornername, verts, [faces], mat=create_mat((40, 1, 1, 1)), cen=cen
-            )
-            obj.parent = parent
+        # Create mesh from data
+        cornername = "Floor"
+        obj = create_custom_mesh(
+            cornername, verts, [faces], mat=create_mat((40, 1, 1, 1)), cen=cen
+        )
+        obj.parent = parent
 
-    except Exception as e:
-        print(f"Error creating floor: {e}")
+        """
+        Create rooms
+        """
+        # get image wall data
+        verts = read_from_file(path_to_rooms_verts_file)
+        faces = read_from_file(path_to_rooms_faces_file)
 
-    """
-    Create rooms
-    """
-    try:
-        if os.path.isfile(path_to_rooms_verts_file + ".txt") and os.path.isfile(
-            path_to_rooms_faces_file + ".txt"
-        ):
-            # Create parent
-            room_parent, _ = init_object("Rooms")
+        # Create parent
+        room_parent, _ = init_object("Rooms")
 
-            for i in range(0, len(verts)):
-                roomname = "Room" + str(i)
-                obj = create_custom_mesh(roomname, verts[i], faces[i], cen=cen)
-                obj.parent = room_parent
+        for i in range(0, len(verts)):
+            roomname = "Room" + str(i)
+            obj = create_custom_mesh(roomname, verts[i], faces[i], cen=cen)
+            obj.parent = room_parent
 
-            room_parent.parent = parent
-
-    except Exception as e:
-        print(f"Error creating rooms: {e}")
+        room_parent.parent = parent
 
     # Perform Floorplan final position, rotation and scale
     if rot is not None:
