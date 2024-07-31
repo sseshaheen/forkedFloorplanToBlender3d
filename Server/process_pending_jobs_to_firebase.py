@@ -38,9 +38,9 @@ def run_blender_script(blender_path, script_content):
     except subprocess.CalledProcessError as e:
         print(f"Error running Blender script: {e}")
         sys.exit(1)
-    # finally:
+    finally:
         # Clean up the temporary file
-        # os.remove(temp_script_path)
+        os.remove(temp_script_path)
 
 
 def upload_file_to_firebase(local_path: str, firebase_path: str) -> str:
@@ -135,7 +135,7 @@ def create_mat(rgb_color):
 
 def main():
     program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/" + {job_id}
+    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
 
     # create_floorplan(base_path, program_path)
     create_walls(base_path, program_path)
