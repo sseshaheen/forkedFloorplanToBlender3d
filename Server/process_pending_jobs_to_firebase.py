@@ -25,23 +25,17 @@ firebase_admin.initialize_app(cred, {
 # Initialize Firestore
 db = firestore.client()
 
-def run_blender_script(blender_path, script_content):    
-    # try:
-    #     # Run Blender with the temporary script
-    #     subprocess.run([blender_path, "--background", "--python", script_content], check=True)
-    #     print("Blender script executed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     print(f"Error running Blender script: {e}")
-    #     sys.exit(1)
-
+def run_blender_script(blender_path, script_content):
+    # Create a temporary file to hold the Blender script
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as temp_script:
+        temp_script.write(script_content)
+        temp_script_path = temp_script.name
+    
     try:
-        # Run Blender with the script content passed via stdin
+        # Run Blender with the temporary script
         result = subprocess.run(
-            [blender_path, "--background", "--python", "-"],
-            input=script_content,
-            text=True,
-            capture_output=True,
-            check=True
+            [blender_path, "--background", "--python", temp_script_path],
+            capture_output=True, text=True, check=True
         )
         
         # Log standard output and standard error from Blender
@@ -57,6 +51,12 @@ def run_blender_script(blender_path, script_content):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         sys.exit(1)
+    finally:
+        # Clean up the temporary file
+        if os.path.exists(temp_script_path):
+            os.remove(temp_script_path)
+
+
 
 def upload_file_to_firebase(local_path: str, firebase_path: str) -> str:
     bucket = storage.bucket()
