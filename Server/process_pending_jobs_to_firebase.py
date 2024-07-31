@@ -135,7 +135,7 @@ def create_mat(rgb_color):
 
 def main():
     program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
+    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{{job_id}}"
 
     # create_floorplan(base_path, program_path)
     create_walls(base_path, program_path)
