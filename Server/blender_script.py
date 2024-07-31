@@ -196,8 +196,14 @@ def create_floorplan(base_path, program_path):
         import traceback
         traceback.print_exc()
 
+def enable_obj_export_addon():
+    if not bpy.ops.preferences.addon_enable(module="io_scene_obj"):
+        print("Failed to enable the io_scene_obj add-on.")
+    else:
+        print("Enabled the io_scene_obj add-on.")
 
 def export_to_obj(filepath):
+    enable_obj_export_addon()
     bpy.ops.export_scene.obj(filepath=filepath, use_selection=False)
 
 def main():
