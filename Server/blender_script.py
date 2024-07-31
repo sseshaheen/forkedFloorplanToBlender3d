@@ -9,12 +9,14 @@ def read_from_file(file_path):
     return data
 
 def init_object(name):
+    print(f"Initializing object: {name}")
     mymesh = bpy.data.meshes.new(name)
     myobject = bpy.data.objects.new(name, mymesh)
     bpy.context.collection.objects.link(myobject)
     return myobject, mymesh
 
 def get_mesh_center(verts):
+    print(f"Calculating mesh center for verts: {verts}")
     if not verts:
         return [0, 0, 0]
 
@@ -38,6 +40,7 @@ def get_mesh_center(verts):
     return [center_x, center_y, center_z]
 
 def subtract_center_verts(verts1, verts2):
+    print(f"Subtracting center {verts1} from verts {verts2}")
     for i in range(0, len(verts2)):
         verts2[i][0] -= verts1[0]
         verts2[i][1] -= verts1[1]
@@ -47,9 +50,9 @@ def subtract_center_verts(verts1, verts2):
 def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     print(f"Creating mesh for {objname} with verts: {verts} and faces: {faces}")
 
-    # Ensure verts is a list of lists
-    if isinstance(verts[0], float):
-        verts = [verts]
+    # # Ensure verts is a list of lists
+    # if isinstance(verts[0], float):
+    #     verts = [verts]
 
     # Ensure faces is a list of lists of integers
     if isinstance(faces[0], list) and isinstance(faces[0][0], list):
@@ -78,27 +81,12 @@ def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     return myobject
 
 def create_mat(rgb_color):
+    print(f"Creating material with color: {rgb_color}")
     mat = bpy.data.materials.new(name="MaterialName")
     mat.diffuse_color = rgb_color
     return mat
-
-def main():
-    program_path = bpy.path.abspath("//")
-    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
-
-    # create_floorplan(base_path, program_path)
-
-    # Ensure the scene is clean before adding new objects
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-
-    create_walls(base_path, program_path)
-    # create_doors(base_path, program_path)
-    # create_windows(base_path, program_path)
-    # create_others(base_path, program_path)
-
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
-
 def create_walls(base_path, program_path):
+    print("Creating walls")
     parent, _ = init_object("Floorplan")
 
     transform_file = os.path.join(program_path, base_path, "0transform.txt")
@@ -122,6 +110,8 @@ def create_walls(base_path, program_path):
         for orientation, files in orientations.items():
             verts_file = os.path.join(program_path, base_path, files["verts"])
             faces_file = os.path.join(program_path, base_path, files["faces"])
+
+            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
 
             if os.path.isfile(verts_file) and os.path.isfile(faces_file):
                 verts = read_from_file(verts_file)
@@ -179,6 +169,7 @@ def create_walls(base_path, program_path):
 
 
 def create_doors(base_path, program_path):
+    print("Creating doors")
     parent, _ = init_object("Floorplan")
 
     transform_file = os.path.join(program_path, base_path, "0transform.txt")
@@ -202,6 +193,8 @@ def create_doors(base_path, program_path):
         for orientation, files in orientations.items():
             verts_file = os.path.join(program_path, base_path, files["verts"])
             faces_file = os.path.join(program_path, base_path, files["faces"])
+
+            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
 
             if os.path.isfile(verts_file) and os.path.isfile(faces_file):
                 verts = read_from_file(verts_file)
@@ -259,6 +252,7 @@ def create_doors(base_path, program_path):
 
 
 def create_windows(base_path, program_path):
+    print("Creating windows")
     parent, _ = init_object("Floorplan")
 
     transform_file = os.path.join(program_path, base_path, "0transform.txt")
@@ -282,6 +276,8 @@ def create_windows(base_path, program_path):
         for orientation, files in orientations.items():
             verts_file = os.path.join(program_path, base_path, files["verts"])
             faces_file = os.path.join(program_path, base_path, files["faces"])
+
+            print(f"Processing {component} {orientation} with verts file {verts_file} and faces file {faces_file}")
 
             if os.path.isfile(verts_file) and os.path.isfile(faces_file):
                 verts = read_from_file(verts_file)
@@ -415,6 +411,23 @@ def create_others(base_path, program_path):
         parent.scale.x = scale[0]
         parent.scale.y = scale[1]
         parent.scale.z = scale[2]
+
+
+def main():
+    print("Starting main function")
+    program_path = bpy.path.abspath("//")
+    base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
+
+
+    # Ensure the scene is clean before adding new objects
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
+    create_walls(base_path, program_path)
+    # create_doors(base_path, program_path)
+    # create_windows(base_path, program_path)
+    # create_others(base_path, program_path)
+
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(base_path, "floorplan.blend"))
 
 
 if __name__ == "__main__":
