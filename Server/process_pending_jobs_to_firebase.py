@@ -26,37 +26,37 @@ firebase_admin.initialize_app(cred, {
 db = firestore.client()
 
 def run_blender_script(blender_path, script_content):    
-    try:
-        # Run Blender with the temporary script
-        subprocess.run([blender_path, "--background", "--python", script_content], check=True)
-        print("Blender script executed successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error running Blender script: {e}")
-        sys.exit(1)
-
     # try:
-    #     # Run Blender with the script content passed via stdin
-    #     result = subprocess.run(
-    #         [blender_path, "--background", "--python", "-"],
-    #         input=script_content,
-    #         text=True,
-    #         capture_output=True,
-    #         check=True
-    #     )
-        
-    #     # Log standard output and standard error from Blender
-    #     logging.info("Blender script executed successfully.")
-    #     logging.info(f"Blender stdout: {result.stdout}")
-    #     logging.info(f"Blender stderr: {result.stderr}")
-
+    #     # Run Blender with the temporary script
+    #     subprocess.run([blender_path, "--background", "--python", script_content], check=True)
+    #     print("Blender script executed successfully.")
     # except subprocess.CalledProcessError as e:
-    #     logging.error(f"Error running Blender script: {e}")
-    #     logging.error(f"Blender stdout: {e.stdout}")
-    #     logging.error(f"Blender stderr: {e.stderr}")
+    #     print(f"Error running Blender script: {e}")
     #     sys.exit(1)
-    # except Exception as e:
-    #     logging.error(f"Unexpected error: {e}")
-    #     sys.exit(1)
+
+    try:
+        # Run Blender with the script content passed via stdin
+        result = subprocess.run(
+            [blender_path, "--background", "--python", "-"],
+            input=script_content,
+            text=True,
+            capture_output=True,
+            check=True
+        )
+        
+        # Log standard output and standard error from Blender
+        logging.info("Blender script executed successfully.")
+        logging.info(f"Blender stdout: {result.stdout}")
+        logging.info(f"Blender stderr: {result.stderr}")
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error running Blender script: {e}")
+        logging.error(f"Blender stdout: {e.stdout}")
+        logging.error(f"Blender stderr: {e.stderr}")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 def upload_file_to_firebase(local_path: str, firebase_path: str) -> str:
     bucket = storage.bucket()
@@ -88,11 +88,6 @@ def process_pending_jobs_to_firebase():
 
         print("Running Blender script...")
         run_blender_script(blender_path, script_content)
-        
-
-
-
-
 
         if os.path.isdir(job_folder) and os.path.exists(job_file_path):
             logging.info(f"Processing job: {job_id}")
@@ -140,4 +135,5 @@ def process_pending_jobs_to_firebase():
                     logging.error(f"Failed to process job {job_id}: {str(e)}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     process_pending_jobs_to_firebase()
