@@ -51,10 +51,10 @@ def run_blender_script(blender_path, script_content):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         sys.exit(1)
-    finally:
+    # finally:
         # Clean up the temporary file
-        if os.path.exists(temp_script_path):
-            os.remove(temp_script_path)
+        # if os.path.exists(temp_script_path):
+        #     os.remove(temp_script_path)
 
 
 
