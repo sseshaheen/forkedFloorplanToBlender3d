@@ -51,10 +51,10 @@ def run_blender_script(blender_path, script_content):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         sys.exit(1)
-    # finally:
+    finally:
         # Clean up the temporary file
-        # if os.path.exists(temp_script_path):
-        #     os.remove(temp_script_path)
+        if os.path.exists(temp_script_path):
+            os.remove(temp_script_path)
 
 
 
@@ -69,8 +69,8 @@ def process_pending_jobs_to_firebase():
     pending_jobs_path = "/home/apps/firebase_upload_cron/pending_jobs"
     done_jobs_path = "/home/apps/firebase_upload_cron/done_jobs"
     storage_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/objects"
-    # blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script.py"
-    blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script_for_testing.py"
+    blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script.py"
+    # blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script_for_testing.py"
 
 
     for job_id in os.listdir(pending_jobs_path):
