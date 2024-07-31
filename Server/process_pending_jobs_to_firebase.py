@@ -69,7 +69,7 @@ def process_pending_jobs_to_firebase():
     pending_jobs_path = "/home/apps/firebase_upload_cron/pending_jobs"
     done_jobs_path = "/home/apps/firebase_upload_cron/done_jobs"
     storage_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/objects"
-    # data_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data"
+    data_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data"
     blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script.py"
     # blender_script_template_path = "/home/apps/forkedFloorplanToBlender3d/Server/blender_script_for_testing.py"
 
@@ -97,8 +97,9 @@ def process_pending_jobs_to_firebase():
             with open(job_file_path, "r") as job_file:
                 job_data = json.load(job_file)
 
-            # obj_file_path = os.path.join(storage_path, f"{job_id}-regenerated.obj")
-            obj_file_path = os.path.join(storage_path, f"{job_id}.obj")
+            obj_file_path = os.path.join(data_path, job_id, f"floorplan-adjusted.obj")
+            # this will upload the old obj file (without doors and windows):
+            # obj_file_path = os.path.join(storage_path, f"{job_id}.obj")
 
             if os.path.exists(obj_file_path):
                 try:
