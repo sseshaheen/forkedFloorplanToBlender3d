@@ -87,6 +87,10 @@ def main():
     base_path = "/home/apps/forkedFloorplanToBlender3d/Server/storage/data/{job_id}"
 
     # create_floorplan(base_path, program_path)
+
+    # Ensure the scene is clean before adding new objects
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
     create_walls(base_path, program_path)
     # create_doors(base_path, program_path)
     # create_windows(base_path, program_path)
@@ -332,6 +336,7 @@ def create_windows(base_path, program_path):
         parent.scale.x = scale[0]
         parent.scale.y = scale[1]
         parent.scale.z = scale[2]
+
 
 
 def create_others(base_path, program_path):
