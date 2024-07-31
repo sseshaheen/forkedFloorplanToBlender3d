@@ -63,7 +63,7 @@ def process_pending_jobs_to_firebase():
         blender_path = "/usr/local/bin/blender"
 
             # Blender script content
-        script_content = """
+        script_content = f"""
 import bpy
 import json
 import math
@@ -87,7 +87,7 @@ def get_mesh_center(verts):
     try:
         x, y, z = zip(*verts)
     except TypeError as e:
-        print(f"Error unpacking verts: {verts}")
+        print(f"Error unpacking verts: {{verts}}")
         raise e
 
     center_x = sum(x) / len(x)
@@ -104,7 +104,7 @@ def subtract_center_verts(verts1, verts2):
     return verts2
 
 def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
-    print(f"Creating mesh for {objname} with verts: {verts} and faces: {faces}")
+    print(f"Creating mesh for {{objname}} with verts: {{verts}} and faces: {{faces}}")
 
     myobject, mymesh = init_object(objname)
 
@@ -174,15 +174,15 @@ def create_walls(base_path, program_path):
                 verts = read_from_file(verts_file)
                 faces = read_from_file(faces_file)
 
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
+                component_parent, _ = init_object(f"{{component.capitalize()}}{{orientation.capitalize()}}")
 
                 if isinstance(verts[0], list) and isinstance(verts[0][0], list):
                     for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
+                        boxname = f"{{component.capitalize()}}Box{{i}}"
                         for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
+                            wallname = f"{{component.capitalize()}}Wall{{j}}"
                             obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
+                                f"{{boxname}}{{wallname}}",
                                 wall,
                                 faces,
                                 cen=cen,
@@ -191,7 +191,7 @@ def create_walls(base_path, program_path):
                             obj.parent = component_parent
                 else:
                     for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
+                        roomname = f"{{component.capitalize()}}{{orientation.capitalize()}}{{i}}"
                         obj = create_custom_mesh(
                             roomname,
                             verts[i],
@@ -254,15 +254,15 @@ def create_doors(base_path, program_path):
                 verts = read_from_file(verts_file)
                 faces = read_from_file(faces_file)
 
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
+                component_parent, _ = init_object(f"{{component.capitalize()}}{{orientation.capitalize()}}")
 
                 if isinstance(verts[0], list) and isinstance(verts[0][0], list):
                     for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
+                        boxname = f"{{component.capitalize()}}Box{{i}}"
                         for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
+                            wallname = f"{{component.capitalize()}}Wall{{j}}"
                             obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
+                                f"{{boxname}}{{wallname}}",
                                 wall,
                                 faces,
                                 cen=cen,
@@ -271,7 +271,7 @@ def create_doors(base_path, program_path):
                             obj.parent = component_parent
                 else:
                     for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
+                        roomname = f"{{component.capitalize()}}{{orientation.capitalize()}}{{i}}"
                         obj = create_custom_mesh(
                             roomname,
                             verts[i],
@@ -282,7 +282,6 @@ def create_doors(base_path, program_path):
                         obj.parent = component_parent
 
                 component_parent.parent = parent
-
     rot = transform["rotation"]
     pos = transform["position"]
     scale = transform["scale"]
@@ -334,15 +333,15 @@ def create_windows(base_path, program_path):
                 verts = read_from_file(verts_file)
                 faces = read_from_file(faces_file)
 
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
+                component_parent, _ = init_object(f"{{component.capitalize()}}{{orientation.capitalize()}}")
 
                 if isinstance(verts[0], list) and isinstance(verts[0][0], list):
                     for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
+                        boxname = f"{{component.capitalize()}}Box{{i}}"
                         for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
+                            wallname = f"{{component.capitalize()}}Wall{{j}}"
                             obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
+                                f"{{boxname}}{{wallname}}",
                                 wall,
                                 faces,
                                 cen=cen,
@@ -351,7 +350,7 @@ def create_windows(base_path, program_path):
                             obj.parent = component_parent
                 else:
                     for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
+                        roomname = f"{{component.capitalize()}}{{orientation.capitalize()}}{{i}}"
                         obj = create_custom_mesh(
                             roomname,
                             verts[i],
@@ -362,7 +361,6 @@ def create_windows(base_path, program_path):
                         obj.parent = component_parent
 
                 component_parent.parent = parent
-
     rot = transform["rotation"]
     pos = transform["position"]
     scale = transform["scale"]
@@ -412,15 +410,15 @@ def create_others(base_path, program_path):
                 verts = read_from_file(verts_file)
                 faces = read_from_file(faces_file)
 
-                component_parent, _ = init_object(f"{component.capitalize()}{orientation.capitalize()}")
+                component_parent, _ = init_object(f"{{component.capitalize()}}{{orientation.capitalize()}}")
 
                 if isinstance(verts[0], list) and isinstance(verts[0][0], list):
                     for i, walls in enumerate(verts):
-                        boxname = f"{component.capitalize()}Box{i}"
+                        boxname = f"{{component.capitalize()}}Box{{i}}"
                         for j, wall in enumerate(walls):
-                            wallname = f"{component.capitalize()}Wall{j}"
+                            wallname = f"{{component.capitalize()}}Wall{{j}}"
                             obj = create_custom_mesh(
-                                f"{boxname}{wallname}",
+                                f"{{boxname}}{{wallname}}",
                                 wall,
                                 faces,
                                 cen=cen,
@@ -429,7 +427,7 @@ def create_others(base_path, program_path):
                             obj.parent = component_parent
                 else:
                     for i in range(len(verts)):
-                        roomname = f"{component.capitalize()}{orientation.capitalize()}{i}"
+                        roomname = f"{{component.capitalize()}}{{orientation.capitalize()}}{{i}}"
                         obj = create_custom_mesh(
                             roomname,
                             verts[i],
@@ -440,7 +438,6 @@ def create_others(base_path, program_path):
                         obj.parent = component_parent
 
                 component_parent.parent = parent
-
     rot = transform["rotation"]
     pos = transform["position"]
     scale = transform["scale"]
