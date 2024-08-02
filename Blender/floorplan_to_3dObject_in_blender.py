@@ -61,12 +61,17 @@ def init_object(name):
 def average(lst):
     return sum(lst) / len(lst)
 
+
 def get_mesh_center(verts):
+    # Calculate center location of a mesh from verts
     """
     Calculate the center of the mesh.
-    @Param verts: List of vertices, expected as a list of lists.
+    @Param verts: List of vertices.
     @Return: Center of the mesh.
     """
+    # Ensure that verts is a list of lists,
+    # where each sublist represents a vertex with
+    # three coordinates [x, y, z]
     if not verts:
         return [0, 0, 0]
 
@@ -78,9 +83,7 @@ def get_mesh_center(verts):
             y.append(vert[1])
             z.append(vert[2])
         else:
-            print(f"Invalid vertex format detected in get_mesh_center function.")
-            print(f"Full verts list: {verts}")
-            print(f"Invalid vertex: {vert}")
+            print(f"Invalid vertex format: {vert}")
             raise ValueError(f"Invalid vertex format: {vert}")
 
     center_x = sum(x) / len(x)
@@ -88,6 +91,8 @@ def get_mesh_center(verts):
     center_z = sum(z) / len(z)
 
     return [center_x, center_y, center_z]
+
+
 
 def subtract_center_verts(verts1, verts2):
     # Remove verts1 from all verts in verts2, return result, verts1 & verts2 must have same shape!
@@ -97,161 +102,58 @@ def subtract_center_verts(verts1, verts2):
         verts2[i][2] -= verts1[2]
     return verts2
 
-def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
+
+def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
     """
-    Create a custom mesh in Blender from the given vertex and face data.
-    @Param name: Name of the mesh.
-    @Param verts: List of vertices.
-    @Param faces: List of faces.
-    @Param cen: Center of the mesh.
-    @Param mat: Material to assign to the mesh.
-    @Return: Created mesh object.
+    @Param objname, name of new mesh
+    @Param pos, object position [x, y, z]
+    @Param vertex, corners
+    @Param faces, buildorder
     """
-    if not all(isinstance(vert, (list, tuple)) and len(vert) == 3 for vert in verts):
-        print(f"Invalid vertex format detected before creating mesh.")
-        print(f"Verts: {verts}")
-        raise ValueError(f"Invalid vertex format in verts: {verts}")
+    # Create mesh and object
+    myobject, mymesh = init_object(objname)
 
-    if not all(isinstance(face, (list, tuple)) and all(isinstance(index, int) for index in face) for face in faces):
-        print(f"Invalid face format detected before creating mesh.")
-        print(f"Faces: {faces}")
-        raise ValueError(f"Invalid face format in faces: {faces}")
+    # Rearrange verts to put pivot point in center of mesh
+    # Find center of verts
+    center = get_mesh_center(verts)
+    # Subtract center from verts before creation
+    proper_verts = subtract_center_verts(center, verts)
 
-    # Create mesh data
-    mesh = bpy.data.meshes.new(name=name)
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
+    # Generate mesh data
+    mymesh.from_pydata(proper_verts, [], faces)
+    # Calculate the edges
+    mymesh.update(calc_edges=True)
 
-    # Create object from mesh
-    obj = bpy.data.objects.new(name=name, display_type='SOLID', data=mesh)
-    obj.location = cen
+    parent_center = [0, 0, 0]
+    if cen is not None:
+        parent_center = [int(cen[0] / 2), int(cen[1] / 2), int(cen[2])]
 
-    # Link the object to the scene
-    bpy.context.collection.objects.link(obj)
+    # Move object to input verts location
+    myobject.location.x = center[0] - parent_center[0]
+    myobject.location.y = center[1] - parent_center[1]
+    myobject.location.z = center[2] - parent_center[2]
 
-    if mat:
-        obj.data.materials.append(mat)
+    # add material
+    if mat is None:  # add random color
+        myobject.data.materials.append(
+            create_mat(np.random.randint(0, 40, size=4))
+        )  # add the material to the object
+    else:
+        myobject.data.materials.append(mat)  # add the material to the object
+    return myobject
 
-    return obj
+
+def create_mat(rgb_color):
+    mat = bpy.data.materials.new(name="MaterialName")  # set new material to variable
+    mat.diffuse_color = rgb_color  # change to random color
+    return mat
 
 
 """
 Main functionality here!
 """
 
-def create_door_frame(wall, inset=0.02, thickness=0.05, depth=0.03, height_extension=0.1):
-    try:
-        if not isinstance(wall[0], list):
-            raise TypeError(f"Expected list of vertices, got {type(wall[0])}")
 
-        if len(wall) < 4:
-            raise ValueError(f"Expected wall to have at least 4 vertices, got {len(wall)}")
-
-        x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
-        x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
-
-        # Extend the height slightly
-        z1 -= height_extension
-        z2 += height_extension
-
-        # Calculate direction vectors
-        dx, dy = x2 - x1, y2 - y1
-        length = math.sqrt(dx ** 2 + dy ** 2)
-        dx, dy = dx / length, dy / length
-        px, py = -dy, dx
-
-        # Create inset corners
-        corners = [
-            [x1 + inset * dx + inset * px, y1 + inset * dy + inset * py, z1],
-            [x2 - inset * dx + inset * px, y2 - inset * dy + inset * py, z1],
-            [x2 - inset * dx - inset * px, y2 - inset * dy - inset * py, z1],
-            [x1 + inset * dx - inset * px, y1 + inset * dy - inset * py, z1],
-        ]
-
-        # Create frame vertices
-        frame_verts = []
-        for corner in corners:
-            frame_verts.append(corner)
-            frame_verts.append([corner[0], corner[1], z2])
-
-        # Add threshold
-        threshold_height = 0.05
-        frame_verts.extend([
-            [x1, y1, z1], [x2, y2, z1],
-            [x1, y1, z1 + threshold_height], [x2, y2, z1 + threshold_height]
-        ])
-
-        # Create frame faces
-        frame_faces = [
-            [0, 1, 3, 2], [4, 6, 7, 5],  # Front and back faces
-            [0, 4, 5, 1], [2, 3, 7, 6],  # Side faces
-            [1, 5, 7, 3], [0, 2, 6, 4],  # Top and bottom faces
-            [8, 9, 11, 10]  # Threshold
-        ]
-
-        return frame_verts, frame_faces
-
-    except Exception as e:
-        print(f"Error creating door frame: {e}")
-        return [], []
-
-
-def create_window_frame(wall, inset=0.02, thickness=0.05, depth=0.03, sill_depth=0.1):
-    try:
-        if not isinstance(wall[0], list):
-            raise TypeError(f"Expected list of vertices, got {type(wall[0])}")
-
-        if len(wall) < 4:
-            raise ValueError(f"Expected wall to have at least 4 vertices, got {len(wall)}")
-
-        x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
-        x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
-
-        # Calculate direction vectors
-        dx, dy = x2 - x1, y2 - y1
-        length = math.sqrt(dx ** 2 + dy ** 2)
-        dx, dy = dx / length, dy / length
-        px, py = -dy, dx
-
-        # Create inset corners
-        corners = [
-            [x1 + inset * dx + inset * px, y1 + inset * dy + inset * py, z1],
-            [x2 - inset * dx + inset * px, y2 - inset * dy + inset * py, z1],
-            [x2 - inset * dx - inset * px, y2 - inset * dy - inset * py, z1],
-            [x1 + inset * dx - inset * px, y1 + inset * dy - inset * py, z1],
-        ]
-
-        # Create frame vertices
-        frame_verts = []
-        for corner in corners:
-            frame_verts.append(corner)
-            frame_verts.append([corner[0], corner[1], z2])
-
-        # Add sill
-        sill_z = z1 - 0.05  # Slightly below the bottom of the window
-        frame_verts.extend([
-            [x1 - sill_depth * px, y1 - sill_depth * py, sill_z],
-            [x2 - sill_depth * px, y2 - sill_depth * py, sill_z],
-            [x1 - sill_depth * px, y1 - sill_depth * py, z1],
-            [x2 - sill_depth * px, y2 - sill_depth * py, z1]
-        ])
-
-        # Create frame faces
-        frame_faces = [
-            [0, 1, 5, 4],  # Front face
-            [1, 2, 6, 5],  # Right face
-            [2, 3, 7, 6],  # Back face
-            [3, 0, 4, 7],  # Left face
-            [4, 5, 6, 7],  # Bottom face
-            [0, 1, 2, 3],  # Top face
-            [8, 9, 11, 10], [10, 11, 3, 2]  # Sill
-        ]
-
-        return frame_verts, frame_faces
-
-    except Exception as e:
-        print(f"Error creating window frame: {e}")
-        return [], []
 def main(argv):
 
     # Remove starting object cube
@@ -288,20 +190,6 @@ def main(argv):
     """
     exit(0)
 
-
-def create_mat(color, name="Material"):
-    """
-    Create a material in Blender with the specified color.
-    @Param color: RGBA color tuple (r, g, b, a).
-    @Param name: Name of the material.
-    @Return: Created material.
-    """
-    mat = bpy.data.materials.new(name=name)
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes.get('Principled BSDF')
-    if bsdf:
-        bsdf.inputs['Base Color'].default_value = color
-    return mat
 
 def create_floorplan(base_path, program_path, name=None):
 
@@ -406,10 +294,6 @@ def create_floorplan(base_path, program_path, name=None):
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
 
-                if not all(isinstance(vertex, list) and len(vertex) == 3 for vertex in wall):
-                    print(f"Invalid wall vertex format detected before creating custom mesh.")
-                    print(f"Wall vertices: {wall}")
-
                 obj = create_custom_mesh(
                     boxname + wallname,
                     wall,
@@ -476,7 +360,26 @@ def create_floorplan(base_path, program_path, name=None):
                 print(f"Creating wall: {wallname}")
 
                 # Create frame around window
-                frame_verts, frame_faces = create_window_frame(wall)
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
+                ]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
                 frame_obj = create_custom_mesh(
                     boxname + wallname + "Frame",
                     frame_verts,
@@ -514,7 +417,26 @@ def create_floorplan(base_path, program_path, name=None):
             print(f"Creating window: {roomname}")
 
             # Create frame around window
-            frame_verts, frame_faces = create_window_frame(verts[i])
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
+            ]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
             frame_obj = create_custom_mesh(
                 roomname + "Frame",
                 frame_verts,
@@ -559,19 +481,95 @@ def create_floorplan(base_path, program_path, name=None):
         wallcount = 0
 
         # Create parent
-    wall_parent, _ = init_object("Doors")
+        wall_parent, _ = init_object("Doors")
 
-    for walls in verts:
-        boxname = "Box" + str(boxcount)
-        print(f"Creating box: {boxname}")
-        for wall in walls:
-            wallname = "Wall" + str(wallcount)
-            print(f"Creating wall: {wallname}")
+        for walls in verts:
+            boxname = "Box" + str(boxcount)
+            print(f"Creating box: {boxname}")
+            for wall in walls:
+                wallname = "Wall" + str(wallcount)
+                print(f"Creating wall: {wallname}")
+
+                # Create frame around door
+                frame_verts = [
+                    [wall[0][0], wall[0][1], wall[0][2]],
+                    [wall[1][0], wall[1][1], wall[1][2]],
+                    [wall[2][0], wall[2][1], wall[2][2]],
+                    [wall[3][0], wall[3][1], wall[3][2]],
+                    [wall[0][0], wall[0][1], wall[0][2] - 0.1],
+                    [wall[1][0], wall[1][1], wall[1][2] - 0.1],
+                    [wall[2][0], wall[2][1], wall[2][2] - 0.1],
+                    [wall[3][0], wall[3][1], wall[3][2] - 0.1]
+                ]
+                frame_faces = [
+                    [0, 1, 5, 4],  # Front face
+                    [1, 2, 6, 5],  # Right face
+                    [2, 3, 7, 6],  # Back face
+                    [3, 0, 4, 7],  # Left face
+                    [4, 5, 6, 7],  # Bottom face
+                    [0, 1, 2, 3]   # Top face
+                ]
+                print(f"Frame vertices: {frame_verts}")
+                print(f"Frame faces: {frame_faces}")
+                frame_obj = create_custom_mesh(
+                    boxname + wallname + "Frame",
+                    frame_verts,
+                    frame_faces,
+                    cen=cen,
+                    mat=create_mat((0.3, 0.3, 0.3, 1)),
+                )
+                frame_obj.parent = wall_parent
+
+                obj = create_custom_mesh(
+                    boxname + wallname,
+                    wall,
+                    faces,
+                    cen=cen,
+                    mat=create_mat((0.5, 0.5, 0.5, 1)),
+                )
+                obj.parent = wall_parent
+
+                wallcount += 1
+            boxcount += 1
+
+        # get doors
+        verts = read_from_file(path_to_doors_horizontal_verts_file)
+        faces = read_from_file(path_to_doors_horizontal_faces_file)
+
+        print(f"Door horizontal verts: {verts}")
+        print(f"Door horizontal faces: {faces}")
+
+        # Create mesh from data
+        boxcount = 0
+        wallcount = 0
+
+        for i in range(0, len(verts)):
+            roomname = "VertDoor" + str(i)
+            print(f"Creating door: {roomname}")
 
             # Create frame around door
-            frame_verts, frame_faces = create_door_frame(wall)
+            frame_verts = [
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2]],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2]],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2]],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2]],
+                [verts[i][0][0], verts[i][0][1], verts[i][0][2] - 0.1],
+                [verts[i][1][0], verts[i][1][1], verts[i][1][2] - 0.1],
+                [verts[i][2][0], verts[i][2][1], verts[i][2][2] - 0.1],
+                [verts[i][3][0], verts[i][3][1], verts[i][3][2] - 0.1]
+            ]
+            frame_faces = [
+                [0, 1, 5, 4],  # Front face
+                [1, 2, 6, 5],  # Right face
+                [2, 3, 7, 6],  # Back face
+                [3, 0, 4, 7],  # Left face
+                [4, 5, 6, 7],  # Bottom face
+                [0, 1, 2, 3]   # Top face
+            ]
+            print(f"Frame vertices: {frame_verts}")
+            print(f"Frame faces: {frame_faces}")
             frame_obj = create_custom_mesh(
-                boxname + wallname + "Frame",
+                roomname + "Frame",
                 frame_verts,
                 frame_faces,
                 cen=cen,
@@ -580,54 +578,16 @@ def create_floorplan(base_path, program_path, name=None):
             frame_obj.parent = wall_parent
 
             obj = create_custom_mesh(
-                boxname + wallname,
-                wall,
-                faces,
+                roomname,
+                verts[i],
+                faces[i],
                 cen=cen,
                 mat=create_mat((0.5, 0.5, 0.5, 1)),
             )
             obj.parent = wall_parent
 
-            wallcount += 1
-        boxcount += 1
-
-    # get doors
-    verts = read_from_file(path_to_doors_horizontal_verts_file)
-    faces = read_from_file(path_to_doors_horizontal_faces_file)
-
-    print(f"Door horizontal verts: {verts}")
-    print(f"Door horizontal faces: {faces}")
-
-    # Create mesh from data
-    boxcount = 0
-    wallcount = 0
-
-    for i in range(0, len(verts)):
-        roomname = "VertDoor" + str(i)
-        print(f"Creating door: {roomname}")
-
-        # Create frame around door
-        frame_verts, frame_faces = create_door_frame(verts[i])
-        frame_obj = create_custom_mesh(
-            roomname + "Frame",
-            frame_verts,
-            frame_faces,
-            cen=cen,
-            mat=create_mat((0.3, 0.3, 0.3, 1)),
-        )
-        frame_obj.parent = wall_parent
-
-        obj = create_custom_mesh(
-            roomname,
-            verts[i],
-            faces[i],
-            cen=cen,
-            mat=create_mat((0.5, 0.5, 0.5, 1)),
-        )
-        obj.parent = wall_parent
-
-    wall_parent.parent = parent
-    print("Finished creating doors.")
+        wall_parent.parent = parent
+        print("Finished creating doors.")
 
     """
     Create Floor
