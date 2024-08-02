@@ -61,17 +61,12 @@ def init_object(name):
 def average(lst):
     return sum(lst) / len(lst)
 
-
 def get_mesh_center(verts):
-    # Calculate center location of a mesh from verts
     """
     Calculate the center of the mesh.
     @Param verts: List of vertices.
     @Return: Center of the mesh.
     """
-    # Ensure that verts is a list of lists,
-    # where each sublist represents a vertex with
-    # three coordinates [x, y, z]
     if not verts:
         return [0, 0, 0]
 
@@ -152,7 +147,6 @@ def create_mat(rgb_color):
 """
 Main functionality here!
 """
-
 
 def create_door_frame(wall, inset=0.02, thickness=0.05, depth=0.03, height_extension=0.1):
     try:
@@ -267,7 +261,6 @@ def create_window_frame(wall, inset=0.02, thickness=0.05, depth=0.03, sill_depth
     except Exception as e:
         print(f"Error creating window frame: {e}")
         return [], []
-    
 def main(argv):
 
     # Remove starting object cube
