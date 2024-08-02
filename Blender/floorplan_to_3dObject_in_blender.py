@@ -78,7 +78,9 @@ def get_mesh_center(verts):
             y.append(vert[1])
             z.append(vert[2])
         else:
-            print(f"Invalid vertex format: {vert}")
+            print(f"Invalid vertex format detected in get_mesh_center function.")
+            print(f"Full verts list: {verts}")
+            print(f"Invalid vertex: {vert}")
             raise ValueError(f"Invalid vertex format: {vert}")
 
     center_x = sum(x) / len(x)
@@ -400,6 +402,10 @@ def create_floorplan(base_path, program_path, name=None):
             boxname = "Box" + str(boxcount)
             for wall in walls:
                 wallname = "Wall" + str(wallcount)
+
+                if not all(isinstance(vertex, list) and len(vertex) == 3 for vertex in wall):
+                    print(f"Invalid wall vertex format detected before creating custom mesh.")
+                    print(f"Wall vertices: {wall}")
 
                 obj = create_custom_mesh(
                     boxname + wallname,
