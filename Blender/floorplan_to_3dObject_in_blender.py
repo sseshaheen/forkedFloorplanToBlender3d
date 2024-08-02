@@ -96,6 +96,7 @@ def subtract_center_verts(verts1, verts2):
         verts2[i][1] -= verts1[1]
         verts2[i][2] -= verts1[2]
     return verts2
+
 def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
     """
     Create a custom mesh in Blender from the given vertex and face data.
@@ -106,12 +107,12 @@ def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
     @Param mat: Material to assign to the mesh.
     @Return: Created mesh object.
     """
-    if not all(isinstance(vert, list) and len(vert) == 3 for vert in verts):
+    if not all(isinstance(vert, (list, tuple)) and len(vert) == 3 for vert in verts):
         print(f"Invalid vertex format detected before creating mesh.")
         print(f"Verts: {verts}")
         raise ValueError(f"Invalid vertex format in verts: {verts}")
 
-    if not all(isinstance(face, list) and all(isinstance(index, int) for index in face) for face in faces):
+    if not all(isinstance(face, (list, tuple)) and all(isinstance(index, int) for index in face) for face in faces):
         print(f"Invalid face format detected before creating mesh.")
         print(f"Faces: {faces}")
         raise ValueError(f"Invalid face format in faces: {faces}")
@@ -122,7 +123,7 @@ def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
     mesh.update()
 
     # Create object from mesh
-    obj = bpy.data.objects.new(name=name, data=mesh)
+    obj = bpy.data.objects.new(name=name, display_type='SOLID', data=mesh)
     obj.location = cen
 
     # Link the object to the scene
@@ -132,10 +133,6 @@ def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
         obj.data.materials.append(mat)
 
     return obj
-def create_mat(rgb_color):
-    mat = bpy.data.materials.new(name="MaterialName")  # set new material to variable
-    mat.diffuse_color = rgb_color  # change to random color
-    return mat
 
 
 """
