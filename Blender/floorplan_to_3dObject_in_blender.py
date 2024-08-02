@@ -64,7 +64,7 @@ def average(lst):
 def get_mesh_center(verts):
     """
     Calculate the center of the mesh.
-    @Param verts: List of vertices.
+    @Param verts: List of vertices, expected as a list of lists.
     @Return: Center of the mesh.
     """
     if not verts:
@@ -89,8 +89,6 @@ def get_mesh_center(verts):
 
     return [center_x, center_y, center_z]
 
-
-
 def subtract_center_verts(verts1, verts2):
     # Remove verts1 from all verts in verts2, return result, verts1 & verts2 must have same shape!
     for i in range(0, len(verts2)):
@@ -99,46 +97,42 @@ def subtract_center_verts(verts1, verts2):
         verts2[i][2] -= verts1[2]
     return verts2
 
-
-def create_custom_mesh(objname, verts, faces, mat=None, cen=None):
+def create_custom_mesh(name, verts, faces, cen=[0, 0, 0], mat=None):
     """
-    @Param objname, name of new mesh
-    @Param pos, object position [x, y, z]
-    @Param vertex, corners
-    @Param faces, buildorder
+    Create a custom mesh in Blender from the given vertex and face data.
+    @Param name: Name of the mesh.
+    @Param verts: List of vertices.
+    @Param faces: List of faces.
+    @Param cen: Center of the mesh.
+    @Param mat: Material to assign to the mesh.
+    @Return: Created mesh object.
     """
-    # Create mesh and object
-    myobject, mymesh = init_object(objname)
+    if not all(isinstance(vert, list) and len(vert) == 3 for vert in verts):
+        print(f"Invalid vertex format detected before creating mesh.")
+        print(f"Verts: {verts}")
+        raise ValueError(f"Invalid vertex format in verts: {verts}")
 
-    # Rearrange verts to put pivot point in center of mesh
-    # Find center of verts
-    center = get_mesh_center(verts)
-    # Subtract center from verts before creation
-    proper_verts = subtract_center_verts(center, verts)
+    if not all(isinstance(face, list) and all(isinstance(index, int) for index in face) for face in faces):
+        print(f"Invalid face format detected before creating mesh.")
+        print(f"Faces: {faces}")
+        raise ValueError(f"Invalid face format in faces: {faces}")
 
-    # Generate mesh data
-    mymesh.from_pydata(proper_verts, [], faces)
-    # Calculate the edges
-    mymesh.update(calc_edges=True)
+    # Create mesh data
+    mesh = bpy.data.meshes.new(name=name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
 
-    parent_center = [0, 0, 0]
-    if cen is not None:
-        parent_center = [int(cen[0] / 2), int(cen[1] / 2), int(cen[2])]
+    # Create object from mesh
+    obj = bpy.data.objects.new(name=name, display_type='SOLID', data=mesh)
+    obj.location = cen
 
-    # Move object to input verts location
-    myobject.location.x = center[0] - parent_center[0]
-    myobject.location.y = center[1] - parent_center[1]
-    myobject.location.z = center[2] - parent_center[2]
+    # Link the object to the scene
+    bpy.context.collection.objects.link(obj)
 
-    # add material
-    if mat is None:  # add random color
-        myobject.data.materials.append(
-            create_mat(np.random.randint(0, 40, size=4))
-        )  # add the material to the object
-    else:
-        myobject.data.materials.append(mat)  # add the material to the object
-    return myobject
+    if mat:
+        obj.data.materials.append(mat)
 
+    return obj
 
 def create_mat(rgb_color):
     mat = bpy.data.materials.new(name="MaterialName")  # set new material to variable
