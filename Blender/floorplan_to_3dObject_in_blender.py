@@ -289,6 +289,20 @@ def main(argv):
     exit(0)
 
 
+def create_mat(color, name="Material"):
+    """
+    Create a material in Blender with the specified color.
+    @Param color: RGBA color tuple (r, g, b, a).
+    @Param name: Name of the material.
+    @Return: Created material.
+    """
+    mat = bpy.data.materials.new(name=name)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get('Principled BSDF')
+    if bsdf:
+        bsdf.inputs['Base Color'].default_value = color
+    return mat
+
 def create_floorplan(base_path, program_path, name=None):
 
     if name is None:
