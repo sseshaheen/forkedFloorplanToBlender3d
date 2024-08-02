@@ -155,93 +155,119 @@ Main functionality here!
 
 
 def create_door_frame(wall, inset=0.02, thickness=0.05, depth=0.03, height_extension=0.1):
-    x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
-    x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
-    
-    # Extend the height slightly
-    z1 -= height_extension
-    z2 += height_extension
-    
-    # Calculate direction vectors
-    dx, dy = x2 - x1, y2 - y1
-    length = math.sqrt(dx**2 + dy**2)
-    dx, dy = dx / length, dy / length
-    px, py = -dy, dx
-    
-    # Create inset corners
-    corners = [
-        [x1 + inset*dx + inset*px, y1 + inset*dy + inset*py, z1],
-        [x2 - inset*dx + inset*px, y2 - inset*dy + inset*py, z1],
-        [x2 - inset*dx - inset*px, y2 - inset*dy - inset*py, z1],
-        [x1 + inset*dx - inset*px, y1 + inset*dy - inset*py, z1],
-    ]
-    
-    # Create frame vertices
-    frame_verts = []
-    for corner in corners:
-        frame_verts.append(corner)
-        frame_verts.append([corner[0], corner[1], z2])
-    
-    # Add threshold
-    threshold_height = 0.05
-    frame_verts.extend([
-        [x1, y1, z1], [x2, y2, z1],
-        [x1, y1, z1 + threshold_height], [x2, y2, z1 + threshold_height]
-    ])
-    
-    # Create frame faces
-    frame_faces = [
-        [0, 1, 3, 2], [4, 6, 7, 5],  # Front and back faces
-        [0, 4, 5, 1], [2, 3, 7, 6],  # Side faces
-        [1, 5, 7, 3], [0, 2, 6, 4],  # Top and bottom faces
-        [8, 9, 11, 10]  # Threshold
-    ]
-    
-    return frame_verts, frame_faces
+    try:
+        if not isinstance(wall[0], list):
+            raise TypeError(f"Expected list of vertices, got {type(wall[0])}")
+
+        if len(wall) < 4:
+            raise ValueError(f"Expected wall to have at least 4 vertices, got {len(wall)}")
+
+        x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
+        x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
+
+        # Extend the height slightly
+        z1 -= height_extension
+        z2 += height_extension
+
+        # Calculate direction vectors
+        dx, dy = x2 - x1, y2 - y1
+        length = math.sqrt(dx ** 2 + dy ** 2)
+        dx, dy = dx / length, dy / length
+        px, py = -dy, dx
+
+        # Create inset corners
+        corners = [
+            [x1 + inset * dx + inset * px, y1 + inset * dy + inset * py, z1],
+            [x2 - inset * dx + inset * px, y2 - inset * dy + inset * py, z1],
+            [x2 - inset * dx - inset * px, y2 - inset * dy - inset * py, z1],
+            [x1 + inset * dx - inset * px, y1 + inset * dy - inset * py, z1],
+        ]
+
+        # Create frame vertices
+        frame_verts = []
+        for corner in corners:
+            frame_verts.append(corner)
+            frame_verts.append([corner[0], corner[1], z2])
+
+        # Add threshold
+        threshold_height = 0.05
+        frame_verts.extend([
+            [x1, y1, z1], [x2, y2, z1],
+            [x1, y1, z1 + threshold_height], [x2, y2, z1 + threshold_height]
+        ])
+
+        # Create frame faces
+        frame_faces = [
+            [0, 1, 3, 2], [4, 6, 7, 5],  # Front and back faces
+            [0, 4, 5, 1], [2, 3, 7, 6],  # Side faces
+            [1, 5, 7, 3], [0, 2, 6, 4],  # Top and bottom faces
+            [8, 9, 11, 10]  # Threshold
+        ]
+
+        return frame_verts, frame_faces
+
+    except Exception as e:
+        print(f"Error creating door frame: {e}")
+        return [], []
+
 
 def create_window_frame(wall, inset=0.02, thickness=0.05, depth=0.03, sill_depth=0.1):
-    x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
-    x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
-    
-    # Calculate direction vectors
-    dx, dy = x2 - x1, y2 - y1
-    length = math.sqrt(dx**2 + dy**2)
-    dx, dy = dx / length, dy / length
-    px, py = -dy, dx
-    
-    # Create inset corners
-    corners = [
-        [x1 + inset*dx + inset*px, y1 + inset*dy + inset*py, z1],
-        [x2 - inset*dx + inset*px, y2 - inset*dy + inset*py, z1],
-        [x2 - inset*dx - inset*px, y2 - inset*dy - inset*py, z1],
-        [x1 + inset*dx - inset*px, y1 + inset*dy - inset*py, z1],
-    ]
-    
-    # Create frame vertices
-    frame_verts = []
-    for corner in corners:
-        frame_verts.append(corner)
-        frame_verts.append([corner[0], corner[1], z2])
-    
-    # Add sill
-    sill_z = z1 - 0.05  # Slightly below the bottom of the window
-    frame_verts.extend([
-        [x1 - sill_depth*px, y1 - sill_depth*py, sill_z],
-        [x2 - sill_depth*px, y2 - sill_depth*py, sill_z],
-        [x1 - sill_depth*px, y1 - sill_depth*py, z1],
-        [x2 - sill_depth*px, y2 - sill_depth*py, z1]
-    ])
-    
-    # Create frame faces
-    frame_faces = [
-        [0, 1, 3, 2], [4, 6, 7, 5],  # Front and back faces
-        [0, 4, 5, 1], [2, 3, 7, 6],  # Side faces
-        [1, 5, 7, 3], [0, 2, 6, 4],  # Top and bottom faces
-        [8, 9, 11, 10], [10, 11, 3, 2]  # Sill
-    ]
-    
-    return frame_verts, frame_faces
+    try:
+        if not isinstance(wall[0], list):
+            raise TypeError(f"Expected list of vertices, got {type(wall[0])}")
 
+        if len(wall) < 4:
+            raise ValueError(f"Expected wall to have at least 4 vertices, got {len(wall)}")
+
+        x1, y1, z1 = wall[0][0], wall[0][1], wall[0][2]
+        x2, y2, z2 = wall[2][0], wall[2][1], wall[2][2]
+
+        # Calculate direction vectors
+        dx, dy = x2 - x1, y2 - y1
+        length = math.sqrt(dx ** 2 + dy ** 2)
+        dx, dy = dx / length, dy / length
+        px, py = -dy, dx
+
+        # Create inset corners
+        corners = [
+            [x1 + inset * dx + inset * px, y1 + inset * dy + inset * py, z1],
+            [x2 - inset * dx + inset * px, y2 - inset * dy + inset * py, z1],
+            [x2 - inset * dx - inset * px, y2 - inset * dy - inset * py, z1],
+            [x1 + inset * dx - inset * px, y1 + inset * dy - inset * py, z1],
+        ]
+
+        # Create frame vertices
+        frame_verts = []
+        for corner in corners:
+            frame_verts.append(corner)
+            frame_verts.append([corner[0], corner[1], z2])
+
+        # Add sill
+        sill_z = z1 - 0.05  # Slightly below the bottom of the window
+        frame_verts.extend([
+            [x1 - sill_depth * px, y1 - sill_depth * py, sill_z],
+            [x2 - sill_depth * px, y2 - sill_depth * py, sill_z],
+            [x1 - sill_depth * px, y1 - sill_depth * py, z1],
+            [x2 - sill_depth * px, y2 - sill_depth * py, z1]
+        ])
+
+        # Create frame faces
+        frame_faces = [
+            [0, 1, 5, 4],  # Front face
+            [1, 2, 6, 5],  # Right face
+            [2, 3, 7, 6],  # Back face
+            [3, 0, 4, 7],  # Left face
+            [4, 5, 6, 7],  # Bottom face
+            [0, 1, 2, 3],  # Top face
+            [8, 9, 11, 10], [10, 11, 3, 2]  # Sill
+        ]
+
+        return frame_verts, frame_faces
+
+    except Exception as e:
+        print(f"Error creating window frame: {e}")
+        return [], []
+    
 def main(argv):
 
     # Remove starting object cube
