@@ -171,7 +171,8 @@ class Put(Api):
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": obj_firebase_path,
                 "type": oformat,
-                "url": ""  #initialize it empty 
+                "url": "",  #initialize it empty 
+                "glb_url": ""  #initialize it empty 
             }
 
             # Create a new dictionary for the merged records

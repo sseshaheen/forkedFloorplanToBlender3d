@@ -95,45 +95,46 @@ def create_floorplan(base_path, program_path):
         cen = transform["shape"]
 
         components = {
-        "walls": {
-            "vertical": {
-                "verts": "0wall_vertical_verts.txt",
-                "faces": "0wall_vertical_faces.txt"
+            "walls": {
+                "vertical": {
+                    "verts": "0wall_vertical_verts.txt",
+                    "faces": "0wall_vertical_faces.txt"
+                },
+                "horizontal": {
+                    "verts": "0wall_horizontal_verts.txt",
+                    "faces": "0wall_horizontal_faces.txt"
+                }
             },
-            "horizontal": {
-                "verts": "0wall_horizontal_verts.txt",
-                "faces": "0wall_horizontal_faces.txt"
-            }
-        },
-        "windows": {
-            "vertical": {
-                "verts": "0window_vertical_verts.txt",
-                "faces": "0window_vertical_faces.txt"
+            "windows": {
+                "vertical": {
+                    "verts": "0window_vertical_verts.txt",
+                    "faces": "0window_vertical_faces.txt"
+                },
+                "horizontal": {
+                    "verts": "0window_horizontal_verts.txt",
+                    "faces": "0window_horizontal_faces.txt"
+                }
             },
-            "horizontal": {
-                "verts": "0window_horizontal_verts.txt",
-                "faces": "0window_horizontal_faces.txt"
-            }
-        },
-        "doors": {
-            "vertical": {
-                "verts": "0door_vertical_verts.txt",
-                "faces": "0door_vertical_faces.txt"
+            "doors": {
+                "vertical": {
+                    "verts": "0door_vertical_verts.txt",
+                    "faces": "0door_vertical_faces.txt"
+                },
+                "horizontal": {
+                    "verts": "0door_horizontal_verts.txt",
+                    "faces": "0door_horizontal_faces.txt"
+                }
             },
-            "horizontal": {
-                "verts": "0door_horizontal_verts.txt",
-                "faces": "0door_horizontal_faces.txt"
+            "floors": {
+                "verts": "0floor_verts.txt",
+                "faces": "0floor_faces.txt"
+            },
+            "rooms": {
+                "verts": "0room_verts.txt",
+                "faces": "0room_faces.txt"
             }
-        },
-        "floors": {
-            "verts": "0floor_verts.txt",
-            "faces": "0floor_faces.txt"
-        },
-        "rooms": {
-            "verts": "0room_verts.txt",
-            "faces": "0room_faces.txt"
         }
-    }
+
         for component, orientations in components.items():
             for orientation, files in orientations.items():
                 try:
@@ -209,6 +210,9 @@ def export_to_obj(filepath):
     enable_obj_export_addon()
     bpy.ops.export_scene.obj(filepath=filepath, use_selection=False)
 
+def export_to_glb(filepath):
+    bpy.ops.export_scene.gltf(filepath=filepath, export_format='GLB')
+
 def main():
     try:
         program_path = bpy.path.abspath("//")
@@ -222,13 +226,15 @@ def main():
 
         blend_filepath = os.path.join(base_path, "floorplan-adjusted.blend")
         obj_filepath = os.path.join(base_path, "floorplan-adjusted.obj")
+        glb_filepath = os.path.join(base_path, "floorplan-adjusted.glb")
 
         # Save the Blender file
         bpy.ops.wm.save_as_mainfile(filepath=blend_filepath)
 
-        # Export the Blender file to OBJ format
-        export_to_obj(obj_filepath)
+        # Export the Blender file to OBJ and GLB formats
 
+        export_to_obj(obj_filepath)
+        export_to_glb(glb_filepath)
 
     except Exception as e:
         print(f"Error in main function: {e}")
