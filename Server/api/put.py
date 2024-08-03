@@ -132,6 +132,7 @@ class Put(Api):
 
             image_firebase_path = f"uploadedFloorplans/{userId}/{unique_id}-{timestamp}{iformat}"
             obj_firebase_path = f"convertedFloorplans/{userId}/{unique_id}{oformat}"
+            glb_firebase_path = f"convertedFloorplans/{userId}/{unique_id}.glb"
 
             # Upload files to Firebase
             image_url = self.upload_file_to_firebase(image_local_path, image_firebase_path)
@@ -170,6 +171,7 @@ class Put(Api):
                 "id": id,
                 "dateTimeUploaded": dateTimeUploaded,
                 "path": obj_firebase_path,
+                "glb_path": glb_firebase_path,
                 "type": oformat,
                 "url": "",  #initialize it empty 
                 "glb_url": ""  #initialize it empty 

@@ -106,7 +106,7 @@ def process_pending_jobs_to_firebase():
                 try:
                     # Upload the .obj file to Firebase
                     obj_url = upload_file_to_firebase(obj_file_path, job_data["obj_record"]["path"])
-                    glb_url = upload_file_to_firebase(glb_file_path, job_data["obj_glb_record"]["path"])
+                    glb_url = upload_file_to_firebase(glb_file_path, job_data["obj_record"]["glb_path"])
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
