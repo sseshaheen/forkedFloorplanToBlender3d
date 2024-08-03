@@ -125,7 +125,7 @@ def process_pending_jobs_to_firebase():
                     job_data["obj_record"]["url"] = obj_url
                     job_data["glb_record"] = {"path": job_data["obj_record"]["path"].replace(".obj", ".glb"), "url": glb_url}
                     job_data["image_and_obj_record"]["obj_url"] = obj_url
-                    job_data["image_and_obj_record"]["obj_glb_record"] = glb_url
+                    job_data["image_and_obj_record"]["obj_glb_url"] = glb_url
                     # set image_successConversionTo3d to true
                     job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
                     # Add the updated record
