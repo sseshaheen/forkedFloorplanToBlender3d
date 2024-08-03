@@ -97,14 +97,16 @@ def process_pending_jobs_to_firebase():
             with open(job_file_path, "r") as job_file:
                 job_data = json.load(job_file)
 
-            obj_file_path = os.path.join(data_path, job_id, f"floorplan-adjusted.obj")
+            obj_file_path = os.path.join(data_path, job_id, "floorplan-adjusted.obj")
+            glb_file_path = os.path.join(data_path, job_id, "floorplan-adjusted.glb")
             # this will upload the old obj file (without doors and windows):
             # obj_file_path = os.path.join(storage_path, f"{job_id}.obj")
 
-            if os.path.exists(obj_file_path):
+            if os.path.exists(obj_file_path) and os.path.exists(glb_file_path):
                 try:
                     # Upload the .obj file to Firebase
                     obj_url = upload_file_to_firebase(obj_file_path, job_data["obj_record"]["path"])
+                    glb_url = upload_file_to_firebase(glb_file_path, job_data["glb_record"]["path"])
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
@@ -121,12 +123,14 @@ def process_pending_jobs_to_firebase():
                     # Gotta do the job_data updates after the remove otherwise remove will not work
                     # Update the job.json with the URL
                     job_data["obj_record"]["url"] = obj_url
+                    job_data["glb_record"] = {"path": job_data["obj_record"]["path"].replace(".obj", ".glb"), "url": glb_url}
                     job_data["image_and_obj_record"]["obj_url"] = obj_url
+                    job_data["image_and_obj_record"]["glb_url"] = glb_url
                     # set image_successConversionTo3d to true
                     job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
                     # Add the updated record
                     user_ref.update({
-                        "objects": firestore.ArrayUnion([job_data["obj_record"]])
+                        "objects": firestore.ArrayUnion([job_data["obj_record"], job_data["glb_record"]])
                     })
                     user_ref.update({
                         "image_and_obj": firestore.ArrayUnion([job_data["image_and_obj_record"]])
