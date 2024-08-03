@@ -106,7 +106,7 @@ def process_pending_jobs_to_firebase():
                 try:
                     # Upload the .obj file to Firebase
                     obj_url = upload_file_to_firebase(obj_file_path, job_data["obj_record"]["path"])
-                    glb_url = upload_file_to_firebase(glb_file_path, job_data["glb_record"]["path"])
+                    glb_url = upload_file_to_firebase(glb_file_path, job_data["obj_glb_record"]["path"])
 
                     with open(job_file_path, "w") as job_file:
                         json.dump(job_data, job_file, indent=4)
@@ -125,7 +125,7 @@ def process_pending_jobs_to_firebase():
                     job_data["obj_record"]["url"] = obj_url
                     job_data["glb_record"] = {"path": job_data["obj_record"]["path"].replace(".obj", ".glb"), "url": glb_url}
                     job_data["image_and_obj_record"]["obj_url"] = obj_url
-                    job_data["image_and_obj_record"]["glb_url"] = glb_url
+                    job_data["image_and_obj_record"]["obj_glb_record"] = glb_url
                     # set image_successConversionTo3d to true
                     job_data["image_and_obj_record"]["image_successConversionTo3d"] = True
                     # Add the updated record
